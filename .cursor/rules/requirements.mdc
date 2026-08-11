@@ -1,0 +1,33 @@
+---
+description: TinyRouter product requirements — follow scope, priorities, and NFRs
+alwaysApply: true
+---
+
+# TinyRouter requirements
+
+Source of truth (do not duplicate; read when implementing or designing):
+
+- `docs/requirements/Functional.md`
+- `docs/requirements/Non-Functional.md`
+
+## Scope guardrails
+
+- Portfolio URL shortener for one developer; keep it small and deployable.
+- Redirects are public (no account). Create/manage requires a signed-in account.
+- Prefer Must over Should over Could. Prefer MVP over V1 over Future.
+- Do not implement out-of-MVP work unless the user explicitly asks: custom aliases, expiration, analytics, public API, password reset, blocklist, social login, admin console.
+
+## MVP (build this)
+
+Accounts (email/password), authenticated HTTPS-only link creation, unique codes, public redirect with correct unknown/disabled/deleted handling, owner-only list/disable/re-enable/delete, rate limits on create and auth (redirect throttle Should).
+
+## Key NFRs (MVP)
+
+- Redirect p95 under 150 ms, p99 under 300 ms server-side at ~100 rps sustained
+- Create/list/manage p95 under 500 ms
+- Fail closed: never guess a destination when state is unknown
+- Health check endpoint; single-region, modest hardware
+
+## When in doubt
+
+Open or `@`-mention the requirements docs before adding features, changing behavior, or inventing APIs/architecture that conflict with them.
