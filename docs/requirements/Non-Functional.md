@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-Quality targets for TinyRouter as a personal portfolio project. They are deliberately modest and, more importantly, **verifiable by one person on a small budget** — every number here can be demonstrated with a load test, a script, or a screenshot.
+Quality targets for TinyRoute as a personal portfolio project. They are deliberately modest and, more importantly, **verifiable by one person on a small budget** — every number here can be demonstrated with a load test, a script, or a screenshot.
 
 Targets are stated for a single-region deployment on modest hardware. They are engineering goals, not commitments to any customer.
 

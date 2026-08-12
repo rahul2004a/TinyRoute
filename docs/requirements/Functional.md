@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-TinyRouter is a URL shortener built as a personal portfolio project. It is designed to be small enough for one developer to build, deploy, and maintain, while still behaving like a real production service.
+TinyRoute is a URL shortener built as a personal portfolio project. It is designed to be small enough for one developer to build, deploy, and maintain, while still behaving like a real production service.
 
 This document defines **what** the system does. It does not define architecture, data models, technologies, or API contracts.
 
@@ -43,7 +43,7 @@ This document defines **what** the system does. It does not define architecture,
 | FR-CRE-03 | Destination validation   | Only well-formed `https` URLs are accepted. Anything else returns a clear validation message.                              | User    | Must     | MVP     |
 | FR-CRE-04 | Unique code              | Every short URL gets a code that is not already in use. A new link never overwrites an existing one.                       | System  | Must     | MVP     |
 | FR-CRE-05 | Copyable result          | After creation, the short URL is displayed in a form the user can copy in one click.                                       | User    | Must     | MVP     |
-| FR-CRE-06 | Self-reference rejection | Destinations pointing back at TinyRouter's own short-URL domain are rejected to avoid redirect loops.                      | System  | Should   | MVP     |
+| FR-CRE-06 | Self-reference rejection | Destinations pointing back at TinyRoute's own short-URL domain are rejected to avoid redirect loops.                       | System  | Should   | MVP     |
 | FR-CRE-07 | Custom alias             | A user can request a custom code instead of a generated one, if it is available and passes format and reserved-word rules. | User    | Should   | V1      |
 | FR-CRE-08 | Expiration               | A user can set an expiry date and time when creating a link.                                                               | User    | Should   | V1      |
 
@@ -78,7 +78,7 @@ This document defines **what** the system does. It does not define architecture,
 | FR-ANA-01 | Count clicks                                                                | Each successful redirect increments a click count for that link, excluding the service's own health checks. | System | Must     | V1      |
 | FR-ANA-02 | View click count                                                            | A user sees the total clicks for each of their links.                                                       | User   | Must     | V1      |
 | FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Should   | V1      |
-| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Could    | Future  |
+| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Could    | MVP     |
 
 ## 8. Abuse Prevention
 

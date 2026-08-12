@@ -1,9 +1,9 @@
 ---
-description: TinyRouter product requirements — follow scope, priorities, and NFRs
+description: TinyRoute product requirements — follow scope, priorities, and NFRs
 alwaysApply: true
 ---
 
-# TinyRouter requirements
+# TinyRoute requirements
 
 Source of truth (do not duplicate; read when implementing or designing):
 
