@@ -1,290 +1,703 @@
-<mxfile host="65bd71144e" pages="6">
-    <diagram id="components" name="1 - Components">
-        <mxGraphModel dx="920" dy="817" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#33FFFF" math="0" shadow="0">
+<mxfile host="app.diagrams.net" pages="7">
+                        <diagram id="class-diagram" name="1 - Class Diagram">
+        <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1920" math="0" shadow="0">
             <root>
-                <mxCell id="0"/>
-                <mxCell id="1" parent="0"/>
-                <mxCell id="c-title" value="TinyRoute LLD — Spring Boot Components (MVP)" style="text;html=1;fontSize=24;fontStyle=1;align=center;" parent="1" vertex="1">
-                    <mxGeometry x="450" y="20" width="700" height="40" as="geometry"/>
+                <mxCell id="c0"/>
+                <mxCell id="c1" parent="c0"/>
+                <mxCell id="c-title" value="TinyRoute — Spring Boot UML class diagram (MVP Must)" style="text;html=1;fontSize=22;fontStyle=1;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="c1">
+                    <mxGeometry x="350" y="10" width="1300" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-next" value="&lt;b&gt;Next.js frontend&lt;/b&gt;&lt;br&gt;Auth pages • create form • owner dashboard&lt;br&gt;Never enforces ownership by itself" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=15;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="160" width="250" height="100" as="geometry"/>
+                <mxCell id="c-note" value="Next.js is an HTTP client only. Controllers translate HTTP; services own policy/transactions; interfaces isolate JPA and Redis implementations." style="text;html=1;fontSize=12;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="c1">
+                    <mxGeometry x="250" y="45" width="1500" height="25" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-public" value="&lt;b&gt;RedirectController&lt;/b&gt;&lt;br&gt;GET /{code}&lt;br&gt;Public, case-sensitive&lt;br&gt;FR-RED-01..06" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="100" width="210" height="120" as="geometry"/>
+                <mxCell id="AuthController" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] AuthController&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- authService: AuthService&lt;br&gt;- rateLimitService: RateLimitService&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ register(email: String, password: String): Session&lt;br&gt;+ login(email: String, password: String): Session&lt;br&gt;+ logout(tokenHash: String): void&lt;br&gt;+ me(tokenHash: String): User&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="40" y="90" width="330" height="157" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-auth" value="&lt;b&gt;AuthController&lt;/b&gt;&lt;br&gt;POST /api/auth/register&lt;br&gt;POST /api/auth/login&lt;br&gt;POST /api/auth/logout&lt;br&gt;FR-ACC-01..03" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="255" width="210" height="135" as="geometry"/>
+                <mxCell id="LinkController" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] LinkController&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- linkService: LinkService&lt;br&gt;- rateLimitService: RateLimitService&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ create(userId: UUID, url: String): Link&lt;br&gt;+ list(userId: UUID, cursor: String, limit: int): Page&lt;Link&gt;&lt;br&gt;+ setStatus(userId: UUID, id: UUID, status: LinkStatus): Link&lt;br&gt;+ updateDestination(userId: UUID, id: UUID, url: String): Link&lt;br&gt;+ delete(userId: UUID, id: UUID): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="410" y="90" width="390" height="174" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-links" value="&lt;b&gt;LinkController&lt;/b&gt;&lt;br&gt;POST/GET /api/links&lt;br&gt;PATCH status • DELETE&lt;br&gt;Authenticated owner only&lt;br&gt;FR-CRE-* • FR-MGT-*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="425" width="210" height="135" as="geometry"/>
+                <mxCell id="RedirectController" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedirectController&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- redirectService: RedirectService&lt;br&gt;- rateLimitService: RateLimitService&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ resolve(code: String, clientHash: String): RedirectHttpResult&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="840" y="90" width="330" height="106" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-health" value="&lt;b&gt;HealthController&lt;/b&gt;&lt;br&gt;GET /actuator/health&lt;br&gt;App + PostgreSQL reachability&lt;br&gt;NFR-AVL-02" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="600" width="210" height="110" as="geometry"/>
+                <mxCell id="HealthController" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] HealthController&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- healthService: HealthService&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ health(): HealthStatus&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1210" y="90" width="280" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-security" value="&lt;b&gt;Spring Security filter chain&lt;/b&gt;&lt;br&gt;Opaque session cookie&lt;br&gt;HttpOnly • Secure • SameSite&lt;br&gt;CSRF for mutating browser requests&lt;br&gt;Safe error mapping" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="620" y="120" width="230" height="145" as="geometry"/>
+                <mxCell id="SessionAuthFilter" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] SessionAuthFilter&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- sessionStore: SessionStore&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ doFilter(request: HttpRequest): Principal&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1530" y="90" width="300" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-rate" value="&lt;b&gt;RateLimitService&lt;/b&gt;&lt;br&gt;Auth: client key&lt;br&gt;Create: account key&lt;br&gt;Redirect: client/code key&lt;br&gt;Redis atomic counters + TTL&lt;br&gt;FR-ABS-01..03" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="620" y="300" width="230" height="150" as="geometry"/>
+                <mxCell id="CsrfProtection" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] CsrfProtection&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ validate(request: HttpRequest): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1530" y="245" width="300" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-redirectsvc" value="&lt;b&gt;RedirectService&lt;/b&gt;&lt;br&gt;Cache-aside lookup&lt;br&gt;ACTIVE → redirect&lt;br&gt;DISABLED/DELETED/UNKNOWN → no redirect&lt;br&gt;Datastore uncertainty → fail closed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f2bb;strokeColor=#2b8a3e;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="900" y="80" width="260" height="155" as="geometry"/>
+                <mxCell id="AuthService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] AuthService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- userRepository: UserRepository&lt;br&gt;- sessionStore: SessionStore&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ register(email: String, password: String): Session&lt;br&gt;+ login(email: String, password: String): Session&lt;br&gt;+ logout(tokenHash: String): void&lt;br&gt;+ currentUser(tokenHash: String): User&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="40" y="410" width="330" height="157" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-authsvc" value="&lt;b&gt;AuthService&lt;/b&gt;&lt;br&gt;Normalize email&lt;br&gt;Argon2id/bcrypt password hash&lt;br&gt;Create/revoke 30-day idle session&lt;br&gt;NFR-SEC-02,06" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f2bb;strokeColor=#2b8a3e;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="900" y="270" width="260" height="140" as="geometry"/>
+                <mxCell id="LinkService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] LinkService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- linkRepository: LinkRepository&lt;br&gt;- redirectCache: RedirectCache&lt;br&gt;- ownershipGuard: OwnershipGuard&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ create(ownerId: UUID, url: String): Link&lt;br&gt;+ list(ownerId: UUID, cursor: String, limit: int): Page&lt;Link&gt;&lt;br&gt;+ disable(ownerId: UUID, linkId: UUID): Link&lt;br&gt;+ enable(ownerId: UUID, linkId: UUID): Link&lt;br&gt;+ delete(ownerId: UUID, linkId: UUID): void&lt;br&gt;+ updateDestination(ownerId: UUID, linkId: UUID, url: String): Link&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="410" y="410" width="390" height="208" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-linksvc" value="&lt;b&gt;LinkService&lt;/b&gt;&lt;br&gt;Validate HTTPS + reject self-reference&lt;br&gt;Generate random code; retry unique conflict&lt;br&gt;Check owner on every operation&lt;br&gt;Status transitions + cache eviction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f2bb;strokeColor=#2b8a3e;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="900" y="450" width="260" height="155" as="geometry"/>
+                <mxCell id="RedirectService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedirectService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- redirectCache: RedirectCache&lt;br&gt;- linkRepository: LinkRepository&lt;br&gt;- clickCountService: ClickCountService&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ resolve(code: ShortCode): RedirectLookup&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="840" y="410" width="330" height="123" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-repos" value="&lt;b&gt;Repositories&lt;/b&gt;&lt;br&gt;UserRepository&lt;br&gt;LinkRepository&lt;br&gt;Parameterized JPA queries&lt;br&gt;Versioned Flyway/Liquibase migrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="1210" y="345" width="220" height="140" as="geometry"/>
+                <mxCell id="RateLimitService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RateLimitService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- rateLimitStore: RateLimitStore&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ allowAuth(clientHash: String): boolean&lt;br&gt;+ allowCreate(userId: UUID): boolean&lt;br&gt;+ allowRedirect(clientHash: String): boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1210" y="410" width="300" height="123" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-redis" value="&lt;b&gt;Redis adapters&lt;/b&gt;&lt;br&gt;RedirectCache&lt;br&gt;SessionRepository&lt;br&gt;RateLimitRepository&lt;br&gt;Cache records encode link state" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="1210" y="120" width="220" height="140" as="geometry"/>
+                <mxCell id="OwnershipGuard" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] OwnershipGuard&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- linkRepository: LinkRepository&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ requireOwned(userId: UUID, linkId: UUID): Link&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1540" y="410" width="300" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-cross" value="&lt;b&gt;Cross-cutting&lt;/b&gt;&lt;br&gt;Bean validation • transaction boundaries • idempotent lifecycle commands&lt;br&gt;structured request logs method/path/status/duration • correlation ID • no secrets&lt;br&gt;NFR-REL-03 • NFR-OBS-01 • NFR-SEC-05,08" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9ecef;strokeColor=#495057;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="620" y="675" width="810" height="105" as="geometry"/>
+                <mxCell id="ClickCountService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] ClickCountService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- linkRepository: LinkRepository&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ recordSuccessfulRedirect(linkId: UUID): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;dashed=1;" vertex="1" parent="c1">
+                    <mxGeometry x="1540" y="585" width="300" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="c-note" value="Architecture rule: controllers translate HTTP only; services own policy and transactions; repositories own persistence. The database remains the source of truth." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="80" y="760" width="440" height="100" as="geometry"/>
+                <mxCell id="HealthService" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] HealthService&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- dataSource: DataSource&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ status(): HealthStatus&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1210" y="620" width="300" height="89" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-next" target="c-public" edge="1">
+                <mxCell id="UserRepository" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[I] UserRepository&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ save(user: User): User&lt;br&gt;+ findByEmailNormalized(email: String): User?&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="40" y="820" width="320" height="106" as="geometry"/>
+                </mxCell>
+                <mxCell id="SessionStore" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[I] SessionStore&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ create(userId: UUID): Session&lt;br&gt;+ get(tokenHash: String): Session?&lt;br&gt;+ touch(tokenHash: String): void&lt;br&gt;+ delete(tokenHash: String): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="400" y="820" width="300" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="LinkRepository" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[I] LinkRepository&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ save(link: Link): Link&lt;br&gt;+ findByCode(code: ShortCode): Link?&lt;br&gt;+ findByIdAndOwnerId(id: UUID, ownerId: UUID): Link?&lt;br&gt;+ findPageByOwnerId(ownerId: UUID, cursor: String, limit: int): Page&lt;Link&gt;&lt;br&gt;+ incrementClickCount(linkId: UUID): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="740" y="820" width="400" height="157" as="geometry"/>
+                </mxCell>
+                <mxCell id="RedirectCache" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[I] RedirectCache&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ get(code: ShortCode): RedirectLookup?&lt;br&gt;+ put(code: ShortCode, lookup: RedirectLookup, ttl: Duration): void&lt;br&gt;+ evict(code: ShortCode): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1180" y="820" width="320" height="123" as="geometry"/>
+                </mxCell>
+                <mxCell id="RateLimitStore" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[I] RateLimitStore&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ increment(key: String, ttl: Duration): long&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1540" y="820" width="300" height="89" as="geometry"/>
+                </mxCell>
+                <mxCell id="JpaUserRepository" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] JpaUserRepository&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- entityManager: EntityManager&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ save(user: User): User&lt;br&gt;+ findByEmailNormalized(email: String): User?&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="40" y="1100" width="320" height="106" as="geometry"/>
+                </mxCell>
+                <mxCell id="RedisSessionStore" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedisSessionStore&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- redis: RedisTemplate&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ create(userId: UUID): Session&lt;br&gt;+ get(tokenHash: String): Session?&lt;br&gt;+ touch(tokenHash: String): void&lt;br&gt;+ delete(tokenHash: String): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="400" y="1100" width="300" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="JpaLinkRepository" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] JpaLinkRepository&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- entityManager: EntityManager&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ save(link: Link): Link&lt;br&gt;+ findByCode(code: ShortCode): Link?&lt;br&gt;+ findByIdAndOwnerId(id: UUID, ownerId: UUID): Link?&lt;br&gt;+ findPageByOwnerId(ownerId: UUID, cursor: String, limit: int): Page&lt;Link&gt;&lt;br&gt;+ incrementClickCount(linkId: UUID): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="740" y="1100" width="400" height="157" as="geometry"/>
+                </mxCell>
+                <mxCell id="RedisRedirectCache" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedisRedirectCache&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- redis: RedisTemplate&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ get(code: ShortCode): RedirectLookup?&lt;br&gt;+ put(code: ShortCode, lookup: RedirectLookup, ttl: Duration): void&lt;br&gt;+ evict(code: ShortCode): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1180" y="1100" width="320" height="123" as="geometry"/>
+                </mxCell>
+                <mxCell id="RedisRateLimitStore" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedisRateLimitStore&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- redis: RedisTemplate&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ increment(key: String, ttl: Duration): long&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1540" y="1100" width="300" height="89" as="geometry"/>
+                </mxCell>
+                <mxCell id="User" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] User&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- id: UUID&lt;br&gt;- emailNormalized: String&lt;br&gt;- passwordHash: String&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ matches(rawPassword: String): boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="40" y="1430" width="280" height="123" as="geometry"/>
+                </mxCell>
+                <mxCell id="Link" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] Link&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- id: UUID&lt;br&gt;- code: ShortCode&lt;br&gt;- owner: User&lt;br&gt;- destinationUrl: DestinationUrl&lt;br&gt;- status: LinkStatus&lt;br&gt;- clickCount: long&lt;br&gt;- createdAt: Instant&lt;br&gt;- updatedAt: Instant&lt;br&gt;- deletedAt: Instant?&lt;br&gt;- expiresAt: Instant? «Should»&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ disable(): void&lt;br&gt;+ enable(): void&lt;br&gt;+ tombstone(): void&lt;br&gt;+ replaceDestination(url: DestinationUrl): void&lt;br&gt;+ isRedirectable(now: Instant): boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="350" y="1430" width="360" height="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="LinkStatus" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[E] LinkStatus&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;ACTIVE&lt;br&gt;DISABLED&lt;br&gt;DELETED&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="750" y="1430" width="220" height="123" as="geometry"/>
+                </mxCell>
+                <mxCell id="ShortCode" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] ShortCode&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- value: String&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ generate(): ShortCode&lt;br&gt;+ parse(raw: String): ShortCode&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1010" y="1430" width="260" height="106" as="geometry"/>
+                </mxCell>
+                <mxCell id="DestinationUrl" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] DestinationUrl&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- value: String&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ parseHttps(raw: String): DestinationUrl&lt;br&gt;+ rejectSelfHost(appHost: String): void&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1310" y="1430" width="300" height="106" as="geometry"/>
+                </mxCell>
+                <mxCell id="Session" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] Session&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- tokenHash: String&lt;br&gt;- userId: UUID&lt;br&gt;- lastAccessAt: Instant&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;&amp;nbsp;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1650" y="1430" width="280" height="123" as="geometry"/>
+                </mxCell>
+                <mxCell id="RedirectLookup" value="&lt;div style=&quot;text-align:left;padding:5px 7px&quot;&gt;&lt;b&gt;[C] RedirectLookup&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;- status: LinkStatus&lt;br&gt;- destination: DestinationUrl?&lt;/div&gt;&lt;hr&gt;&lt;div style=&quot;text-align:left;padding:4px 7px&quot;&gt;+ isWellFormed(): boolean&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1650" y="1640" width="280" height="106" as="geometry"/>
+                </mxCell>
+                <mxCell id="ShouldTypes" value="[Should / V1-adjacent] CustomAlias; PasswordResetToken; DailyClickAggregate. No blocklist, API keys, social login, admin console, or safe-browsing in the MVP model." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;dashed=1;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1010" y="1680" width="600" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="InvariantNote" value="Core invariants: codes are unique, case-sensitive, tombstoned, and never reused (FR-CRE-04, FR-RED-05/06, FR-MGT-05); manage queries include owner_id (FR-MGT-01..05/07, NFR-SEC-04); only known ACTIVE + destination redirects (FR-RED-01..04, NFR-REL-01/02); DB commit precedes cache eviction and cache TTL is ≤5 s (NFR-CON-01/02)." style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=8;fillColor=none;strokeColor=#000000;fontSize=11;" vertex="1" parent="c1">
+                    <mxGeometry x="1010" y="1790" width="920" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-auth-controller-service" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="AuthController" target="AuthService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-next" target="c-auth" edge="1">
+                <mxCell id="e-auth-controller-rate" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="AuthController" target="RateLimitService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-next" target="c-links" edge="1">
+                <mxCell id="e-link-controller-service" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="LinkController" target="LinkService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce4" value="public + auth throttle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-public" target="c-rate" edge="1">
+                <mxCell id="e-link-controller-rate" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="LinkController" target="RateLimitService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-auth" target="c-security" edge="1">
+                <mxCell id="e-redirect-controller-service" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectController" target="RedirectService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-links" target="c-security" edge="1">
+                <mxCell id="e-redirect-controller-rate" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectController" target="RateLimitService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-public" target="c-redirectsvc" edge="1">
+                <mxCell id="e-health-controller-service" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="HealthController" target="HealthService">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-security" target="c-authsvc" edge="1">
+                <mxCell id="e-session-filter-store" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="SessionAuthFilter" target="SessionStore">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-security" target="c-linksvc" edge="1">
+                <mxCell id="e-session-filter-link" value="authenticates protected requests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="SessionAuthFilter" target="LinkController">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce10" value="create limit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-rate" target="c-linksvc" edge="1">
+                <mxCell id="e-session-filter-auth" value="authenticates logout / me" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="SessionAuthFilter" target="AuthController">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce11" value="cache/session/counters" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-redirectsvc" target="c-redis" edge="1">
+                <mxCell id="e-csrf-link" value="protects mutations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="CsrfProtection" target="LinkController">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-authsvc" target="c-repos" edge="1">
+                <mxCell id="e-csrf-auth" value="protects mutations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="CsrfProtection" target="AuthController">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-linksvc" target="c-repos" edge="1">
+                <mxCell id="e-auth-user" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="AuthService" target="UserRepository">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ce14" value="cache miss" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" parent="1" source="c-redirectsvc" target="c-repos" edge="1">
+                <mxCell id="e-auth-session" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="AuthService" target="SessionStore">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-repo" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="LinkService" target="LinkRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-cache" value="depends on / evicts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="LinkService" target="RedirectCache">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-owner" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="LinkService" target="OwnershipGuard">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-owner-repo" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="OwnershipGuard" target="LinkRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redirect-cache" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectService" target="RedirectCache">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redirect-repo" value="depends on on miss" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectService" target="LinkRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redirect-click" value="async; never blocks 3xx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectService" target="ClickCountService">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-click-repo" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="ClickCountService" target="LinkRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-rate-store" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RateLimitService" target="RateLimitStore">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-jpa-user" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="JpaUserRepository" target="UserRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redis-session" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedisSessionStore" target="SessionStore">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-jpa-link" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="JpaLinkRepository" target="LinkRepository">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redis-cache" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedisRedirectCache" target="RedirectCache">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-redis-rate" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;dashed=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedisRateLimitStore" target="RateLimitStore">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-user-link" value="1 owns 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="User" target="Link">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-status" value="1 status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="Link" target="LinkStatus">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-code" value="1 code" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=diamond;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="Link" target="ShortCode">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-link-destination" value="1 destination" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=diamond;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="Link" target="DestinationUrl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-user-session" value="1 has 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="User" target="Session">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lookup-status" value="1 status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectLookup" target="LinkStatus">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lookup-destination" value="0..1 destination" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="c1" source="RedirectLookup" target="DestinationUrl">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="data" name="2 - Data and Redis Keys">
-        <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+<diagram id="components" name="2 - Component Interactions">
+        <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2480" pageHeight="1680" math="0" shadow="0">
+            <root>
+                <mxCell id="cmp0"/>
+                <mxCell id="cmp1" parent="cmp0"/>
+                <mxCell id="cmp-title" value="TinyRoute LLD — Which component talks to which (labeled calls)" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="cmp1">
+                    <mxGeometry x="320" y="12" width="1400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="cmp-legend" value="Solid arrow = synchronous call on the request path. Dashed arrow = async / must not block. Next.js is an HTTP client only: it never calls PostgreSQL, Redis, repositories, OwnershipGuard, or RedirectService." style="text;html=1;fontSize=12;align=center;" vertex="1" parent="cmp1">
+                    <mxGeometry x="80" y="48" width="2320" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane-red" value="Public redirect" style="swimlane;html=1;horizontal=1;startSize=32;fontSize=14;fontStyle=1;collapsible=0;" vertex="1" parent="cmp1">
+                    <mxGeometry x="40" y="90" width="580" height="1320" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-vis" value="Visitor browser" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="50" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-ing" value="HTTPS ingress — TLS; route GET /{code}" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="130" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-ctrl" value="RedirectController&#xa;No session, no CSRF, no ownership" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="210" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-rl" value="RateLimitService.allowRedirect(clientHash)&#xa;→ RateLimitStore INCR rl:redirect:{clientHash}" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="302" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-svc" value="RedirectService.resolve(code)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="394" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-cache" value="RedirectCache.get / put&#xa;key redirect:{code}  TTL ≤5s  malformed = miss" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="474" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-repo" value="LinkRepository.findByCode (cache miss only)&#xa;case-sensitive; fail closed if query errors" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="566" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-click" value="ClickCountService.recordSuccessfulRedirect&#xa;after 3xx only; failure ignored" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="658" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-redis" value="Redis — redirect cache + rl:redirect counter" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="750" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-pg" value="PostgreSQL — links row (system of record)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="830" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="red-note" value="Does not call: AuthService, LinkService, SessionStore, OwnershipGuard, UserRepository, Next.js. ClickCountService does not call RedirectCache." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=12;" vertex="1" parent="lane-red">
+                    <mxGeometry x="40" y="900" width="500" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-1" value="GET /{code}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-vis" target="red-ing">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-2" value="forward, no cookie required" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-ing" target="red-ctrl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-3" value="1. throttle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-ctrl" target="red-rl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-4" value="2. resolve" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-ctrl" target="red-svc">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-5" value="cache-aside get/put" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-svc" target="red-cache">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-6" value="miss / Redis down" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-svc" target="red-repo">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-7" value="async; never changes 3xx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=11;" edge="1" parent="lane-red" source="red-svc" target="red-click">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-8" value="GET/SET redirect:{code}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-cache" target="red-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-9" value="INCR rl:redirect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-rl" target="red-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-10" value="SELECT by exact code" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-red" source="red-repo" target="red-pg">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re-11" value="UPDATE click_count" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=11;" edge="1" parent="lane-red" source="red-click" target="red-repo">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane-auth" value="Register / sign-in / sign-out" style="swimlane;html=1;horizontal=1;startSize=32;fontSize=14;fontStyle=1;collapsible=0;" vertex="1" parent="cmp1">
+                    <mxGeometry x="640" y="90" width="580" height="1320" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-next" value="Next.js — forms only; no auth policy" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="50" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-ing" value="HTTPS ingress — /api/auth/*" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="130" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-csrf" value="CsrfProtection — mutating auth calls" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="210" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-ctrl" value="AuthController&#xa;register / login / logout / me" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="290" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-rl" value="RateLimitService.allowAuth(clientHash)&#xa;→ RateLimitStore INCR rl:auth:{clientHash}" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="382" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-svc" value="AuthService — normalize email; Argon2id/bcrypt" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="474" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-saf" value="SessionAuthFilter (logout / me only)&#xa;reads cookie; sliding 30-day TTL" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="554" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-users" value="UserRepository.save / findByEmailNormalized" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="646" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-sess" value="SessionStore.create / get / touch / delete" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="726" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-pg" value="PostgreSQL — users" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="806" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-redis" value="Redis — session:{tokenHash} + rl:auth" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="886" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="au-note" value="Does not call: LinkService, RedirectService, LinkRepository, RedirectCache, OwnershipGuard. Register/login have no prior session." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=12;" vertex="1" parent="lane-auth">
+                    <mxGeometry x="40" y="956" width="500" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-1" value="POST JSON + cookie" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-next" target="au-ing">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-2" value="CSRF then controller" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-ing" target="au-csrf">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-csrf" target="au-ctrl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-4" value="1. throttle register/login" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-ctrl" target="au-rl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-5" value="2. policy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-ctrl" target="au-svc">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-6" value="logout/me: resolve cookie" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-ctrl" target="au-saf">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-7" value="persist user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-svc" target="au-users">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-8" value="create/delete session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-svc" target="au-sess">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-9" value="get/touch/delete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-saf" target="au-sess">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-10" value="SQL users" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-users" target="au-pg">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-11" value="session key" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-sess" target="au-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ae-12" value="INCR rl:auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-auth" source="au-rl" target="au-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane-link" value="Owner create / list / manage" style="swimlane;html=1;horizontal=1;startSize=32;fontSize=14;fontStyle=1;collapsible=0;" vertex="1" parent="cmp1">
+                    <mxGeometry x="1240" y="90" width="580" height="1320" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-next" value="Next.js dashboard — HTTP client only" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="50" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-ing" value="HTTPS ingress — /api/links*" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="130" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-saf" value="SessionAuthFilter → SessionStore (required)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="210" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-csrf" value="CsrfProtection — POST/PATCH/DELETE" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="290" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-ctrl" value="LinkController — HTTP ↔ DTO only" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="370" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-rl" value="RateLimitService.allowCreate(userId)&#xa;create only → rl:create:{userId}" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="450" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-svc" value="LinkService — validation, tx, cache eviction" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="542" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-own" value="OwnershipGuard.requireOwned&#xa;missing and non-owned both 404" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="622" width="500" height="56" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-repo" value="LinkRepository — owner_id on every manage query" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="714" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-cache" value="RedirectCache.evict after successful commit" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="794" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-pg" value="PostgreSQL — links (+ users FK)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="874" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-redis" value="Redis — session + rl:create + redirect evict" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="954" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="lk-note" value="Does not call: AuthService, UserRepository (except via session userId), RedirectService, ClickCountService. UI never checks owner_id." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=12;" vertex="1" parent="lane-link">
+                    <mxGeometry x="40" y="1024" width="500" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-1" value="JSON + session cookie" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-next" target="lk-ing">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-2" value="must have session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-ing" target="lk-saf">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-3" value="mutations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-saf" target="lk-csrf">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-csrf" target="lk-ctrl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-5" value="create only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-ctrl" target="lk-rl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-6" value="all link ops" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-ctrl" target="lk-svc">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-7" value="status / dest / delete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-svc" target="lk-own">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-8" value="save / list / owned get" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-svc" target="lk-repo">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-9" value="findByIdAndOwnerId" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-own" target="lk-repo">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-10" value="after commit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-svc" target="lk-cache">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-11" value="SQL links" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-repo" target="lk-pg">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-12" value="DEL redirect:{code}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-cache" target="lk-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-13" value="session + rl:create" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-saf" target="lk-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="le-14" value="INCR rl:create" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-link" source="lk-rl" target="lk-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane-hlth" value="Health" style="swimlane;html=1;horizontal=1;startSize=32;fontSize=14;fontStyle=1;collapsible=0;" vertex="1" parent="cmp1">
+                    <mxGeometry x="1840" y="90" width="580" height="1320" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-mon" value="Uptime monitor / load balancer" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="50" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-ing" value="HTTPS ingress — GET /actuator/health" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="130" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-ctrl" value="HealthController" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="210" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-repo" value="UserRepository / DataSource ping" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="290" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-pg" value="PostgreSQL — required for UP" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="370" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-redis" value="Redis — optional; loss must not mark app down" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fontSize=13;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="450" width="500" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-note" value="Does not call: Auth/Link/Redirect services, rate limits, CSRF, sessions. Redis down degrades cache/sessions but health stays UP if PostgreSQL answers (NFR-AVL-02)." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=12;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="530" width="500" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="hl-matrix" value="Shared instances (one each): PostgreSQL, Redis, RateLimitService, RedirectCache, SessionStore, LinkRepository. Columns show the same beans, not separate copies. Cross-column rule: LinkService evicts the same RedirectCache that RedirectService reads." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=12;" vertex="1" parent="lane-hlth">
+                    <mxGeometry x="40" y="670" width="500" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="he-1" value="GET /actuator/health" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-hlth" source="hl-mon" target="hl-ing">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="he-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-hlth" source="hl-ing" target="hl-ctrl">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="he-3" value="required ping" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-hlth" source="hl-ctrl" target="hl-repo">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="he-4" value="SELECT 1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=11;" edge="1" parent="lane-hlth" source="hl-repo" target="hl-pg">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="he-5" value="optional PING" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=11;" edge="1" parent="lane-hlth" source="hl-ctrl" target="hl-redis">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="cmp-foot" value="Layer reminder: controllers translate HTTP only → services own policy/transactions → repositories/adapters own PostgreSQL/Redis. Ownership is never enforced in Next.js (FR-MGT-02, NFR-SEC-04)." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="cmp1">
+                    <mxGeometry x="40" y="1430" width="2380" height="50" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="data" name="3 - Data and Redis Keys">
+        <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="d0"/>
                 <mxCell id="d1" parent="d0"/>
-                <mxCell id="d-title" value="TinyRoute LLD — PostgreSQL Schema and Redis Keyspace" style="text;html=1;fontSize=24;fontStyle=1;align=center;" vertex="1" parent="d1">
-                    <mxGeometry x="430" y="20" width="740" height="40" as="geometry"/>
+                <mxCell id="d-title" value="TinyRoute LLD — PostgreSQL Schema and Redis Keyspace" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="d1">
+                    <mxGeometry x="280" y="20" width="980" height="36" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-pg" value="PostgreSQL — system of record" style="swimlane;html=1;horizontal=1;startSize=35;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=18;fontStyle=1;" vertex="1" parent="d1">
-                    <mxGeometry x="50" y="90" width="950" height="700" as="geometry"/>
+                <mxCell id="d-pg" value="PostgreSQL — system of record" style="swimlane;html=1;horizontal=1;startSize=35;fontSize=16;fontStyle=1;collapsible=0;" vertex="1" parent="d1">
+                    <mxGeometry x="40" y="80" width="980" height="760" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-users" value="&lt;b&gt;users&lt;/b&gt;&lt;hr&gt;&lt;b&gt;id&lt;/b&gt; UUID PK&lt;br&gt;&lt;b&gt;email_normalized&lt;/b&gt; VARCHAR UNIQUE NOT NULL&lt;br&gt;password_hash VARCHAR NOT NULL&lt;br&gt;created_at TIMESTAMPTZ NOT NULL&lt;br&gt;updated_at TIMESTAMPTZ NOT NULL&lt;br&gt;&lt;br&gt;Only email + password hash (NFR-PRV-01)" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="d-pg">
-                    <mxGeometry x="45" y="80" width="360" height="270" as="geometry"/>
+                <mxCell id="d-users" value="&lt;b&gt;users&lt;/b&gt;&lt;hr&gt;&lt;b&gt;id&lt;/b&gt; UUID PK&lt;br&gt;&lt;b&gt;email_normalized&lt;/b&gt; VARCHAR UNIQUE NOT NULL&lt;br&gt;password_hash VARCHAR NOT NULL&lt;br&gt;created_at TIMESTAMPTZ NOT NULL&lt;br&gt;updated_at TIMESTAMPTZ NOT NULL&lt;br&gt;&lt;br&gt;Only email + password hash (NFR-PRV-01). No name/phone/profile." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-pg">
+                    <mxGeometry x="30" y="55" width="430" height="210" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-links" value="&lt;b&gt;links&lt;/b&gt;&lt;hr&gt;&lt;b&gt;id&lt;/b&gt; UUID PK&lt;br&gt;&lt;b&gt;code&lt;/b&gt; VARCHAR UNIQUE NOT NULL (binary/case-sensitive collation)&lt;br&gt;&lt;b&gt;owner_id&lt;/b&gt; UUID FK → users.id&lt;br&gt;destination_url TEXT NOT NULL, immutable in MVP&lt;br&gt;status ENUM ACTIVE | DISABLED | DELETED&lt;br&gt;created_at TIMESTAMPTZ NOT NULL&lt;br&gt;updated_at TIMESTAMPTZ NOT NULL&lt;br&gt;deleted_at TIMESTAMPTZ NULL&lt;br&gt;&lt;br&gt;DELETED row is a tombstone; code is never reused." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="d-pg">
-                    <mxGeometry x="505" y="80" width="390" height="340" as="geometry"/>
+                <mxCell id="d-links" value="&lt;b&gt;links&lt;/b&gt;&lt;hr&gt;&lt;b&gt;id&lt;/b&gt; UUID PK&lt;br&gt;&lt;b&gt;code&lt;/b&gt; VARCHAR UNIQUE NOT NULL (case-sensitive collation)&lt;br&gt;&lt;b&gt;owner_id&lt;/b&gt; UUID FK → users.id&lt;br&gt;destination_url TEXT NOT NULL (https; owner-editable, FR-MGT-07)&lt;br&gt;status TEXT CHECK (ACTIVE | DISABLED | DELETED)&lt;br&gt;click_count BIGINT NOT NULL DEFAULT 0 (informational; may lag ≤1 min)&lt;br&gt;created_at TIMESTAMPTZ NOT NULL&lt;br&gt;updated_at TIMESTAMPTZ NOT NULL&lt;br&gt;deleted_at TIMESTAMPTZ NULL&lt;br&gt;expires_at TIMESTAMPTZ NULL  «Should / FR-CRE-08»&lt;br&gt;&lt;br&gt;DELETED row is a tombstone; code is never reused." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-pg">
+                    <mxGeometry x="500" y="55" width="450" height="320" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-indexes" value="&lt;b&gt;Indexes and constraints&lt;/b&gt;&lt;br&gt;1. UNIQUE links(code): collision-safe generation + O(log n) lookup&lt;br&gt;2. INDEX links(owner_id, created_at DESC, id DESC): stable cursor pagination&lt;br&gt;3. CHECK destination scheme is https (service also validates)&lt;br&gt;4. FK owner_id RESTRICT: MVP has no account deletion&lt;br&gt;5. Parameterized JPA queries; ownership query includes owner_id&lt;br&gt;&lt;br&gt;FR-CRE-03,04 • FR-RED-06 • FR-MGT-01,02,05" style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="d-pg">
-                    <mxGeometry x="45" y="420" width="850" height="210" as="geometry"/>
+                <mxCell id="d-indexes" value="&lt;b&gt;Indexes and constraints&lt;/b&gt;&lt;br&gt;1. UNIQUE links(code): collision-safe generation + O(log n) lookup; never UPDATE code&lt;br&gt;2. INDEX links(owner_id, created_at DESC, id DESC): stable cursor pagination&lt;br&gt;3. CHECK destination_url starts with https:// (service also validates + rejects self-host)&lt;br&gt;4. FK owner_id RESTRICT: MVP has no account deletion (FR-ACC-05 Could)&lt;br&gt;5. Parameterized JPA; every manage query includes owner_id&lt;br&gt;6. click_count updated asynchronously; not on the redirect critical path&lt;br&gt;&lt;br&gt;FR-CRE-03,04 • FR-RED-06 • FR-MGT-01,02,05,07 • FR-ANA-01" style="shape=note;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-pg">
+                    <mxGeometry x="30" y="400" width="920" height="230" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-rel" value="1 owner : N links" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="d-pg" source="d-users" target="d-links">
+                <mxCell id="d-should-tbl" value="Should tables (not required to ship Must): password_reset_tokens (token_hash, user_id, expires_at); daily_click_aggregates (link_id, day, clicks) with no visitor identifiers." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;dashed=1;fontSize=12;" vertex="1" parent="d-pg">
+                    <mxGeometry x="30" y="650" width="920" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="d-rel" value="1 owner : 0..* links" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=ERmany;startArrow=ERone;" edge="1" parent="d-pg" source="d-users" target="d-links">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-redis" value="Redis — disposable acceleration/state" style="swimlane;html=1;horizontal=1;startSize=35;fillColor=#f8cecc;strokeColor=#b85450;fontSize=18;fontStyle=1;" vertex="1" parent="d1">
-                    <mxGeometry x="1050" y="90" width="490" height="700" as="geometry"/>
+                <mxCell id="d-redis" value="Redis — disposable acceleration / ephemeral state" style="swimlane;html=1;horizontal=1;startSize=35;fontSize=16;fontStyle=1;collapsible=0;" vertex="1" parent="d1">
+                    <mxGeometry x="1060" y="80" width="500" height="760" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-cache" value="&lt;b&gt;redirect:{code}&lt;/b&gt;&lt;br&gt;Value: {status, destination?}&lt;br&gt;TTL: ≤5 seconds for ACTIVE/DISABLED&lt;br&gt;DELETED/UNKNOWN may use short negative TTL&lt;br&gt;Evict after successful create/status/delete commit&lt;br&gt;No redirect when value is incomplete or malformed." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#b85450;fontSize=14;" vertex="1" parent="d-redis">
-                    <mxGeometry x="35" y="70" width="420" height="170" as="geometry"/>
+                <mxCell id="d-cache" value="&lt;b&gt;redirect:{code}&lt;/b&gt;&lt;br&gt;Value: RedirectLookup {status, destination?}&lt;br&gt;TTL: ≤5 seconds for ACTIVE/DISABLED&lt;br&gt;DELETED/UNKNOWN may use short negative TTL&lt;br&gt;Evict after successful create / status / destination / delete commit&lt;br&gt;Malformed or incomplete value is a miss, never a redirect." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-redis">
+                    <mxGeometry x="30" y="55" width="440" height="190" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-session" value="&lt;b&gt;session:{randomTokenHash}&lt;/b&gt;&lt;br&gt;Value: {userId, lastAccessAt}&lt;br&gt;Sliding idle TTL: 30 days&lt;br&gt;Browser stores opaque random token only&lt;br&gt;Logout deletes key immediately.&lt;br&gt;NFR-SEC-06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#b85450;fontSize=14;" vertex="1" parent="d-redis">
-                    <mxGeometry x="35" y="270" width="420" height="150" as="geometry"/>
+                <mxCell id="d-session" value="&lt;b&gt;session:{tokenHash}&lt;/b&gt;&lt;br&gt;Value: {userId, lastAccessAt}&lt;br&gt;Sliding idle TTL: 30 days&lt;br&gt;Browser stores opaque random token only&lt;br&gt;Logout deletes key immediately.&lt;br&gt;NFR-SEC-06" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-redis">
+                    <mxGeometry x="30" y="270" width="440" height="170" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-rates" value="&lt;b&gt;Rate-limit keys&lt;/b&gt;&lt;br&gt;rl:auth:{clientHash}:{window}&lt;br&gt;rl:create:{userId}:{window}&lt;br&gt;rl:redirect:{clientHash}:{window}&lt;br&gt;Atomic INCR + EXPIRE; bounded TTL&lt;br&gt;Client IP is keyed/HMACed, never retained &gt;24h.&lt;br&gt;FR-ABS-01..03 • NFR-PRV-02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#b85450;fontSize=14;" vertex="1" parent="d-redis">
-                    <mxGeometry x="35" y="450" width="420" height="170" as="geometry"/>
+                <mxCell id="d-rates" value="&lt;b&gt;Rate-limit keys&lt;/b&gt;&lt;br&gt;rl:auth:{clientHash}&lt;br&gt;rl:create:{userId}&lt;br&gt;rl:redirect:{clientHash}&lt;br&gt;Atomic INCR + EXPIRE; bounded TTL&lt;br&gt;Client IP is keyed/HMACed, never retained &amp;gt;24h.&lt;br&gt;FR-ABS-01..03 • NFR-PRV-02" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="d-redis">
+                    <mxGeometry x="30" y="465" width="440" height="180" as="geometry"/>
                 </mxCell>
-                <mxCell id="d-consistency" value="Consistency: database commit precedes cache eviction. A stale entry can survive no longer than its ≤5-second TTL. Redis loss degrades latency/session availability but never changes the PostgreSQL truth; a PostgreSQL lookup failure returns an error and never guesses a destination. NFR-CON-01,02 • NFR-REL-02" style="shape=note;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="d1">
-                    <mxGeometry x="210" y="830" width="1180" height="100" as="geometry"/>
+                <mxCell id="d-consistency" value="Consistency: database commit precedes cache eviction. A stale entry can survive no longer than its ≤5-second TTL. Redis loss degrades latency/session availability but never changes PostgreSQL truth; a PostgreSQL lookup failure returns an error and never guesses a destination. NFR-CON-01,02 • NFR-REL-02" style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="d1">
+                    <mxGeometry x="40" y="870" width="1520" height="80" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="auth-create" name="3 - Auth and Create">
+    <diagram id="auth-create" name="4 - Auth and Create">
         <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="ac0"/>
                 <mxCell id="ac1" parent="ac0"/>
-                <mxCell id="ac-title" value="TinyRoute LLD — Registration, Sign-in, and Link Creation" style="text;html=1;fontSize=24;fontStyle=1;align=center;" vertex="1" parent="ac1">
-                    <mxGeometry x="380" y="20" width="840" height="40" as="geometry"/>
+                <mxCell id="ac-title" value="TinyRoute LLD — Registration, Sign-in, and Link Creation" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="ac1">
+                    <mxGeometry x="280" y="20" width="980" height="36" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-user" value="Browser / Next.js" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="40" y="90" width="170" height="850" as="geometry"/>
+                <mxCell id="ac-user" value="Browser / Next.js" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="40" y="80" width="170" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-api" value="Spring Security + Controllers" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="300" y="90" width="220" height="850" as="geometry"/>
+                <mxCell id="ac-api" value="Spring Security + Controllers" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="300" y="80" width="230" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-service" value="AuthService / LinkService" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="620" y="90" width="220" height="850" as="geometry"/>
+                <mxCell id="ac-service" value="AuthService / LinkService" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="620" y="80" width="230" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-redis" value="Redis" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="950" y="90" width="130" height="850" as="geometry"/>
+                <mxCell id="ac-redis" value="Redis" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="950" y="80" width="130" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-db" value="PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="1190" y="90" width="150" height="850" as="geometry"/>
+                <mxCell id="ac-db" value="PostgreSQL" style="shape=umlLifeline;perimeter=lifelinePerimeter;html=1;container=1;recursiveResize=0;outlineConnect=0;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="1190" y="80" width="150" height="860" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-note1" value="REGISTER / SIGN IN — FR-ACC-01..03, FR-ABS-02" style="text;html=1;fontSize=16;fontStyle=1;align=left;" vertex="1" parent="ac1">
-                    <mxGeometry x="60" y="150" width="500" height="30" as="geometry"/>
+                <mxCell id="ac-note1" value="REGISTER / SIGN IN — FR-ACC-01..03, FR-ABS-02, NFR-SEC-02/06" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="ac1">
+                    <mxGeometry x="50" y="140" width="620" height="28" as="geometry"/>
                 </mxCell>
                 <mxCell id="ac-e1" value="1. POST /api/auth/register or /login" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="125" y="210" as="sourcePoint"/>
-                        <mxPoint x="410" y="210" as="targetPoint"/>
+                        <mxPoint x="125" y="200" as="sourcePoint"/>
+                        <mxPoint x="415" y="200" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e2" value="2. check auth rate limit" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e2" value="2. check rl:auth:{clientHash}" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="265" as="sourcePoint"/>
-                        <mxPoint x="1015" y="265" as="targetPoint"/>
+                        <mxPoint x="415" y="255" as="sourcePoint"/>
+                        <mxPoint x="1015" y="255" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e3" value="3. normalize/validate; hash or verify password" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e3" value="3. normalize email; hash or verify password" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="320" as="sourcePoint"/>
-                        <mxPoint x="730" y="320" as="targetPoint"/>
+                        <mxPoint x="415" y="310" as="sourcePoint"/>
+                        <mxPoint x="735" y="310" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e4" value="4. insert/find user by normalized email" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e4" value="4. insert / find user by email_normalized" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="730" y="375" as="sourcePoint"/>
-                        <mxPoint x="1265" y="375" as="targetPoint"/>
+                        <mxPoint x="735" y="365" as="sourcePoint"/>
+                        <mxPoint x="1265" y="365" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e5" value="5. create opaque session with sliding 30-day TTL" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e5" value="5. create opaque session; sliding 30-day TTL" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="730" y="430" as="sourcePoint"/>
-                        <mxPoint x="1015" y="430" as="targetPoint"/>
+                        <mxPoint x="735" y="420" as="sourcePoint"/>
+                        <mxPoint x="1015" y="420" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="ac-e6" value="6. Set-Cookie: HttpOnly; Secure; SameSite" style="endArrow=block;html=1;rounded=0;dashed=1;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="485" as="sourcePoint"/>
-                        <mxPoint x="125" y="485" as="targetPoint"/>
+                        <mxPoint x="415" y="475" as="sourcePoint"/>
+                        <mxPoint x="125" y="475" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-note2" value="CREATE LINK — FR-CRE-01..06, FR-ABS-01, NFR-CON-01" style="text;html=1;fontSize=16;fontStyle=1;align=left;" vertex="1" parent="ac1">
-                    <mxGeometry x="60" y="510" width="600" height="30" as="geometry"/>
+                <mxCell id="ac-note2" value="CREATE LINK — FR-CRE-01..06, FR-ABS-01, NFR-CON-01" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="ac1">
+                    <mxGeometry x="50" y="505" width="640" height="28" as="geometry"/>
                 </mxCell>
-                <mxCell id="ac-e7" value="7. POST /api/links {destinationUrl} + CSRF token" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e7" value="7. POST /api/links {destinationUrl} + CSRF" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="125" y="565" as="sourcePoint"/>
-                        <mxPoint x="410" y="565" as="targetPoint"/>
+                        <mxPoint x="125" y="560" as="sourcePoint"/>
+                        <mxPoint x="415" y="560" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e8" value="8. resolve session + account create limit" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e8" value="8. resolve session + rl:create:{userId}" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="620" as="sourcePoint"/>
-                        <mxPoint x="1015" y="620" as="targetPoint"/>
+                        <mxPoint x="415" y="615" as="sourcePoint"/>
+                        <mxPoint x="1015" y="615" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e9" value="9. validate HTTPS + reject TinyRoute host/self-loop" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e9" value="9. validate https + reject TinyRoute self-host" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="675" as="sourcePoint"/>
-                        <mxPoint x="730" y="675" as="targetPoint"/>
+                        <mxPoint x="415" y="670" as="sourcePoint"/>
+                        <mxPoint x="735" y="670" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e10" value="10. INSERT generated code; retry only on unique-code conflict" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e10" value="10. INSERT generated code; retry only on unique conflict" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="730" y="730" as="sourcePoint"/>
-                        <mxPoint x="1265" y="730" as="targetPoint"/>
+                        <mxPoint x="735" y="725" as="sourcePoint"/>
+                        <mxPoint x="1265" y="725" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e11" value="11. evict redirect:{code} after commit" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
+                <mxCell id="ac-e11" value="11. after commit: DEL redirect:{code}" style="endArrow=block;html=1;rounded=0;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="730" y="785" as="sourcePoint"/>
-                        <mxPoint x="1015" y="785" as="targetPoint"/>
+                        <mxPoint x="735" y="780" as="sourcePoint"/>
+                        <mxPoint x="1015" y="780" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-e12" value="12. 201 {code, shortUrl}; UI offers one-click copy" style="endArrow=block;html=1;rounded=0;dashed=1;" edge="1" parent="ac1">
+                <mxCell id="ac-e12" value="12. 201 {code, shortUrl}; UI one-click copy" style="endArrow=block;html=1;rounded=0;dashed=1;" edge="1" parent="ac1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="410" y="840" as="sourcePoint"/>
-                        <mxPoint x="125" y="840" as="targetPoint"/>
+                        <mxPoint x="415" y="835" as="sourcePoint"/>
+                        <mxPoint x="125" y="835" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="ac-errors" value="Error branches: 401 signed out • 403 CSRF failure • 400 invalid/non-HTTPS/self-reference • 409 only after bounded code-generation retries • 429 rate limited with retry guidance • 5xx safe generic error. Never overwrite an existing code." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="ac1">
-                    <mxGeometry x="170" y="965" width="1160" height="80" as="geometry"/>
+                <mxCell id="ac-errors" value="Error branches: 401 signed out • 403 CSRF failure • 400 invalid/non-HTTPS/self-reference • 409 only after bounded code-generation retries • 429 rate limited with retry guidance • 5xx safe generic error. Never overwrite an existing code." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="ac1">
+                    <mxGeometry x="80" y="960" width="1400" height="70" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="redirect" name="4 - Public Redirect">
-        <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" math="0" shadow="0">
+    <diagram id="redirect" name="5 - Public Redirect">
+        <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="r0"/>
                 <mxCell id="r1" parent="r0"/>
-                <mxCell id="r-title" value="TinyRoute LLD — Public Redirect Fast Path" style="text;html=1;fontSize=24;fontStyle=1;align=center;" vertex="1" parent="r1">
-                    <mxGeometry x="450" y="20" width="700" height="40" as="geometry"/>
+                <mxCell id="r-title" value="TinyRoute LLD — Public Redirect (cache-aside, fail-closed)" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="r1">
+                    <mxGeometry x="280" y="16" width="1100" height="36" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-start" value="GET /{code}&lt;br&gt;No authentication" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=15;" vertex="1" parent="r1">
-                    <mxGeometry x="80" y="110" width="180" height="80" as="geometry"/>
+                <mxCell id="r-start" value="GET /{code}&#xa;No authentication" style="ellipse;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="r1">
+                    <mxGeometry x="60" y="90" width="180" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-valid" value="Code format valid and&lt;br&gt;redirect rate limit allowed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="340" y="95" width="220" height="110" as="geometry"/>
+                <mxCell id="r-valid" value="Code format valid and&#xa;redirect rate limit allowed?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="320" y="75" width="230" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-cache" value="Redis redirect:{code}&lt;br&gt;well-formed cached state?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="650" y="95" width="220" height="110" as="geometry"/>
+                <mxCell id="r-cache" value="Redis redirect:{code}&#xa;well-formed cached state?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="630" y="75" width="230" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-db" value="SELECT by exact, case-sensitive code&lt;br&gt;from PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="970" y="110" width="250" height="80" as="geometry"/>
+                <mxCell id="r-db" value="SELECT by exact, case-sensitive code&#xa;from PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="950" y="90" width="260" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-dbok" value="Query completed with&lt;br&gt;known row/absence?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="1290" y="95" width="220" height="110" as="geometry"/>
+                <mxCell id="r-dbok" value="Query completed with&#xa;known row or known absence?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="1290" y="75" width="240" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-state" value="Resolved state" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=15;" vertex="1" parent="r1">
-                    <mxGeometry x="675" y="335" width="170" height="100" as="geometry"/>
+                <mxCell id="r-state" value="Resolved state" style="rhombus;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="r1">
+                    <mxGeometry x="660" y="320" width="170" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-active" value="ACTIVE + destination present&lt;br&gt;Return 302/307 Location exactly as stored&lt;br&gt;Preserves path/query/fragment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f2bb;strokeColor=#2b8a3e;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="180" y="560" width="300" height="110" as="geometry"/>
+                <mxCell id="r-active" value="ACTIVE + destination present&#xa;(and not past expiresAt if set)&#xa;Return 302/307 Location exactly as stored&#xa;Preserves path / query / fragment" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="80" y="540" width="320" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-disabled" value="DISABLED&lt;br&gt;Return unavailable page&lt;br&gt;No owner/destination details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="540" y="560" width="250" height="110" as="geometry"/>
+                <mxCell id="r-click" value="ClickCountService.recordSuccessfulRedirect (async)&#xa;Must not block or change the 3xx. No visitor IP/id." style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fontSize=12;" vertex="1" parent="r1">
+                    <mxGeometry x="80" y="680" width="320" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-missing" value="UNKNOWN or DELETED&lt;br&gt;Return not-found/unavailable response&lt;br&gt;Reveal no original-link details" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9ecef;strokeColor=#495057;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="850" y="560" width="280" height="110" as="geometry"/>
+                <mxCell id="r-disabled" value="DISABLED&#xa;Return unavailable page&#xa;No owner / destination details" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="460" y="540" width="250" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-error" value="UNKNOWN SYSTEM STATE&lt;br&gt;Return safe 5xx error&lt;br&gt;Never redirect (fail closed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffc9c9;strokeColor=#c92a2a;fontSize=14;fontStyle=1;" vertex="1" parent="r1">
-                    <mxGeometry x="1190" y="560" width="270" height="110" as="geometry"/>
+                <mxCell id="r-missing" value="UNKNOWN or DELETED&#xa;(or expired, if expiresAt set)&#xa;Return not-found / unavailable&#xa;Reveal no original-link details" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="770" y="540" width="280" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-cachewrite" value="On DB success, cache complete state with TTL ≤5 s. Cache failures do not fail the request. Malformed cache entries are misses, never redirect instructions." style="shape=note;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="900" y="300" width="460" height="100" as="geometry"/>
+                <mxCell id="r-error" value="UNKNOWN SYSTEM STATE&#xa;Return safe 5xx error&#xa;Never redirect (fail closed)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;fontStyle=1;" vertex="1" parent="r1">
+                    <mxGeometry x="1120" y="540" width="270" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-target" value="Targets: p95 &lt;150 ms, p99 &lt;300 ms at 100 rps; &lt;0.5% errors. Correctness dominates availability: only a complete ACTIVE record can redirect. FR-RED-01..06 • NFR-PER-01,03 • NFR-REL-01,02." style="shape=note;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="r1">
-                    <mxGeometry x="260" y="790" width="1080" height="100" as="geometry"/>
+                <mxCell id="r-cachewrite" value="On DB success, cache complete RedirectLookup with TTL ≤5 s. Cache write failures do not fail the request. Malformed cache entries are misses, never redirect instructions." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=8;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="980" y="280" width="480" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="r-target" value="Targets: p95 &amp;lt;150 ms, p99 &amp;lt;300 ms at 100 rps; &amp;lt;0.5% errors. Correctness dominates availability: only a complete known ACTIVE record with a destination can redirect. FR-RED-01..06 • NFR-PER-01,03 • NFR-REL-01,02. Datastore uncertainty → fail closed." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="r1">
+                    <mxGeometry x="80" y="800" width="1480" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="re1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-start" target="r-valid">
                     <mxGeometry relative="1" as="geometry"/>
@@ -298,19 +711,19 @@
                 <mxCell id="re4" value="hit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-cache" target="r-state">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="re5" value="miss / Redis unavailable" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-cache" target="r-db">
+                <mxCell id="re5" value="miss / Redis unavailable / malformed" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-cache" target="r-db">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="re6" value="yes: row or absence" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-dbok" target="r-state">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="re7" value="timeout/error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#c92a2a;" edge="1" parent="r1" source="r-dbok" target="r-error">
+                <mxCell id="re7" value="timeout / error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-dbok" target="r-error">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="re8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-db" target="r-dbok">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="re9" value="ACTIVE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#2b8a3e;" edge="1" parent="r1" source="r-state" target="r-active">
+                <mxCell id="re9" value="ACTIVE" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-state" target="r-active">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="re10" value="DISABLED" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-state" target="r-disabled">
@@ -319,52 +732,58 @@
                 <mxCell id="re11" value="DELETED / absent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-state" target="r-missing">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="re12" value="incomplete/malformed" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#c92a2a;" edge="1" parent="r1" source="r-state" target="r-error">
+                <mxCell id="re12" value="incomplete / uncertain" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="r1" source="r-state" target="r-error">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="re13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;" edge="1" parent="r1" source="r-active" target="r-click">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="management" name="5 - Manage Lifecycle">
-        <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" math="0" shadow="0">
+    <diagram id="management" name="6 - Manage Lifecycle">
+        <mxGraphModel dx="1600" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1150" math="0" shadow="0">
             <root>
                 <mxCell id="m0"/>
                 <mxCell id="m1" parent="m0"/>
-                <mxCell id="m-title" value="TinyRoute LLD — Owner List, Disable, Re-enable, and Delete" style="text;html=1;fontSize=24;fontStyle=1;align=center;" vertex="1" parent="m1">
-                    <mxGeometry x="340" y="20" width="920" height="40" as="geometry"/>
+                <mxCell id="m-title" value="TinyRoute LLD — Owner List, Disable, Re-enable, Delete, Edit Destination" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="m1">
+                    <mxGeometry x="180" y="16" width="1300" height="36" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-request" value="Authenticated request&lt;br&gt;Secure session + CSRF&lt;br&gt;Link identifier / cursor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="80" y="120" width="230" height="100" as="geometry"/>
+                <mxCell id="m-request" value="Authenticated request&#xa;Secure session + CSRF&#xa;Link identifier / cursor" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="60" y="90" width="230" height="90" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-session" value="Resolve Redis session&lt;br&gt;to userId" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="390" y="115" width="200" height="110" as="geometry"/>
+                <mxCell id="m-session" value="Resolve Redis session&#xa;to userId" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="370" y="80" width="200" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-action" value="Operation" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=15;" vertex="1" parent="m1">
-                    <mxGeometry x="690" y="120" width="180" height="100" as="geometry"/>
+                <mxCell id="m-action" value="Operation" style="rhombus;whiteSpace=wrap;html=1;fontSize=14;" vertex="1" parent="m1">
+                    <mxGeometry x="680" y="85" width="180" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-list" value="LIST&lt;br&gt;SELECT WHERE owner_id=:userId&lt;br&gt;ORDER BY created_at DESC, id DESC&lt;br&gt;cursor pagination; include status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="220" y="390" width="300" height="120" as="geometry"/>
+                <mxCell id="m-list" value="LIST&#xa;SELECT WHERE owner_id = :userId&#xa;ORDER BY created_at DESC, id DESC&#xa;cursor pagination; include status + clickCount" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="80" y="280" width="340" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-lock" value="COMMAND&lt;br&gt;SELECT link by id AND owner_id&lt;br&gt;inside transaction&lt;br&gt;No separate unscoped lookup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="640" y="390" width="300" height="120" as="geometry"/>
+                <mxCell id="m-lock" value="COMMAND&#xa;SELECT link by id AND owner_id&#xa;inside transaction&#xa;No separate unscoped lookup" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="500" y="280" width="320" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-transition" value="Requested transition" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="1050" y="395" width="220" height="110" as="geometry"/>
+                <mxCell id="m-transition" value="Requested transition" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="920" y="275" width="220" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-disable" value="ACTIVE → DISABLED&lt;br&gt;DISABLED → DISABLED is success" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="560" y="650" width="250" height="90" as="geometry"/>
+                <mxCell id="m-disable" value="ACTIVE → DISABLED&#xa;DISABLED → DISABLED is success" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="80" y="520" width="280" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-enable" value="DISABLED → ACTIVE&lt;br&gt;ACTIVE → ACTIVE is success" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b2f2bb;strokeColor=#2b8a3e;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="850" y="650" width="250" height="90" as="geometry"/>
+                <mxCell id="m-enable" value="DISABLED → ACTIVE&#xa;ACTIVE → ACTIVE is success" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="400" y="520" width="280" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-delete" value="Any non-deleted → DELETED tombstone&lt;br&gt;Clear destination after policy permits&lt;br&gt;Repeated delete reaches same end state&lt;br&gt;Code remains reserved forever" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffc9c9;strokeColor=#c92a2a;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="1140" y="630" width="300" height="130" as="geometry"/>
+                <mxCell id="m-delete" value="Any non-deleted → DELETED tombstone&#xa;Repeated delete: same end state&#xa;Code remains reserved forever" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="720" y="510" width="320" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-evict" value="After successful DB commit: DEL redirect:{code}. TTL ≤5 seconds bounds stale state if eviction fails. Return the same resource end state for retries." style="shape=note;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="590" y="830" width="800" height="90" as="geometry"/>
+                <mxCell id="m-edit" value="EDIT DESTINATION (FR-MGT-07)&#xa;Validate https + reject self-host&#xa;Replace destination_url; future redirects use it&#xa;Code unchanged" style="rounded=1;whiteSpace=wrap;html=1;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="1080" y="500" width="360" height="120" as="geometry"/>
                 </mxCell>
-                <mxCell id="m-errors" value="401 invalid session • 403 CSRF failure • 404 for missing or non-owned resource (no ownership oracle) • safe 5xx on datastore uncertainty. Every write checks owner_id in the persistence operation. FR-MGT-01..05 • NFR-SEC-04 • NFR-REL-03 • NFR-CON-02." style="shape=note;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="m1">
-                    <mxGeometry x="100" y="830" width="420" height="120" as="geometry"/>
+                <mxCell id="m-evict" value="After successful DB commit: DEL redirect:{code}. TTL ≤5 seconds bounds stale state if eviction fails. Return the same resource end state for retries (NFR-REL-03)." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="500" y="700" width="940" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="m-errors" value="401 invalid session • 403 CSRF failure • 404 for missing or non-owned resource (no ownership oracle) • 400 invalid destination • safe 5xx on datastore uncertainty. Every write checks owner_id in the persistence operation. FR-MGT-01..05, FR-MGT-07 • NFR-SEC-04 • NFR-REL-03 • NFR-CON-02." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="m1">
+                    <mxGeometry x="80" y="820" width="1360" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="me1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="m1" source="m-request" target="m-session">
                     <mxGeometry relative="1" as="geometry"/>
@@ -390,6 +809,9 @@
                 <mxCell id="me8" value="delete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="m1" source="m-transition" target="m-delete">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
+                <mxCell id="me12" value="destination" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" edge="1" parent="m1" source="m-transition" target="m-edit">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="me9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;" edge="1" parent="m1" source="m-disable" target="m-evict">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
@@ -399,40 +821,43 @@
                 <mxCell id="me11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;" edge="1" parent="m1" source="m-delete" target="m-evict">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
+                <mxCell id="me13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;" edge="1" parent="m1" source="m-edit" target="m-evict">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="api-growth" name="6 - API and Growth">
-        <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+    <diagram id="api-growth" name="7 - API and Growth">
+        <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="g0"/>
                 <mxCell id="g1" parent="g0"/>
-                <mxCell id="g-title" value="TinyRoute LLD — MVP HTTP Boundary and V1/Growth Extensions" style="text;html=1;fontSize=24;fontStyle=1;align=center;" vertex="1" parent="g1">
-                    <mxGeometry x="340" y="20" width="920" height="40" as="geometry"/>
+                <mxCell id="g-title" value="TinyRoute LLD — MVP HTTP Boundary and V1/Growth Extensions" style="text;html=1;fontSize=22;fontStyle=1;align=center;" vertex="1" parent="g1">
+                    <mxGeometry x="220" y="16" width="1160" height="36" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-api" value="MVP HTTP boundary" style="swimlane;html=1;horizontal=1;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=18;fontStyle=1;" vertex="1" parent="g1">
-                    <mxGeometry x="60" y="100" width="700" height="700" as="geometry"/>
+                <mxCell id="g-api" value="MVP HTTP boundary" style="swimlane;html=1;horizontal=1;startSize=40;fontSize=16;fontStyle=1;collapsible=0;" vertex="1" parent="g1">
+                    <mxGeometry x="40" y="70" width="740" height="760" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-public" value="&lt;b&gt;Public&lt;/b&gt;&lt;br&gt;GET /{code} → 3xx only for ACTIVE; otherwise safe 404/unavailable/5xx&lt;br&gt;GET /actuator/health → service + datastore health (monitor-safe)&lt;br&gt;&lt;br&gt;No public create/manage API in MVP." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="g-api">
-                    <mxGeometry x="35" y="70" width="630" height="150" as="geometry"/>
+                <mxCell id="g-public" value="&lt;b&gt;Public&lt;/b&gt;&lt;br&gt;GET /{code} → 3xx only for known ACTIVE with destination; otherwise safe 404 / unavailable / 5xx&lt;br&gt;GET /actuator/health → process + datastore (monitor-safe)&lt;br&gt;&lt;br&gt;No public create/manage API in MVP. Next.js is a client of these routes." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="g-api">
+                    <mxGeometry x="30" y="60" width="680" height="150" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-auth" value="&lt;b&gt;Session API&lt;/b&gt;&lt;br&gt;POST /api/auth/register {email,password} → 201 + secure cookie&lt;br&gt;POST /api/auth/login {email,password} → 204 + secure cookie&lt;br&gt;POST /api/auth/logout → 204 + revoke session&lt;br&gt;GET /api/auth/me → minimal signed-in state&lt;br&gt;&lt;br&gt;Auth endpoints are client-rate-limited; mutating calls require CSRF protection." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="g-api">
-                    <mxGeometry x="35" y="250" width="630" height="180" as="geometry"/>
+                <mxCell id="g-auth" value="&lt;b&gt;Session API&lt;/b&gt;&lt;br&gt;POST /api/auth/register {email,password} → 201 + secure cookie&lt;br&gt;POST /api/auth/login {email,password} → 204 + secure cookie&lt;br&gt;POST /api/auth/logout → 204 + revoke session&lt;br&gt;GET /api/auth/me → minimal signed-in state&lt;br&gt;&lt;br&gt;Auth endpoints are client-rate-limited; mutating calls require CSRF." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="g-api">
+                    <mxGeometry x="30" y="230" width="680" height="190" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-links" value="&lt;b&gt;Owner link API&lt;/b&gt;&lt;br&gt;POST /api/links {destinationUrl} → 201 {id,code,shortUrl,status,createdAt}&lt;br&gt;GET /api/links?cursor=&amp;limit= → owner-scoped page&lt;br&gt;PATCH /api/links/{id}/status {status: ACTIVE|DISABLED} → resource state&lt;br&gt;DELETE /api/links/{id} → 204; permanent tombstone&lt;br&gt;&lt;br&gt;401 unauthenticated • 404 missing/not owned • 409 bounded code collision exhaustion • 429 limited • safe 5xx." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="g-api">
-                    <mxGeometry x="35" y="460" width="630" height="200" as="geometry"/>
+                <mxCell id="g-links" value="&lt;b&gt;Owner link API&lt;/b&gt;&lt;br&gt;POST /api/links {destinationUrl} → 201 {id,code,shortUrl,status,createdAt}&lt;br&gt;GET /api/links?cursor=&amp;amp;limit= → owner-scoped page (code, destination, status, createdAt, clickCount)&lt;br&gt;PATCH /api/links/{id}/status {status: ACTIVE|DISABLED} → resource state&lt;br&gt;PATCH /api/links/{id}/destination {destinationUrl} → resource state (FR-MGT-07)&lt;br&gt;DELETE /api/links/{id} → 204; permanent tombstone&lt;br&gt;&lt;br&gt;401 unauthenticated • 404 missing/not owned • 409 bounded code collision exhaustion • 429 limited • safe 5xx." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;" vertex="1" parent="g-api">
+                    <mxGeometry x="30" y="440" width="680" height="280" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-growth" value="V1 / 10× growth — explicitly outside MVP" style="swimlane;html=1;horizontal=1;startSize=40;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=18;fontStyle=1;dashed=1;" vertex="1" parent="g1">
-                    <mxGeometry x="820" y="100" width="720" height="700" as="geometry"/>
+                <mxCell id="g-growth" value="V1 / 10× growth — explicitly outside MVP Must" style="swimlane;html=1;horizontal=1;startSize=40;fontSize=16;fontStyle=1;collapsible=0;dashed=1;" vertex="1" parent="g1">
+                    <mxGeometry x="820" y="70" width="740" height="760" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-v1" value="&lt;b&gt;V1 feature extensions&lt;/b&gt;&lt;br&gt;• Password reset + email provider&lt;br&gt;• Custom aliases, expiry, search, blocklist&lt;br&gt;• API keys and public create/manage API&lt;br&gt;• Anonymous click event → queue/stream → worker → daily aggregates (≤1 minute lag)&lt;br&gt;• Metrics, error tracking, audit events, uptime alerts&lt;br&gt;&lt;br&gt;Each is an additive module/migration; none sits on the MVP redirect critical path." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#9673a6;fontSize=14;dashed=1;" vertex="1" parent="g-growth">
-                    <mxGeometry x="35" y="70" width="650" height="230" as="geometry"/>
+                <mxCell id="g-v1" value="&lt;b&gt;Should / V1 feature extensions&lt;/b&gt;&lt;br&gt;• Password reset + email provider (FR-ACC-04)&lt;br&gt;• Custom aliases, expiry-at-create, search (FR-CRE-07/08, FR-MGT-06)&lt;br&gt;• Destination blocklist and API keys (V1, FR-ABS-04, FR-API-01..03)&lt;br&gt;• Daily click aggregates (FR-ANA-03); still no visitor IP/id&lt;br&gt;• Metrics, error tracking, audit events, uptime alerts&lt;br&gt;&lt;br&gt;Each is an additive module/migration. None sits on the MVP redirect critical path. Safe-browsing is Future." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;dashed=1;" vertex="1" parent="g-growth">
+                    <mxGeometry x="30" y="60" width="680" height="250" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-scale" value="&lt;b&gt;Measured 10× traffic path&lt;/b&gt;&lt;br&gt;1. Keep Spring Boot stateless except shared Redis sessions.&lt;br&gt;2. Add application instances behind existing ingress; rolling health-checked deploys.&lt;br&gt;3. Keep shared Redis and PostgreSQL; tune pools and indexes from load-test evidence.&lt;br&gt;4. Add Redis HA/managed tier and PostgreSQL read replica only if measured bottlenecks justify them.&lt;br&gt;5. Partition/queue analytics writes before changing redirect storage.&lt;br&gt;&lt;br&gt;No multi-region or active/active design; this remains a modest single-region service." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#ffffff;strokeColor=#9673a6;fontSize=14;dashed=1;" vertex="1" parent="g-growth">
-                    <mxGeometry x="35" y="340" width="650" height="250" as="geometry"/>
+                <mxCell id="g-scale" value="&lt;b&gt;Measured 10× traffic path (NFR-SCL-03)&lt;/b&gt;&lt;br&gt;1. Keep Spring Boot stateless except shared Redis sessions.&lt;br&gt;2. Add application instances behind existing ingress; rolling health-checked deploys.&lt;br&gt;3. Keep shared Redis and PostgreSQL; tune pools and indexes from load-test evidence.&lt;br&gt;4. Add Redis HA/managed tier and PostgreSQL read replica only if measured bottlenecks justify them.&lt;br&gt;5. Partition/queue analytics writes before changing redirect storage.&lt;br&gt;&lt;br&gt;No multi-region or active/active design; this remains a modest single-region service." style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fontSize=13;dashed=1;" vertex="1" parent="g-growth">
+                    <mxGeometry x="30" y="330" width="680" height="280" as="geometry"/>
                 </mxCell>
-                <mxCell id="g-scope" value="MVP scope guardrail: accounts, create, redirect, owner-only list/disable/re-enable/delete, auth/create rate limits, redirect throttle, health, backups, logs, CI, migrations. Excluded from MVP: custom aliases, expiration, analytics, public API, password reset, blocklist, social login, admin console." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="g1">
-                    <mxGeometry x="180" y="850" width="1240" height="90" as="geometry"/>
+                <mxCell id="g-scope" value="MVP Must: accounts, HTTPS-only create, unique codes, public redirect (unknown/disabled/deleted/fail-closed), owner-only list/disable/re-enable/delete/edit destination, click counts (async), auth/create rate limits, health, backups, logs, CI, migrations. MVP Should (not in core class model unless labeled): session persistence, password reset, self-host rejection, custom alias, expiry, search, 30-day click trend, redirect throttle. Excluded: public API keys, blocklist, social login, admin console, safe-browsing." style="shape=note;whiteSpace=wrap;html=1;align=left;spacing=10;fontSize=13;" vertex="1" parent="g1">
+                    <mxGeometry x="40" y="860" width="1520" height="110" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
