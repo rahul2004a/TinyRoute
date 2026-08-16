@@ -10,8 +10,9 @@ This document defines **what** the system does. It does not define architecture,
 
 - Anyone can follow a short URL; no account is needed to be redirected.
 - Creating and managing short URLs requires an account.
-- MVP is the lean core: accounts, create, redirect, manage, disable/delete, rate limiting.
-- Custom aliases, expiration, analytics, and a public API are deliberately out of MVP.
+- MVP is the lean core: accounts, create, redirect, manage (including disable/delete and destination edit), click counts, and rate limiting.
+- Custom aliases, expiration, search, password reset, and richer analytics are Should/Could in MVP, not a later release.
+- A destination blocklist and a public API are deliberately out of MVP (V1). Safe-browsing checks are Future.
 
 **Legend**
 
@@ -31,8 +32,8 @@ This document defines **what** the system does. It does not define architecture,
 | FR-ACC-01 | Register            | A visitor can create an account with an email address and password.                                   | Visitor | Must     | MVP     |
 | FR-ACC-02 | Sign in and out     | A registered user can sign in and sign out. After sign-out, protected pages are no longer accessible. | User    | Must     | MVP     |
 | FR-ACC-03 | Session persistence | A signed-in user stays signed in across browser restarts until the session expires or they sign out.  | User    | Should   | MVP     |
-| FR-ACC-04 | Password reset      | A user can reset a forgotten password through a link sent to their registered email.                  | User    | Should   | V1      |
-| FR-ACC-05 | Delete account      | A user can delete their account. All of their short URLs stop redirecting.                            | User    | Could    | V1      |
+| FR-ACC-04 | Password reset      | A user can reset a forgotten password through a link sent to their registered email.                  | User    | Should   | MVP     |
+| FR-ACC-05 | Delete account      | A user can delete their account. All of their short URLs stop redirecting.                            | User    | Could    | MVP     |
 
 ## 4. URL Creation
 
@@ -44,8 +45,8 @@ This document defines **what** the system does. It does not define architecture,
 | FR-CRE-04 | Unique code              | Every short URL gets a code that is not already in use. A new link never overwrites an existing one.                       | System  | Must     | MVP     |
 | FR-CRE-05 | Copyable result          | After creation, the short URL is displayed in a form the user can copy in one click.                                       | User    | Must     | MVP     |
 | FR-CRE-06 | Self-reference rejection | Destinations pointing back at TinyRoute's own short-URL domain are rejected to avoid redirect loops.                       | System  | Should   | MVP     |
-| FR-CRE-07 | Custom alias             | A user can request a custom code instead of a generated one, if it is available and passes format and reserved-word rules. | User    | Should   | V1      |
-| FR-CRE-08 | Expiration               | A user can set an expiry date and time when creating a link.                                                               | User    | Should   | V1      |
+| FR-CRE-07 | Custom alias             | A user can request a custom code instead of a generated one, if it is available and passes format and reserved-word rules. | User    | Should   | MVP     |
+| FR-CRE-08 | Expiration               | A user can set an expiry date and time when creating a link.                                                               | User    | Should   | MVP     |
 
 ## 5. Redirection
 
@@ -57,7 +58,7 @@ This document defines **what** the system does. It does not define architecture,
 | FR-RED-04 | Disabled link        | A disabled short URL does not redirect and shows an "unavailable" page with no owner details.     | Visitor | Must     | MVP     |
 | FR-RED-05 | Deleted link         | A deleted short URL no longer redirects and reveals nothing about the original link or its owner. | Visitor | Must     | MVP     |
 | FR-RED-06 | Case sensitivity     | Codes are case-sensitive. Changing the case of a code does not resolve to a different link.       | Visitor | Must     | MVP     |
-| FR-RED-07 | Expired link         | Once past its expiry time, a link stops redirecting without any owner action.                     | System  | Must     | V1      |
+| FR-RED-07 | Expired link         | Once past its expiry time, a link stops redirecting without any owner action.                     | System  | Must     | MVP     |
 
 ## 6. Link Management
 
@@ -68,16 +69,16 @@ This document defines **what** the system does. It does not define architecture,
 | FR-MGT-03 | Disable link          | A user can disable one of their links; it stops redirecting but stays in their list.           | User  | Must     | MVP     |
 | FR-MGT-04 | Re-enable link        | A user can re-enable a disabled link and it resumes redirecting.                               | User  | Must     | MVP     |
 | FR-MGT-05 | Delete link           | A user can delete a link after confirming. Deletion is permanent and the code is never reused. | User  | Must     | MVP     |
-| FR-MGT-06 | Search                | A user can search or filter their links by code or destination.                                | User  | Should   | V1      |
-| FR-MGT-07 | Edit destination      | A user can change a link's destination; future redirects use the new one.                      | User  | Must     | V1      |
+| FR-MGT-06 | Search                | A user can search or filter their links by code or destination.                                | User  | Should   | MVP     |
+| FR-MGT-07 | Edit destination      | A user can change a link's destination; future redirects use the new one.                      | User  | Must     | MVP     |
 
 ## 7. Analytics
 
 | ID        | Requirement                                                                 | Description                                                                                                 | Actor  | Priority | Release |
 | --------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | -------- | ------- |
-| FR-ANA-01 | Count clicks                                                                | Each successful redirect increments a click count for that link, excluding the service's own health checks. | System | Must     | V1      |
-| FR-ANA-02 | View click count                                                            | A user sees the total clicks for each of their links.                                                       | User   | Must     | V1      |
-| FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Should   | V1      |
+| FR-ANA-01 | Count clicks                                                                | Each successful redirect increments a click count for that link, excluding the service's own health checks. | System | Must     | MVP     |
+| FR-ANA-02 | View click count                                                            | A user sees the total clicks for each of their links.                                                       | User   | Must     | MVP     |
+| FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Should   | MVP     |
 | FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Could    | MVP     |
 
 ## 8. Abuse Prevention
@@ -100,11 +101,15 @@ This document defines **what** the system does. It does not define architecture,
 
 ## 10. Functional Requirements Summary
 
-**MVP** — email/password accounts, authenticated link creation with validation, public redirection with correct handling of unknown, disabled, and deleted codes, owner-only link listing and management, and rate limiting on creation, auth, and redirects. This is the smallest version that is genuinely deployable.
+**MVP (Must)** — email/password register and sign in/out; authenticated HTTPS-only creation with unique codes and a copyable result; public redirection with correct handling of unknown, disabled, deleted, case-mismatched, and expired codes; owner-only list, disable, re-enable, delete, and destination edit; click counts; rate limits on creation and auth.
 
-**V1** — the portfolio version: custom aliases, expiration, click counts and a 30-day trend, search, password reset, a blocklist, and an API-key-based public API.
+**MVP (Should)** — session persistence, password reset, self-reference rejection, custom aliases, expiry-at-create, search, a 30-day click trend, and redirect throttling.
 
-**Future** — editable destinations, referrer/country analytics, and third-party safe-browsing checks. Only if time allows; nothing else depends on these.
+**MVP (Could)** — account deletion, and aggregated referrer, device, OS, browser, and geography (country and city) for a link.
+
+**V1** — a destination blocklist, and an API-key-based public API for programmatic create and manage.
+
+**Future** — third-party safe-browsing checks. Only if time allows; nothing else depends on these.
 
 ## 11. Assumptions
 
@@ -113,7 +118,7 @@ This document defines **what** the system does. It does not define architecture,
 3. Anonymous link creation is excluded entirely to keep abuse handling simple.
 4. There is no admin console. Moderation, if ever needed, happens through direct database or CLI access by the project owner.
 5. Codes are never reused after deletion or expiry.
-6. Link destinations are immutable in MVP and V1.
+6. Link destinations can be edited by the owner after creation (FR-MGT-07); codes themselves are never reused.
 7. Analytics are informational only, not billing-grade, and may undercount blocked or cached requests.
 8. Traffic is portfolio-scale: a handful of real users plus load tests and demos.
 

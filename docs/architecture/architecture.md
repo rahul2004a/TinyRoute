@@ -30,9 +30,13 @@ web          RedirectController, AuthController, LinkController, HealthControlle
 security     SessionAuthFilter, CsrfProtection, OwnershipGuard
 application  AuthService, LinkService, RedirectService, RateLimitService,
              ClickCountService (async)
-domain       User, Link, LinkStatus, ShortCode, DestinationUrl, Session, RedirectLookup
-persistence  UserRepository, LinkRepository  (interfaces)
-             JpaUserRepository, JpaLinkRepository  (implementations; parameterized JPA)
+auth         AuthProvider map (PasswordAuthProvider, GoogleAuthProvider),
+             OtpSender map (EmailOtpSender), GoogleOAuthClient, PasswordHasher
+domain       User, AuthIdentity, PendingRegistration, Link, LinkStatus, ShortCode,
+             DestinationUrl, Session, RedirectLookup, GoogleProfile
+persistence  UserRepository, AuthIdentityRepository, PendingRegistrationRepository,
+             LinkRepository  (interfaces)
+             Jpa* adapters (parameterized JPA)
 cache        RedirectCache, SessionStore, RateLimitStore  (interfaces)
              RedisRedirectCache, RedisSessionStore, RedisRateLimitStore  (implementations)
 ```
@@ -61,13 +65,15 @@ Redirect path does **not** call AuthService, LinkService, SessionStore, Ownershi
 
 Next.js → HTTPS ingress → **CsrfProtection** (mutations) → **AuthController**.
 
-1. AuthController → **RateLimitService**.allowAuth → RateLimitStore → Redis `rl:auth:{clientHash}` (register/login)
-2. AuthController → **AuthService** (normalize email; Argon2id/bcrypt)
-3. AuthService → **UserRepository** → PostgreSQL `users`
-4. AuthService → **SessionStore**.create/delete → Redis `session:{tokenHash}`
-5. **SessionAuthFilter** (logout / me only) → SessionStore.get/touch (sliding 30-day TTL)
+1. AuthController → **RateLimitService**.allowAuth → RateLimitStore → Redis `rl:auth:{clientHash}` (register/login/verify/oauth)
+2. AuthController → **AuthService**. `login` uses `providers.get(type)`; OTP uses `otpSenders.get(EMAIL)`.
+3. Password register: **PendingRegistrationRepository** + `OtpSender.send`; set `pending_registration` cookie (no session yet). Verify body is OTP only.
+4. Verify / password login / Google callback: **UserRepository** + **AuthIdentityRepository** → PostgreSQL `users` / `auth_identities`
+5. AuthService → **SessionStore**.create/delete → Redis `session:{tokenHash}`
+6. **SessionAuthFilter** (logout / me only) → SessionStore.get/touch (sliding 30-day TTL)
+7. Google: `GoogleAuthProvider` → **GoogleOAuthClient**.exchangeCode (in-memory; do not persist Google tokens)
 
-Register/login have no prior session. Auth path does **not** call LinkService, RedirectService, LinkRepository, RedirectCache, or OwnershipGuard.
+Register has no prior session. Google skips OTP. Auth path does **not** call LinkService, RedirectService, LinkRepository, RedirectCache, or OwnershipGuard.
 
 ### Owner create / list / manage
 
@@ -100,7 +106,11 @@ Health does **not** call Auth/Link/Redirect services, rate limits, CSRF, or sess
 Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or RedirectService.
 ## Domain model (MVP Must)
 
-**User** — `id`, `emailNormalized`, `passwordHash`. No name, phone, or profile (NFR-PRV-01). Passwords stored with Argon2id or bcrypt and per-user salt (NFR-SEC-02).
+**User** — `id`, `emailNormalized`, `displayName`. No `passwordHash` on User. Password hashes live on `AuthIdentity` (`PASSWORD` only). Argon2id/bcrypt with per-user salt (NFR-SEC-02).
+
+**AuthIdentity** — `provider` (`PASSWORD` | `GOOGLE`), `subject` (normalized email or Google `sub`), optional `secretHash`. Unique `(provider, subject)`. No OTP or display name here.
+
+**PendingRegistration** — password signup before OTP succeeds: hashed password, hashed OTP, display name, email. Found via `pending_registration` cookie token, not via email on `VerifyOtpRequest`.
 
 **Link** — `id`, `code` (ShortCode), `owner`, `destinationUrl`, `status`, timestamps, optional `deletedAt`, informational `clickCount` (may lag ≤ 1 min). Destination is **https-only and owner-editable** (FR-CRE-03, FR-MGT-07). Codes are case-sensitive, unique, and never reused (FR-CRE-04, FR-RED-06, FR-MGT-05).
 
@@ -114,17 +124,19 @@ Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or Redir
 
 **RedirectLookup** — `{status, destination?}`. A malformed or incomplete cache entry is a miss, never a redirect.
 
-**User 1 — owns — 0..\* Link.**
+**User 1 — owns — 0..\* Link.** **User 1 — owns — 1..\* AuthIdentity.**
 
 Should / V1-adjacent types (dashed package on the class diagram, not mixed into core): `expiresAt` on Link (FR-CRE-08), `CustomAlias` (FR-CRE-07), `PasswordResetToken` (FR-ACC-04), `DailyClickAggregate` (FR-ANA-03). If `expiresAt` is present, past expiry must stop redirecting without owner action (FR-RED-07) and the code is still never reused.
 
-Out of the class model: destination blocklist, public API keys, social login, admin console, safe-browsing.
+Out of the class model: destination blocklist, public API keys, admin console, safe-browsing. Do not add OTP/display name on `AuthIdentity`, per-provider fields on `AuthService`, Google tokens in PostgreSQL, email on `VerifyOtpRequest`, or an `smsSender` field on `AuthService`.
 
 ## Data
 
 **PostgreSQL**
 
-- `users(id, email_normalized UNIQUE, password_hash, created_at, updated_at)`
+- `users(id, email_normalized UNIQUE, display_name, created_at, updated_at)`
+- `auth_identities(id, user_id FK, provider, subject, secret_hash NULL, created_at)` UNIQUE `(provider, subject)`
+- `pending_registrations(id, token_hash UNIQUE, email_normalized, display_name, password_hash, otp_hash, expires_at, attempts)`
 - `links(id, code UNIQUE case-sensitive, owner_id FK, destination_url, status, click_count, created_at, updated_at, deleted_at, expires_at?)`
 - Index `(owner_id, created_at DESC, id DESC)` for cursor pagination.
 - FK `owner_id` RESTRICT: account deletion is Could, not MVP Must.
@@ -145,7 +157,7 @@ Client IP is hashed for rate-limit keys and not retained beyond 24 hours (NFR-PR
 
 ## Flows
 
-**Register / sign-in / create** — Rate-limit auth, normalize email, hash or verify password, persist user, write session, set cookie. Create requires session + CSRF, `rl:create:{userId}`, https + self-host checks, insert a new code (retry only on unique conflict), then evict `redirect:{code}`.
+**Register / sign-in / create** — Rate-limit auth. Password register stores a pending row, emails an OTP, and sets a pending cookie. Verify OTP (cookie + `{otp}` only) creates `User` + `AuthIdentity(PASSWORD)` and a session. Login uses the provider map. Google uses `GoogleOAuthClient.exchangeCode` then the same session cookie (no OTP, no stored Google tokens). Create requires session + CSRF, `rl:create:{userId}`, https + self-host checks, insert a new code (retry only on unique conflict), then evict `redirect:{code}`.
 
 **Public redirect** — Validate code + optional redirect throttle → cache-aside → on miss, case-sensitive DB lookup. Redirect only when state is **known ACTIVE with a destination**. DISABLED → unavailable (no owner details). UNKNOWN/DELETED → not-found. Uncertain datastore → safe 5xx, no `Location`. After a successful 3xx, `ClickCountService` runs asynchronously.
 
@@ -155,7 +167,7 @@ Client IP is hashed for rate-limit keys and not retained beyond 24 hours (NFR-PR
 
 Public: `GET /{code}`, `GET /actuator/health`.
 
-Session: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
+Session: `POST /api/auth/register`, `POST /api/auth/register/verify`, `POST /api/auth/register/resend-otp`, `POST /api/auth/login`, `GET /api/auth/{provider}/start`, `GET /api/auth/{provider}/callback`, `POST /api/auth/logout`, `GET /api/auth/me`.
 
 Owner: `POST /api/links`, `GET /api/links`, `PATCH /api/links/{id}/status`, `PATCH /api/links/{id}/destination`, `DELETE /api/links/{id}`.
 
