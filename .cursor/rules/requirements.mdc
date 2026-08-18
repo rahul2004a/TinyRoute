@@ -14,12 +14,17 @@ Source of truth (do not duplicate; read when implementing or designing):
 
 - Portfolio URL shortener for one developer; keep it small and deployable.
 - Redirects are public (no account). Create/manage requires a signed-in account.
-- Prefer Must over Should over Could. Prefer MVP over V1 over Future.
-- Do not implement out-of-MVP work unless the user explicitly asks: custom aliases, expiration, analytics, public API, password reset, blocklist, social login, admin console.
+- Prefer MVP over V1 over Future.
+- MVP scope is **Must, Should, and Could**. Design and implement all of them unless the user narrows the request.
+- Do not implement V1 or Future work unless the user explicitly asks: destination blocklist, public API / API keys, safe-browsing checks, admin console.
 
 ## MVP (build this)
 
-Accounts (email/password), authenticated HTTPS-only link creation, unique codes, public redirect with correct unknown/disabled/deleted handling, owner-only list/disable/re-enable/delete, rate limits on create and auth (redirect throttle Should).
+**Must** — email/password and Google OAuth register; sign in/out; authenticated HTTPS-only creation with unique codes and a copyable result; expiry at create; public redirection with correct unknown, disabled, deleted, case-mismatched, and expired handling; owner-only list, disable, re-enable, delete, and destination edit; click counts; 30-day click trend; referrer/device/OS/browser/geo (country and city); rate limits on creation and auth.
+
+**Should** — session persistence; password reset; self-reference rejection; custom aliases; search/filter of own links; redirect throttling.
+
+**Could** — account deletion (all of that user's short URLs stop redirecting).
 
 ## Key NFRs (MVP)
 

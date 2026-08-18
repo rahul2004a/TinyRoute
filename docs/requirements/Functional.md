@@ -29,7 +29,7 @@ This document defines **what** the system does. It does not define architecture,
 
 | ID        | Requirement         | Description                                                                                           | Actor   | Priority | Release |
 | --------- | ------------------- | ----------------------------------------------------------------------------------------------------- | ------- | -------- | ------- |
-| FR-ACC-01 | Register            | A visitor can create an account with an email address and password.                                   | Visitor | Must     | MVP     |
+| FR-ACC-01 | Register            | A visitor can create an account with an email/password and Google OAuth.                              | Visitor | Must     | MVP     |
 | FR-ACC-02 | Sign in and out     | A registered user can sign in and sign out. After sign-out, protected pages are no longer accessible. | User    | Must     | MVP     |
 | FR-ACC-03 | Session persistence | A signed-in user stays signed in across browser restarts until the session expires or they sign out.  | User    | Should   | MVP     |
 | FR-ACC-04 | Password reset      | A user can reset a forgotten password through a link sent to their registered email.                  | User    | Should   | MVP     |
@@ -46,7 +46,7 @@ This document defines **what** the system does. It does not define architecture,
 | FR-CRE-05 | Copyable result          | After creation, the short URL is displayed in a form the user can copy in one click.                                       | User    | Must     | MVP     |
 | FR-CRE-06 | Self-reference rejection | Destinations pointing back at TinyRoute's own short-URL domain are rejected to avoid redirect loops.                       | System  | Should   | MVP     |
 | FR-CRE-07 | Custom alias             | A user can request a custom code instead of a generated one, if it is available and passes format and reserved-word rules. | User    | Should   | MVP     |
-| FR-CRE-08 | Expiration               | A user can set an expiry date and time when creating a link.                                                               | User    | Should   | MVP     |
+| FR-CRE-08 | Expiration               | A user can set an expiry date and time when creating a link.                                                               | User    | Must     | MVP     |
 
 ## 5. Redirection
 
@@ -78,8 +78,8 @@ This document defines **what** the system does. It does not define architecture,
 | --------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | -------- | ------- |
 | FR-ANA-01 | Count clicks                                                                | Each successful redirect increments a click count for that link, excluding the service's own health checks. | System | Must     | MVP     |
 | FR-ANA-02 | View click count                                                            | A user sees the total clicks for each of their links.                                                       | User   | Must     | MVP     |
-| FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Should   | MVP     |
-| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Could    | MVP     |
+| FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Must     | MVP     |
+| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Must     | MVP     |
 
 ## 8. Abuse Prevention
 
