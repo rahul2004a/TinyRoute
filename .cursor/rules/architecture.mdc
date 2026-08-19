@@ -11,8 +11,8 @@ When designing or writing LLD, APIs, classes, or implementation for this repo:
 - Frontend is **Next.js**. HTTP client only; no ownership or redirect policy in the UI.
 - PostgreSQL is the system of record. Redis is sessions, redirect cache, and rate limits.
 
-Source of truth (read when designing LLD; do not invent a different stack):
+<!-- Source of truth (read when designing LLD; do not invent a different stack):
 
-- `docs/architecture/architecture.md`
+- `docs/architecture/architecture.md` -->
 
 LLD output should use Spring names from that doc: `*Controller`, `*Service`, `SessionAuthFilter`, `Jpa*` / `Redis*` adapters, repository interfaces. Do not propose Express, Nest, Django, or Next.js API routes as the backend.

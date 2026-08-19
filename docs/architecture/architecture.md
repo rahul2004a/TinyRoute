@@ -4,12 +4,12 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 
 ## Stack (locked)
 
-| Piece | Role |
-| --- | --- |
-| Next.js | Browser UI. HTTP client only. It does not enforce ownership or redirect policy. |
+| Piece       | Role                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------- |
+| Next.js     | Browser UI. HTTP client only. It does not enforce ownership or redirect policy.        |
 | Spring Boot | Source of application policy: validation, sessions, ownership, redirects, rate limits. |
-| PostgreSQL | System of record for users and links (including tombstones). |
-| Redis | Disposable: opaque sessions, redirect cache (TTL ≤ 5 s), rate-limit counters. |
+| PostgreSQL  | System of record for users and links (including tombstones).                           |
+| Redis       | Disposable: opaque sessions, redirect cache (TTL ≤ 5 s), rate-limit counters.          |
 
 Single-region, modest hardware. HTTPS at the edge (NFR-SEC-01). Health check reports process + datastore (NFR-AVL-02).
 
@@ -44,6 +44,8 @@ cache        RedirectCache, SessionStore, RateLimitStore  (interfaces)
 Services depend on interfaces, not on Redis or JPA types. That is the same pattern as a typical LLD class diagram: `uses` from controller to service, `depends on` from service to repository/store interface, `implements` from `Jpa*` / `Redis*` to that interface.
 
 Page 1 of [LLD.drawio](LLD.drawio) is an IntelliJ-style UML class diagram. The HTTP entry points are `AuthController`, `LinkController`, `RedirectController`, and `HealthController`; there is no duplicate facade. Controllers **use** application services, services **depend on** repository/store interfaces, and `Jpa*` / `Redis*` adapters **implement** those interfaces. `SessionAuthFilter` and `CsrfProtection` intercept only the applicable protected requests.
+
+![TinyRoute UML class diagram](LLD.png)
 
 ## Component interactions
 
@@ -96,14 +98,15 @@ Health does **not** call Auth/Link/Redirect services, rate limits, CSRF, or sess
 
 ### Cross-flow coupling (same beans)
 
-| Writer | Shared component | Reader |
-| --- | --- | --- |
-| LinkService (after commit) | RedirectCache | RedirectService (cache-aside) |
-| AuthService / SessionAuthFilter | SessionStore | SessionAuthFilter on later requests |
-| RateLimitService | RateLimitStore | the same RateLimitService on the next request |
-| ClickCountService (async) | LinkRepository `click_count` | LinkService.list (informational; may lag) |
+| Writer                          | Shared component             | Reader                                        |
+| ------------------------------- | ---------------------------- | --------------------------------------------- |
+| LinkService (after commit)      | RedirectCache                | RedirectService (cache-aside)                 |
+| AuthService / SessionAuthFilter | SessionStore                 | SessionAuthFilter on later requests           |
+| RateLimitService                | RateLimitStore               | the same RateLimitService on the next request |
+| ClickCountService (async)       | LinkRepository `click_count` | LinkService.list (informational; may lag)     |
 
 Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or RedirectService.
+
 ## Domain model (MVP Must)
 
 **User** — `id`, `emailNormalized`, `displayName`. No `passwordHash` on User. Password hashes live on `AuthIdentity` (`PASSWORD` only). Argon2id/bcrypt with per-user salt (NFR-SEC-02).
@@ -143,13 +146,13 @@ Out of the class model: destination blocklist, public API keys, admin console, s
 
 **Redis**
 
-| Key | Value | TTL / notes |
-| --- | --- | --- |
-| `redirect:{code}` | RedirectLookup | ≤ 5 s; evict after commit of create/status/destination/delete |
-| `session:{tokenHash}` | `{userId, lastAccessAt}` | sliding 30 days; delete on logout |
-| `rl:auth:{clientHash}` | counter | auth cap (FR-ABS-02) |
-| `rl:create:{userId}` | counter | create cap (FR-ABS-01) |
-| `rl:redirect:{clientHash}` | counter | redirect throttle (FR-ABS-03 Should) |
+| Key                        | Value                    | TTL / notes                                                   |
+| -------------------------- | ------------------------ | ------------------------------------------------------------- |
+| `redirect:{code}`          | RedirectLookup           | ≤ 5 s; evict after commit of create/status/destination/delete |
+| `session:{tokenHash}`      | `{userId, lastAccessAt}` | sliding 30 days; delete on logout                             |
+| `rl:auth:{clientHash}`     | counter                  | auth cap (FR-ABS-02)                                          |
+| `rl:create:{userId}`       | counter                  | create cap (FR-ABS-01)                                        |
+| `rl:redirect:{clientHash}` | counter                  | redirect throttle (FR-ABS-03 Should)                          |
 
 Client IP is hashed for rate-limit keys and not retained beyond 24 hours (NFR-PRV-02). Click analytics store no visitor IP or identifier (FR-ANA-01/02, NFR-PRV-03).
 
