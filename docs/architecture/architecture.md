@@ -45,7 +45,7 @@ Services depend on interfaces, not on Redis or JPA types. That is the same patte
 
 Page 1 of [LLD.drawio](LLD.drawio) is an IntelliJ-style UML class diagram. The HTTP entry points are `AuthController`, `LinkController`, `RedirectController`, and `HealthController`; there is no duplicate facade. Controllers **use** application services, services **depend on** repository/store interfaces, and `Jpa*` / `Redis*` adapters **implement** those interfaces. `SessionAuthFilter` and `CsrfProtection` intercept only the applicable protected requests.
 
-![TinyRoute UML class diagram](LLD.png)
+![TinyRoute UML class diagram](LLD.jpg)
 
 ## Component interactions
 
