@@ -30,10 +30,10 @@ This document defines **what** the system does. It does not define architecture,
 | ID        | Requirement         | Description                                                                                           | Actor   | Priority | Release |
 | --------- | ------------------- | ----------------------------------------------------------------------------------------------------- | ------- | -------- | ------- |
 | FR-ACC-01 | Register            | A visitor can create an account with an email/password and Google OAuth.                              | Visitor | Must     | MVP     |
-| FR-ACC-02 | Sign in and out     | A registered user can sign in and sign out. After sign-out, protected pages are no longer accessible. | User    | Must     | MVP     |
-| FR-ACC-03 | Session persistence | A signed-in user stays signed in across browser restarts until the session expires or they sign out.  | User    | Should   | MVP     |
-| FR-ACC-04 | Password reset      | A user can reset a forgotten password through a link sent to their registered email.                  | User    | Should   | MVP     |
-| FR-ACC-05 | Delete account      | A user can delete their account. All of their short URLs stop redirecting.                            | User    | Could    | MVP     |
+| FR-ACC-02 | Sign in and out     | On sign-in, the system issues a short-lived JWT access token and a server-side refresh session. On sign-out, the current refresh session is revoked immediately and the current access token is denied until it expires. Protected pages and APIs are no longer accessible after sign-out. | User    | Must     | MVP     |
+| FR-ACC-03 | Session persistence | A signed-in user stays signed in across browser restarts for up to 30 days of inactivity through a renewable refresh session. When the access token expires, an active refresh session issues a replacement without requiring the user to sign in again. | User    | Should   | MVP     |
+| FR-ACC-04 | Password reset      | A user can reset a forgotten password through a link sent to their registered email. After a successful reset, all refresh sessions for that user are revoked and previously issued access tokens are invalidated. | User    | Should   | MVP     |
+| FR-ACC-05 | Delete account      | A user can delete their account. All refresh sessions are revoked, issued access tokens are invalidated, and all of their short URLs stop redirecting. | User    | Could    | MVP     |
 
 ## 4. URL Creation
 
@@ -103,7 +103,7 @@ This document defines **what** the system does. It does not define architecture,
 
 **MVP (Must)** — email/password register and sign in/out; authenticated HTTPS-only creation with unique codes and a copyable result; public redirection with correct handling of unknown, disabled, deleted, case-mismatched, and expired codes; owner-only list, disable, re-enable, delete, and destination edit; click counts; rate limits on creation and auth.
 
-**MVP (Should)** — session persistence, password reset, self-reference rejection, custom aliases, expiry-at-create, search, a 30-day click trend, and redirect throttling.
+**MVP (Should)** — JWT + refresh-session persistence, password reset (with token revocation), self-reference rejection, custom aliases, expiry-at-create, search, a 30-day click trend, and redirect throttling.
 
 **MVP (Could)** — account deletion, and aggregated referrer, device, OS, browser, and geography (country and city) for a link.
 

@@ -65,9 +65,11 @@ These are sized so the project is interesting to discuss without needing expensi
 | NFR-SEC-03 | Secrets handling    | No credentials, API keys, or tokens in the repository. All secrets come from the environment, with a documented `.env.example`.     | Must     | MVP     |
 | NFR-SEC-04 | Ownership checks    | Every management operation verifies the caller owns the link. Cross-account access attempts are covered by automated tests.         | Must     | MVP     |
 | NFR-SEC-05 | Injection safety    | User input is never interpolated into queries or rendered as raw HTML.                                                              | Must     | MVP     |
-| NFR-SEC-06 | Session security    | Session cookies are HTTP-only, secure, and same-site; sessions expire after 30 days of inactivity.                                  | Must     | MVP     |
+| NFR-SEC-06 | Token security      | JWT access tokens and refresh-session tokens are sent only in HttpOnly, Secure, SameSite cookies. Access JWTs expire within 15 minutes. Refresh sessions expire after 30 days of inactivity and are stored in Redis using only a hash of the refresh token. Raw tokens are never stored in PostgreSQL or Redis. | Must     | MVP     |
 | NFR-SEC-07 | Dependency scanning | An automated scan runs on every push; known critical vulnerabilities are fixed or explicitly noted before merge.                    | Should   | V1      |
 | NFR-SEC-08 | Safe errors         | Error pages and API responses never leak stack traces, queries, or internal paths.                                                  | Must     | MVP     |
+| NFR-SEC-09 | Token revocation    | The current refresh session is revoked on logout. All refresh sessions and issued access tokens for a user are invalidated after password reset or account deletion. A revoked token must not authorize protected requests. | Must     | MVP     |
+| NFR-SEC-10 | JWT signing keys    | JWT signing keys come from environment-managed secrets, are not committed to the repository, and support key rotation through a key identifier (`kid`). | Must     | MVP     |
 
 ## 7. Data Durability, Backup, and Recovery
 
@@ -91,7 +93,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 | ID         | Requirement      | Target                                                                                                                    | Priority | Release |
 | ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| NFR-OBS-01 | Structured logs  | Requests are logged in a structured format with method, path, status, and duration. No passwords, tokens, or session IDs. | Must     | MVP     |
+| NFR-OBS-01 | Structured logs  | Requests are logged in a structured format with method, path, status, and duration. No passwords, JWTs, refresh tokens, session identifiers, authorization headers, cookies, or password-reset tokens. | Must     | MVP     |
 | NFR-OBS-02 | Error visibility | Unhandled errors are captured with enough context to reproduce them, and are reviewable without SSH access.               | Should   | V1      |
 | NFR-OBS-03 | Basic metrics    | Request rate, error rate, and latency percentiles are visible for redirects and for management operations separately.     | Should   | V1      |
 | NFR-OBS-04 | Audit trail      | Create, disable, enable, and delete events record who did what and when.                                                  | Should   | V1      |
@@ -115,7 +117,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 | ID         | Requirement           | Target                                                                                                                    | Priority | Release |
 | ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| NFR-PRV-01 | Minimal collection    | Only an email address and password hash are stored for accounts. No name, phone, or profile data.                         | Must     | MVP     |
+| NFR-PRV-01 | Minimal collection    | Only an email address and password hash are stored for accounts. No name, phone, or profile data. JWT claims contain only user ID, token ID, issue/expiry timestamps, token type, and token version — not email, password data, or OAuth tokens. | Must     | MVP     |
 | NFR-PRV-02 | IP handling           | Visitor IP addresses are used only for rate limiting and are not stored beyond 24 hours.                                  | Must     | MVP     |
 | NFR-PRV-03 | Anonymous analytics   | Click analytics store no visitor IP address or identifier that could single out a person.                                 | Must     | MVP     |
 | NFR-PRV-04 | Account deletion      | Deleting an account removes personal data from the live datastore within 24 hours; it ages out of backups per NFR-BAK-05. | Should   | MVP     |
@@ -123,7 +125,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 ## 12. Non-Functional Requirements Summary
 
-**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with a health check, HTTPS with properly hashed passwords and enforced ownership checks, daily backups with a 24-hour RPO and 4-hour RTO, structured logs, CI with critical-path tests, and repeatable deploys with migrations.
+**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with a health check, HTTPS with properly hashed passwords, JWT + refresh-session cookies, token revocation, and enforced ownership checks, daily backups with a 24-hour RPO and 4-hour RTO, structured logs, CI with critical-path tests, and repeatable deploys with migrations.
 
 **V1 additions** — documented load test results, uptime monitoring and alerting, error tracking and metrics, dependency scanning, a verified restore, an audit trail, rollback procedure, and anonymous analytics with a privacy note.
 
