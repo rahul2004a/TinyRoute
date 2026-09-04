@@ -1,0 +1,5 @@
+# Skill metadata for create-spec.
+# Explicit-only: a new spec + branch is created on purpose ($spec), never
+# guessed by Codex from a plain description match.
+display_name: "Create spec ($spec)"
+allow_implicit_invocation: false

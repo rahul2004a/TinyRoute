@@ -1,0 +1,6 @@
+# Skill metadata for ship-feature.
+# Explicit-only: commit/push/PR runs on purpose ($ship) when the user
+# decides a feature is done, never guessed by Codex from a plain
+# description match.
+display_name: "Ship feature ($ship)"
+allow_implicit_invocation: false

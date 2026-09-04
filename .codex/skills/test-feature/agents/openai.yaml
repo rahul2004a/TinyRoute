@@ -1,0 +1,5 @@
+# Skill metadata for test-feature.
+# Explicit-only: test generation/execution runs on purpose ($test) for a
+# named spec, never guessed by Codex from a plain description match.
+display_name: "Test feature ($test)"
+allow_implicit_invocation: false

@@ -16,3 +16,11 @@ When designing or writing LLD, APIs, classes, or implementation for this repo:
 - `docs/architecture/architecture.md` -->
 
 LLD output should use Spring names from that doc: `*Controller`, `*Service`, `JwtAuthenticationFilter`, `Jpa*` / `Redis*` adapters, repository interfaces. Do not propose Express, Nest, Django, or Next.js API routes as the backend.
+
+## Backend design practices
+
+- Keep controllers thin and services cohesive; split a service only when its responsibilities genuinely differ.
+- Depend on interfaces at persistence, cache, and external-system boundaries; do not create interfaces for simple local helpers.
+- Prefer composition over inheritance. Keep domain invariants on domain types and use immutable value objects where practical.
+- Reuse the existing Controller–Service–Repository/Store–Adapter patterns. Introduce Strategy, Factory, or other patterns only for a real interchangeable behavior or construction problem.
+- Avoid premature abstractions, unnecessary framework additions, and new dependencies unless the requirement calls for them.

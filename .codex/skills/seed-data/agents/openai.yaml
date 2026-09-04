@@ -1,0 +1,5 @@
+# Skill metadata for seed-data.
+# Explicit-only: seeding local data runs on purpose ($seed), never guessed
+# by Codex from a plain description match (it touches the local database).
+display_name: "Seed data ($seed)"
+allow_implicit_invocation: false
