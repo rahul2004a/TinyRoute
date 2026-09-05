@@ -56,8 +56,9 @@ and the project rules in [AGENTS.md](../../../AGENTS.md).
    through `OwnershipGuard` (single query, `id AND owner_id`, missing and
    non-owned both 404 per NFR-SEC-04).
 7. **Rate limiting** — if the endpoint creates/authenticates, wire it through
-   `RateLimitService` / `RateLimitStore` using the correct Redis key prefix
-   (`rl:auth:`, `rl:create:`, `rl:redirect:`) per the architecture doc.
+   `RateLimitService` / `RateLimitStore` from the application-service layer,
+   never the controller, using the correct Redis key prefix (`rl:auth:`,
+   `rl:create:`, `rl:redirect:`) per the architecture doc.
 8. **Tests** — add a test stub covering the happy path plus the specific
    failure modes called out in the requirement (unknown/disabled/deleted/
    expired/case-mismatch for redirects; ownership/ not-owned/missing for

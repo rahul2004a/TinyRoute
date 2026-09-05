@@ -22,7 +22,9 @@ Check these, in order:
    logic and no direct repository/cache access? Do services depend on
    repository/store *interfaces* only, never directly on `Jpa*`/`Redis*`
    concrete types? Do repositories own persistence and adapters own Redis
-   access, per architecture.md's "Layers (LLD)" section?
+   access, per architecture.md's "Layers (LLD)" section? Flag a
+   controller-level `RateLimitService` call: rate-limit policy belongs in the
+   relevant application service.
 2. Naming -- does new code match the names already locked in
    architecture.md (`*Controller`, `*Service`, `JwtAuthenticationFilter`,
    `CsrfProtection`, `OwnershipGuard`, `Jpa*`/`Redis*` adapters,
