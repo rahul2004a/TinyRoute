@@ -87,7 +87,7 @@ These are sized so the project is interesting to discuss without needing expensi
 | ---------- | ------------------------------ | --------------------------------------------------------------------------------------------- | -------- | ------- |
 | NFR-CON-01 | New link works immediately     | A newly created short URL resolves on the very next request.                                  | Must     | MVP     |
 | NFR-CON-02 | State changes take effect fast | Disable, enable, and delete stop or resume redirects within 5 seconds, including any caching. | Must     | MVP     |
-| NFR-CON-03 | Analytics lag                  | Click counts may lag actual clicks by up to 1 minute; the UI does not claim to be real-time.  | Should   | V1      |
+| NFR-CON-03 | Analytics lag                  | Click counts and analytics breakdowns may lag actual clicks by up to 1 minute; the UI does not claim to be real-time. | Should | MVP |
 
 ## 9. Observability
 
@@ -125,9 +125,9 @@ These are sized so the project is interesting to discuss without needing expensi
 
 ## 12. Non-Functional Requirements Summary
 
-**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with a health check, HTTPS with properly hashed passwords, JWT + refresh-session cookies, token revocation, and enforced ownership checks, daily backups with a 24-hour RPO and 4-hour RTO, structured logs, CI with critical-path tests, and repeatable deploys with migrations.
+**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with a health check, HTTPS with properly hashed passwords, JWT + refresh-session cookies, token revocation, and enforced ownership checks, privacy-safe anonymous analytics with up to one minute of visible lag, daily backups with a 24-hour RPO and 4-hour RTO, structured logs, CI with critical-path tests, and repeatable deploys with migrations.
 
-**V1 additions** — documented load test results, uptime monitoring and alerting, error tracking and metrics, dependency scanning, a verified restore, an audit trail, rollback procedure, and anonymous analytics with a privacy note.
+**V1 additions** — documented load test results, uptime monitoring and alerting, error tracking and metrics, dependency scanning, a verified restore, an audit trail, rollback procedure, and a privacy notice.
 
 **Deliberately not doing** — multi-region deployment, active/active failover, four-nines uptime, sub-minute RPO, formal security audits, and on-call rotation. Each is real production work with real cost, and none is defensible for a portfolio project. The growth-path note in NFR-SCL-03 is where to discuss them instead.
 
@@ -144,8 +144,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 1. What is the actual monthly hosting budget? It decides whether NFR-PER-03 and NFR-SCL-02 are achievable as stated.
 2. Is uptime monitoring worth adding, or is the health check enough for a project nobody depends on?
-3. Should analytics be built at all, given NFR-PRV-03 rules out the most interesting dimensions?
-4. Are the load-test numbers the headline of the README, or just an appendix?
+3. Are the load-test numbers the headline of the README, or just an appendix?
 
 ## 15. Recommended Next Step
 

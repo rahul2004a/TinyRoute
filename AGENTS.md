@@ -6,7 +6,7 @@ feature.
 
 ## Stack (locked)
 
-- Backend is **Spring Boot** (Java). Controllers, services, filters, JPA,
+- Backend is **Spring Boot** (Java). Controllers, services, filters, Repositorys, JPA,
   Redis adapters.
 - Frontend is **Next.js**. HTTP client only; no ownership or redirect policy
   in the UI.

@@ -10,8 +10,8 @@ This document defines **what** the system does. It does not define architecture,
 
 - Anyone can follow a short URL; no account is needed to be redirected.
 - Creating and managing short URLs requires an account.
-- MVP is the lean core: accounts, create, redirect, manage (including disable/delete and destination edit), click counts, and rate limiting.
-- Custom aliases, expiration, search, password reset, and richer analytics are Should/Could in MVP, not a later release.
+- MVP is the lean core: accounts, create, redirect, manage (including disable/delete and destination edit), analytics, and rate limiting.
+- MVP includes every requirement marked Must, Should, or Could. Custom aliases, search, and password reset are MVP Should work; account deletion is MVP Could work. Expiration at create is MVP Must work. Analytics is MVP Must work.
 - A destination blocklist and a public API are deliberately out of MVP (V1). Safe-browsing checks are Future.
 
 **Legend**
@@ -78,8 +78,8 @@ This document defines **what** the system does. It does not define architecture,
 | --------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------ | -------- | ------- |
 | FR-ANA-01 | Count clicks                                                                | Each successful redirect increments a click count for that link, excluding the service's own health checks. | System | Must     | MVP     |
 | FR-ANA-02 | View click count                                                            | A user sees the total clicks for each of their links.                                                       | User   | Must     | MVP     |
-| FR-ANA-03 | Click trend                                                                 | A user sees clicks per day for a link over the last 30 days.                                                | User   | Must     | MVP     |
-| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography(Country and City) | A user sees aggregated top referrers and countries for a link.                                              | User   | Must     | MVP     |
+| FR-ANA-03 | Click trend                                                                 | A user can view clicks per day for a link over a selected date range. The dashboard defaults to the last 30 days. | User   | Must     | MVP     |
+| FR-ANA-04 | Referrer, Device, Operating System, Browser and Geography (Country and City) | A user sees aggregated referrer, device, operating-system, browser, country, and city breakdowns for a link. | User   | Must     | MVP     |
 
 ## 8. Abuse Prevention
 
@@ -101,11 +101,11 @@ This document defines **what** the system does. It does not define architecture,
 
 ## 10. Functional Requirements Summary
 
-**MVP (Must)** — email/password register and sign in/out; authenticated HTTPS-only creation with unique codes and a copyable result; public redirection with correct handling of unknown, disabled, deleted, case-mismatched, and expired codes; owner-only list, disable, re-enable, delete, and destination edit; click counts; rate limits on creation and auth.
+**MVP (Must)** — email/password register and sign in/out; authenticated HTTPS-only creation with unique codes, a copyable result, and optional expiry; public redirection with correct handling of unknown, disabled, deleted, case-mismatched, and expired codes; owner-only list, disable, re-enable, delete, and destination edit; click counts, date-range click trends (defaulting to the last 30 days), and aggregated referrer/device/OS/browser/country/city analytics; rate limits on creation and auth.
 
-**MVP (Should)** — JWT + refresh-session persistence, password reset (with token revocation), self-reference rejection, custom aliases, expiry-at-create, search, a 30-day click trend, and redirect throttling.
+**MVP (Should)** — JWT + refresh-session persistence, password reset (with token revocation), self-reference rejection, custom aliases, search, and redirect throttling.
 
-**MVP (Could)** — account deletion, and aggregated referrer, device, OS, browser, and geography (country and city) for a link.
+**MVP (Could)** — account deletion.
 
 **V1** — a destination blocklist, and an API-key-based public API for programmatic create and manage.
 
@@ -126,8 +126,7 @@ This document defines **what** the system does. It does not define architecture,
 
 1. What is the short-URL domain, and is a custom domain worth the cost for a portfolio project?
 2. Should password reset ship in MVP, given that email delivery adds a dependency?
-3. Are click counts good enough for the demo, or is the daily trend chart the thing worth showing?
-4. Is the public API worth building, or is the web app plus a good README more convincing to a reviewer?
+3. Is the public API worth building, or is the web app plus a good README more convincing to a reviewer?
 
 ## 13. Recommended Next Step
 
