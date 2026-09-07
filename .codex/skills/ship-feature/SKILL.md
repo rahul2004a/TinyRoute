@@ -10,17 +10,27 @@ Follow [AGENTS.md](../../../AGENTS.md). This skill stops at "PR opened" —
 merging is a manual, deliberate step for a solo portfolio repo, not
 something to automate away.
 
+## Plan Mode
+
+Perform read-only branch, review, authentication, and PR preflight checks and
+return the exact shipping plan. Do not stage, commit, push, or open a PR.
+
 ## Step 0 — Preconditions
 
-- Refuse to run on `main`: `git branch --show-current` must not be `main`.
-  If it is, stop and say so.
-- If `$review` hasn't been run for this diff (no evidence of it in the
-  conversation), recommend running it first, but don't block — ask the user
-  whether to proceed anyway.
+- `git branch --show-current` must return a named branch other than `main`.
+  Refuse detached HEAD and `main`.
+- Require a completed `$review` with an approval verdict, reviewed-file list,
+  and SHA-256 fingerprint. Recompute the fingerprint over the exact current
+  tracked and untracked change set using `$review`'s algorithm. Missing,
+  incomplete, rejected, or mismatched review evidence blocks shipping.
+- Before staging, verify there are no unrelated staged changes, `origin` is
+  configured, `gh auth status` succeeds, and no PR already exists for the
+  current branch. Stop before mutation if any precondition fails.
 
 ## Step 1 — Generate the commit message
 
-Run `git diff --staged`, `git diff`, and `git log main..HEAD --oneline`.
+Read the already verified current change set, `git status --short`, and
+`git log main..HEAD --oneline`.
 Find the matching spec under `.codex/spec/` for the current branch (by slug
 match against the branch name).
 
@@ -36,18 +46,23 @@ Generate a Conventional Commit message:
 
 ```
 git add <reviewed-file>...
-git commit -m "<generated message>"
+git commit -F <commit-message-file>
 git push -u origin <current-branch>
 ```
 
 Stage only files that belong to the reviewed feature. Never use `git add .`
 or `git add -A`: inspect `git status` after staging and stop if unrelated
-changes are staged.
+changes are staged. Write the generated message to a securely created
+temporary file; do not interpolate generated or user-derived text into shell
+syntax.
 
 ## Step 3 — Open the PR
 
-Use the `gh` CLI (`gh pr create --base main --head <current-branch> --title
-"<plain-English title>" --body "<body>"`). Build the body from the spec:
+Build the body from the spec and write it to a securely created temporary
+file. Use `gh pr create --base main --head <current-branch> --title
+<plain-English-title> --body-file <body-file>`. Pass arguments without shell
+interpolation; never place spec-derived content directly in shell syntax.
+Remove temporary message/body files after their command completes or fails.
 
 ```markdown
 ## What this PR does
@@ -88,3 +103,6 @@ Next: review the PR, then merge manually (squash recommended) once green.
 - If push fails because there's no upstream yet, retry with
   `git push -u origin <branch>` (already the default above).
 - Never force-push.
+- On any failure, report separately whether staging, commit, push, and PR
+  creation completed, then give only non-destructive recovery commands. Never
+  claim the feature shipped when a later phase failed.

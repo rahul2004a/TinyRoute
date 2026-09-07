@@ -117,7 +117,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 | ID         | Requirement           | Target                                                                                                                    | Priority | Release |
 | ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| NFR-PRV-01 | Minimal collection    | Only an email address and password hash are stored for accounts. No name, phone, or profile data. JWT claims contain only user ID, token ID, issue/expiry timestamps, token type, and token version — not email, password data, or OAuth tokens. | Must     | MVP     |
+| NFR-PRV-01 | Minimal collection    | Account identity data is limited to a normalized email address, a password hash when applicable, and the Google provider subject when applicable. No name, phone, profile data, or OAuth access/refresh token is stored. JWT claims contain only user ID, token ID, issue/expiry timestamps, token type, and token version — not email, password data, or OAuth tokens. | Must     | MVP     |
 | NFR-PRV-02 | IP handling           | Visitor IP addresses are used only for rate limiting and are not stored beyond 24 hours.                                  | Must     | MVP     |
 | NFR-PRV-03 | Anonymous analytics   | Click analytics store no visitor IP address or identifier that could single out a person.                                 | Must     | MVP     |
 | NFR-PRV-04 | Account deletion      | Deleting an account removes personal data from the live datastore within 24 hours; it ages out of backups per NFR-BAK-05. | Should   | MVP     |

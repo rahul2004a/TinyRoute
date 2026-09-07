@@ -12,20 +12,25 @@ Read before reviewing anything:
 - docs/architecture/architecture.md ("Component interactions" and "Data")
 - AGENTS.md
 
-Review only the diff you are given (git diff / git diff --staged), not the
-whole codebase. Stub/placeholder code explicitly marked as such is out of
-scope -- note it and move on.
+Use the supplied change set as the finding boundary. You may read the minimum
+unchanged signatures, configuration, and call sites needed to validate changed
+behavior, but do not report unrelated pre-existing issues. A reachable stub,
+disabled test, or placeholder is a finding unless the supplied spec explicitly
+excludes it from the deliverable.
 
-Check these, citing the exact NFR-*/FR-* ID for each finding:
+Check these, citing the exact NFR-*/FR-* ID for each finding when one applies,
+or the governing architecture section otherwise:
 
 1. Ownership (NFR-SEC-04) -- every management operation (status,
    destination edit, delete) verifies the caller owns the link via a single
    `findByIdAndOwnerId`-style query, through `OwnershipGuard`. Missing and
    non-owned must both produce the same 404 -- never a 403 that reveals
    existence, never a second lookup that changes timing/behavior.
-2. Injection and output safety (NFR-SEC-05) -- no user input interpolated
-   into JPQL/native SQL/Redis keys; no raw HTML rendering of user input in
-   Next.js.
+2. Injection and output safety (NFR-SEC-05) -- no raw, unvalidated user input
+   interpolated into JPQL, native SQL, or Redis keys; no raw HTML rendering of
+   user input in Next.js. Documented Redis keys may use canonical validated
+   codes, UUIDs, token hashes, `jti` values, or privacy-preserving client
+   hashes.
 3. Token handling (NFR-SEC-06, NFR-SEC-09, NFR-SEC-10) -- JWT access tokens
    and refresh tokens only in HttpOnly/Secure/SameSite cookies, never in a
    JSON body. Raw refresh tokens never persisted (only a hash, per
@@ -42,15 +47,21 @@ Check these, citing the exact NFR-*/FR-* ID for each finding:
    redirect throttling call `RateLimitService` against the correct Redis key
    prefix (`rl:create:{userId}`, `rl:auth:{clientHash}`,
    `rl:redirect:{clientHash}`) before the mutating/expensive work runs.
-6. Safe errors and privacy (NFR-SEC-08, NFR-PRV-01/02/03) -- no stack
-   traces, raw queries, or internal paths in responses or logs; no email,
-   password data, or OAuth tokens in JWT claims; no visitor IP or identifier
-   stored beyond rate-limiting (and never in click analytics).
-7. CSRF -- mutating endpoints (POST/PATCH/DELETE) other than the public
-   redirect go through `CsrfProtection`.
+6. Safe errors and privacy (NFR-SEC-08, NFR-OBS-01,
+   NFR-PRV-01/02/03) -- no stack traces, raw queries, or internal paths in
+   responses; logs may contain restricted diagnostic context but never
+   passwords, tokens, session identifiers, authorization headers, cookies, or
+   password-reset tokens. JWT claims contain no email, password data, or OAuth
+   tokens; visitor IP/identifiers are not stored beyond permitted rate limiting
+   and never enter click analytics.
+7. CSRF -- mutating browser-cookie endpoints go through `CsrfProtection` as
+   documented in architecture.md's "Component interactions" and "HTTP
+   boundary (MVP)" sections. Cite those sections when no FR/NFR ID directly
+   specifies the control.
 
-Output format: a short list of findings, each with file:line, the NFR-*/FR-*
-ID, what it is, why it matters, and a concrete fix. End with one of:
+Output format: a short list of findings, each with severity (Critical, High,
+Medium, or Low), file:line, the applicable NFR-*/FR-* ID or architecture
+section, what it is, why it matters, and a concrete fix. End with one of:
 APPROVED / APPROVED WITH SUGGESTIONS / CHANGES REQUESTED. Never silently
 approve a fail-open path, a missing ownership check, or a raw token in a
 response -- call it out even if everything else looks clean. If nothing is

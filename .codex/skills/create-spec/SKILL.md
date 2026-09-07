@@ -1,6 +1,6 @@
 ---
 name: create-spec
-description: Create a spec file and feature branch for a new TinyRoute feature from a short description. Writes to .codex/spec/<slug>.md and creates a feature/<slug> branch; does not write application code. Explicit-only, invoke with $spec <feature description>.
+description: Create a spec file and feature branch for a new TinyRoute feature from a short description. Writes only the spec and branch, not application code. Explicit-only; invoke $spec followed by a feature description.
 ---
 
 # Create spec ($spec)
@@ -10,6 +10,12 @@ the rules in [AGENTS.md](../../../AGENTS.md). This skill only writes a spec
 file and creates a branch — it must never write application code.
 
 User input: everything after `$spec`.
+
+## Plan Mode
+
+Perform read-only prerequisite and collision checks, then return the proposed
+title, slug, branch, spec outline, and implementation handoff. Do not create a
+branch or file until Plan Mode has ended.
 
 ## Step 1 — Check the working tree is clean
 
@@ -32,36 +38,35 @@ From the text after `$spec`, extract:
 If any of these can't be inferred from the input, ask the user to clarify
 before proceeding.
 
-## Step 3 — Check the branch name isn't taken
+## Step 3 — Research and prevent duplicate specs
 
-Run `git branch -a` to list existing branches. If `branch_name` is already
-taken, append a number: `feature/custom-alias-01`, `feature/custom-alias-02`,
-etc.
+Read AGENTS.md, both requirements documents, the relevant architecture
+sections, every existing file under `.codex/spec/`, and only the source
+manifests, routes, public signatures, and types relevant to the request. Use
+targeted search; do not read all backend or frontend source by default.
 
-## Step 4 — Sync main and create the feature branch
+If an existing spec substantially covers the request, stop and ask whether to
+update it. Never overwrite an existing spec.
+
+## Step 4 — Resolve the slug and ref names
+
+Check the exact local and remote branch refs with `git show-ref --verify` and
+check `.codex/spec/<feature_slug>.md`. If either name is taken without being a
+duplicate feature, append `-01`, `-02`, etc. to `feature_slug`, and derive both
+`branch_name` and the spec filename from that same final slug.
+
+## Step 5 — Fetch and create the feature branch
 
 Run:
 
 ```
-git checkout main
-git pull origin main
-git checkout -b <branch_name>
+git fetch origin main
+git switch --create <branch_name> --no-track origin/main
 ```
 
-## Step 5 — Research before writing anything
-
-Read, in order:
-
-- [AGENTS.md](../../../AGENTS.md) — stack lock and scope guardrails.
-- [docs/requirements/Functional.md](../../../docs/requirements/Functional.md)
-- [docs/requirements/Non-Functional.md](../../../docs/requirements/Non-Functional.md)
-- [docs/architecture/architecture.md](../../../docs/architecture/architecture.md)
-- Every existing file under `.codex/spec/`.
-- Any existing source under `backend/` or `frontend/`.
-
-This is to avoid duplicating an existing feature or spec. If an existing spec
-already substantially covers this request, say so and ask the user whether
-to update that spec instead of creating a new one.
+Do not run `git pull`: its merge/rebase behavior depends on user configuration.
+If fetch fails, stop before creating the branch. If branch creation fails,
+report the current branch and do not write the spec.
 
 ## Step 6 — Write the spec
 
@@ -127,7 +132,8 @@ Any new libraries. If none: state "No new dependencies".
 
 ## Rules for implementation
 
-Specific constraints the implementer must follow. Always include:
+Specific constraints the implementer must follow. Include each rule only when
+it applies to the feature:
 
 - Ownership checks via a single `id AND owner_id` query (missing and
   non-owned both 404, per NFR-SEC-04).
@@ -155,7 +161,8 @@ Spec file: .codex/spec/<feature_slug>.md
 Title:     <feature_title>
 ```
 
-Then tell the user to review the spec and run `$trace` before starting
-implementation. Do not print the full spec in chat unless explicitly asked.
+Then tell the user to review the spec and run `$trace`. Before implementation,
+confirm a read-only `spec-guardian` review exists for the final spec and has no
+blocking findings. Do not print the full spec in chat unless explicitly asked.
 Remind the user that this skill only wrote the spec and created the branch —
 no application code was touched.

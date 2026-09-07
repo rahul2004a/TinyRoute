@@ -22,8 +22,10 @@ diff, or a plan. If none is given in the current context, ask what to trace.
 2. Find the `FR-*` and/or `NFR-*` ID(s) that best match the request. If more
    than one plausibly applies, list all candidates.
 3. Report, for each match:
-   - ID, one-line description, actor, **priority** (Must/Should/Could), and
-     **release** (MVP/V1/Future).
+   - Functional requirement: ID, one-line description, actor, **priority**
+     (Must/Should/Could), and **release** (MVP/V1/Future).
+   - Non-functional requirement: ID, target, **priority**, and **release**.
+     NFRs have no actor; do not invent one.
 4. If nothing matches:
    - State that plainly. Do not invent a requirement ID or silently assume
      it's in scope.
@@ -33,7 +35,9 @@ diff, or a plan. If none is given in the current context, ask what to trace.
      safe-browsing checks, admin console, or anything else explicitly marked
      V1/Future in the docs) are **out of scope** unless the user explicitly
      asked for that specific item in this conversation.
-6. If the request conflicts with a documented behavior (e.g. would make an
+6. Before claiming an architecture conflict, read the relevant section of
+   [docs/architecture/architecture.md](../../../docs/architecture/architecture.md).
+   If the request conflicts with a documented behavior (e.g. would make an
    unknown code redirect, or would let Next.js own policy), call that out as
    a blocking issue, citing the exact section of
    [docs/architecture/architecture.md](../../../docs/architecture/architecture.md).

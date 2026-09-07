@@ -1,13 +1,21 @@
 ---
 name: write-adr
-description: Draft a new Architecture Decision Record in docs/adr/ for a significant technical decision, linking back to the requirement/architecture sections that motivated it. Explicit-only command, invoke with $adr.
+description: Draft an Architecture Decision Record for a significant TinyRoute decision and link its motivation. Explicit-only; invoke $adr followed by the decision title and chosen alternative.
 ---
 
 # Write ADR ($adr)
 
-Drafts one new ADR file under `docs/adr/`. Explicit-only — ADRs should be
-written on purpose when a real decision has been made, not guessed by Codex
-mid-task.
+Drafts one new ADR file under `docs/adr/`. Explicit-only — proposed or accepted
+decisions should be recorded on purpose, not guessed by Codex mid-task.
+
+User input: the decision title and chosen alternative after `$adr`. If the
+decision context, meaningful alternatives, consequences, or status cannot be
+established from the request, ask before writing rather than inventing them.
+
+## Plan Mode
+
+Inspect existing ADRs and relevant documentation, then return the proposed ADR
+number, title, status, and content outline. Do not create or edit files.
 
 ## Before you start
 
@@ -20,8 +28,11 @@ say so instead of writing a redundant ADR.
 
 ## Steps
 
-1. List existing files in `docs/adr/` and pick the next number
-   (`NNN`, zero-padded to 3 digits — start at `001` if the folder is empty).
+1. Read existing ADR titles and decisions. If one already records substantially
+   the same decision, stop and ask whether it should be superseded or updated.
+   Otherwise pick the next number (`NNN`, zero-padded to 3 digits — start at
+   `001` if the folder is empty). Recheck that the target path does not exist
+   immediately before writing; never overwrite an ADR.
 2. Create `docs/adr/NNN-short-title.md` (kebab-case title) using this
    template:
 
@@ -30,7 +41,7 @@ say so instead of writing a redundant ADR.
 
    ## Status
 
-   Accepted <!-- or Proposed / Superseded by ADR-NNN -->
+   <Proposed or Accepted>
 
    ## Context
 
@@ -50,9 +61,13 @@ say so instead of writing a redundant ADR.
    <What this makes easier/harder, and any follow-up it implies.>
    ```
 
-3. Keep it short — this project's NFR-MNT-03 asks for "short ADRs," not a
+3. Use `Accepted` only when the user explicitly states that the decision is
+   made; otherwise use `Proposed`. Use `Superseded by ADR-NNN` only when the
+   referenced replacement ADR exists. Do not leave template comments in the
+   finished file.
+4. Keep it short — this project's NFR-MNT-03 asks for "short ADRs," not a
    design essay.
-4. Link the ADR from anywhere relevant (e.g. mention it in the architecture
+5. Link the ADR from anywhere relevant (e.g. mention it in the architecture
    doc's section it touches) only if asked — this skill only writes the ADR
    file itself unless told otherwise.
 

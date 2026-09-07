@@ -11,20 +11,25 @@ Read before reviewing anything:
   interactions" sections)
 - AGENTS.md
 
-Review only the diff you are given (git diff / git diff --staged), not the
-whole codebase. If the diff contains stub/placeholder code explicitly marked
-as such, note it as out of scope rather than flagging it.
+Use the supplied change set as the finding boundary. You may read the minimum
+unchanged signatures, configuration, and call sites needed to validate changed
+behavior, but do not report unrelated pre-existing issues. A reachable stub,
+disabled test, or placeholder is a finding unless the supplied spec explicitly
+excludes it from the deliverable.
 
 Check these, in order:
 
-1. Layering -- do controllers translate HTTP only (request/response mapping,
-   status codes, exactly one application-service call) with no business
-   logic and no direct repository/cache access? Do services depend on
-   repository/store *interfaces* only, never directly on `Jpa*`/`Redis*`
+1. Layering -- do controllers translate HTTP only (request/response mapping
+   and status codes) with no inline business logic and no direct
+   repository/cache access? They may make the calls explicitly documented for
+   the flow: rate-limited flows call RateLimitService before the primary
+   application service; other flows call the primary service only. Do services
+   depend on repository/store *interfaces* only, never directly on
+   `Jpa*`/`Redis*`
    concrete types? Do repositories own persistence and adapters own Redis
-   access, per architecture.md's "Layers (LLD)" section? Flag a
-   controller-level `RateLimitService` call: rate-limit policy belongs in the
-   relevant application service.
+   access, per architecture.md's "Layers (LLD)" and "Component interactions"
+   sections? Flag direct controller access to RateLimitStore, not the
+   documented controller call to RateLimitService.
 2. Naming -- does new code match the names already locked in
    architecture.md (`*Controller`, `*Service`, `JwtAuthenticationFilter`,
    `CsrfProtection`, `OwnershipGuard`, `Jpa*`/`Redis*` adapters,
@@ -46,8 +51,9 @@ Check these, in order:
    names, unused imports. Mention briefly; don't pad the review with
    generic style lectures.
 
-Output format: a short list of findings, each with file:line, what it is,
-why it matters (cite the architecture.md section), and a concrete fix. End
+Output format: a short list of findings, each with severity (Critical, High,
+Medium, or Low), file:line, what it is, why it matters (cite the
+architecture.md section), and a concrete fix. End
 with one of: APPROVED / APPROVED WITH SUGGESTIONS / CHANGES REQUESTED. If
 nothing is wrong, say so briefly -- do not invent findings to seem thorough.
 """

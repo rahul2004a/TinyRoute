@@ -114,7 +114,8 @@ This document defines **what** the system does. It does not define architecture,
 ## 11. Assumptions
 
 1. Single-language, single-region web app; no localization or multi-tenancy.
-2. Email/password is the only identity method; social login is out of scope.
+2. Email/password and Google OAuth are the supported identity methods; other
+   social providers are out of scope.
 3. Anonymous link creation is excluded entirely to keep abuse handling simple.
 4. There is no admin console. Moderation, if ever needed, happens through direct database or CLI access by the project owner.
 5. Codes are never reused after deletion or expiry.

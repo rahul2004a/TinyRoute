@@ -1,6 +1,6 @@
 ---
 name: test-feature
-description: Writes and runs tests for a specific TinyRoute feature by orchestrating the test-writer then test-runner subagents against a spec. Explicit-only, invoke with $test <spec-slug>.
+description: Write and run tests for a TinyRoute feature by orchestrating test-writer then test-runner against its spec. Explicit-only; invoke $test followed by a spec slug.
 ---
 
 # Test feature ($test)
@@ -11,11 +11,21 @@ Follow [AGENTS.md](../../../AGENTS.md).
 User input: the spec slug after `$test` (e.g. `$test custom-alias`),
 matching `.codex/spec/<slug>.md`.
 
+## Plan Mode
+
+Perform read-only spec, manifest, and source-signature checks and return the
+test-writing and execution plan. Do not create or edit test files or run
+commands that update tracked files.
+
 If no slug is given, stop and say: "Usage: $test <spec-slug>, e.g. $test
 custom-alias."
 
 If `.codex/spec/<slug>.md` does not exist, stop and say: "Spec file not
 found at .codex/spec/<slug>.md. Run $spec first, or check the slug."
+
+Before spawning either agent, verify the relevant build manifest exists:
+`backend/pom.xml` for backend tests or `frontend/package.json` for frontend
+tests. If it does not, stop and report the missing prerequisite.
 
 ## Step 1 — Write tests
 
@@ -27,6 +37,8 @@ Spawn `test-writer` ([.codex/agents/](../../agents/)) with:
 - Instruction: write tests from what the spec says the feature SHOULD do.
   Cover the checklist in test-writer's own instructions (happy path, the
   named redirect failure modes, ownership, rate limiting, validation).
+- Instruction: write complete executable tests; never create placeholder,
+  disabled, skipped, or empty test methods.
 
 Wait for test-writer to finish and confirm the test file(s) before Step 2.
 
@@ -37,7 +49,8 @@ Spawn `test-runner` ([.codex/agents/](../../agents/)) with:
 - The test file(s) test-writer just wrote.
 - The spec file, for context on what each test is supposed to validate.
 - Instruction: run only the new test file(s), not the full suite. Classify
-  every failure as bug vs. missing feature, citing the FR-*/NFR-* ID.
+  every failure as an implementation bug, missing feature, test defect, or
+  environment/infrastructure failure, citing the FR-*/NFR-* ID when applicable.
 
 ## Handoff rules
 

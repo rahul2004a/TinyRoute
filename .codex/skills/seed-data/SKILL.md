@@ -11,17 +11,26 @@ something worth looking at. Follow [AGENTS.md](../../../AGENTS.md).
 
 ## Safety
 
-- Refuse to run against anything that isn't clearly local/dev: check the
-  active DB connection (`.env`/`application-*.yml` datasource URL) for
-  `localhost`/`127.0.0.1`/a container hostname. If it looks like a
-  production/staging URL, stop and say so.
-- Never touch a database named in a way that suggests production.
+- Proceed only when all of these are true: the active Spring profile is
+  `local`, `dev`, or `test`; the resolved database host is `localhost`,
+  `127.0.0.1`, or a Compose service explicitly defined in this repository;
+  and the database name is `tinyroute_dev` or `tinyroute_test`.
+- Print only the redacted resolved host and database name before insertion.
+  Never print datasource credentials or treat an arbitrary container hostname
+  as proof that the target is safe.
+- If any check is absent, ambiguous, production-like, or staging-like, stop.
+
+## Plan Mode
+
+Perform read-only schema, configuration, and prerequisite checks and report the
+exact seed command that would run. Do not connect to or modify a datastore.
 
 ## Usage
 
 - `$seed user` — create one demo user.
-- `$seed links <count> <months>` — create `<count>` links owned by a chosen
-  user, with click events backdated across `<months>` months.
+- `$seed links <owner-email> <count> <months>` — create `<count>` links owned
+  by that exact local demo user, with click events backdated across `<months>`
+  months.
 - `$seed all` — both, using sensible defaults (1 user, 30 links, 3 months).
 
 If arguments are missing or invalid, show this usage block instead of
@@ -33,19 +42,27 @@ Read the current JPA entities / migration files under `backend/` for the
 actual `users` and `links` table shapes (and any click-event table) — don't
 assume the schema in architecture.md's "Data" section hasn't drifted.
 
+Require the JPA entities, versioned migrations, and an existing executable
+dev-only seed entrypoint. If any is missing, stop and name the prerequisite.
+Do not create production code, temporary repository files, or ad hoc SQL as
+part of `$seed`.
+
 ## Step 2 — Seed a user
 
 Generate one realistic demo user:
-- Display name and email (e.g. `demo.user+<n>@example.com`) — check
+- Email (e.g. `demo.user+<n>@example.com`) — check
   uniqueness against `email_normalized` before inserting.
 - Password hashed with the same hasher the app uses (`PasswordHasher` /
   Argon2id or bcrypt, matching NFR-SEC-02) — never plaintext, never a
   different algorithm "just for seeding".
 - Print the plaintext password used, once, so it can be used to log in.
+- Do not create or store a display name, profile field, or other personal data
+  prohibited by NFR-PRV-01.
 
 ## Step 3 — Seed links + clicks
 
-For the target user:
+For the exact user selected by `<owner-email>` (or the user created by
+`$seed all`):
 - Generate `<count>` links with varied, realistic https destinations and
   unique codes (never colliding with an existing code, per FR-CRE-04 /
   FR-MGT-05 — codes are never reused).

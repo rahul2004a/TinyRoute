@@ -6,7 +6,7 @@ feature.
 
 ## Stack (locked)
 
-- Backend is **Spring Boot** (Java). Controllers, services, filters, Repositorys, JPA,
+- Backend is **Spring Boot** (Java). Controllers, services, filters, repositories, JPA,
   Redis adapters.
 - Frontend is **Next.js**. HTTP client only; no ownership or redirect policy
   in the UI.
@@ -94,7 +94,7 @@ matching `FR-*` / `NFR-*` ID for any non-trivial change.
   against the requirements docs before building it.
 - `$adr` (`.codex/skills/write-adr`) — draft a new ADR in `docs/adr/` for a
   significant decision.
-- `add-endpoint` (`.codex/skills/add-endpoint`) — scaffold a new HTTP
+- `$add-endpoint` (`.codex/skills/add-endpoint`) — implement or change an HTTP
   endpoint following the LLD layering above.
 - `$test` (`.codex/skills/test-feature`) — write and run tests for a spec via
   the `test-writer` / `test-runner` subagents.

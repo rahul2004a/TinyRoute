@@ -14,3 +14,7 @@ architecture, security, and scope rules are inherited from
   task requires them.
 - Preserve the existing safety gates: requirement tracing before feature work,
   review before shipping, and no direct commits to `main`.
+- Use the workflow in this order for non-trivial features: `$spec` -> `$trace` ->
+  `spec-guardian` -> implementation (including `$add-endpoint` when applicable)
+  -> `$test` -> `$review` -> `$ship`. Do not treat a later gate as a substitute
+  for an earlier one.

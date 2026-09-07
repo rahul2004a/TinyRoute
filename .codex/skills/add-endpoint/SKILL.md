@@ -1,29 +1,46 @@
 ---
 name: add-endpoint
-description: Scaffold a new TinyRoute HTTP endpoint (controller, service, repository/store interface, Jpa*/Redis* adapter, domain types, and a test stub) following the LLD layering in docs/architecture/architecture.md. Use when adding or changing an API endpoint on the Spring Boot backend.
+description: Implement or change a TinyRoute Spring Boot endpoint, adding only the layers required by an approved feature spec. Explicit-only; invoke $add-endpoint followed by a spec slug.
 ---
 
 # Add endpoint
 
-Scaffold a new HTTP endpoint for TinyRoute's Spring Boot backend, matching
+Implement or change an HTTP endpoint for TinyRoute's Spring Boot backend, matching
 the layering and naming already locked in
 [docs/architecture/architecture.md](../../../docs/architecture/architecture.md)
 and the project rules in [AGENTS.md](../../../AGENTS.md).
 
+User input: the spec slug after `$add-endpoint`, matching
+`.codex/spec/<slug>.md`.
+
+## Plan Mode
+
+Perform read-only prerequisite checks and return a decision-complete execution
+plan only. Do not create or edit files until Plan Mode has ended.
+
 ## Before you start
 
-1. Identify the requirement this endpoint implements. It must cite a
+1. Verify `backend/pom.xml`, the Spring Boot application, and the relevant
+   package structure exist. If the backend has not been bootstrapped, stop and
+   report that prerequisite; do not expand this skill into application setup.
+2. Read `.codex/spec/<slug>.md`. If the slug is missing or the file does not
+   exist, stop with `Usage: $add-endpoint <spec-slug>` or the missing path.
+3. Identify the requirement this endpoint implements. It must cite a
    `FR-*` ID from
    [docs/requirements/Functional.md](../../../docs/requirements/Functional.md)
    (and any related `NFR-*` IDs from
    [docs/requirements/Non-Functional.md](../../../docs/requirements/Non-Functional.md)).
-   If no ID is given or findable, stop and ask, or run the `trace-requirement`
-   skill (`$trace`) first — do not invent an endpoint that isn't in scope.
-2. Confirm the endpoint's priority/release (Must/Should/Could, MVP/V1/Future)
+   If no ID is findable, stop and ask the user to run `$trace`; do not invoke
+   an explicit-only skill on their behalf or invent an endpoint.
+4. Confirm the endpoint's priority/release (Must/Should/Could, MVP/V1/Future)
    is in scope per `AGENTS.md`. Do not build V1/Future endpoints (destination
    blocklist, API keys, admin console, safe-browsing) unless the user
    explicitly asked.
-3. Re-read the "Layers (LLD)" and "HTTP boundary (MVP)" sections of
+5. Confirm a read-only `spec-guardian` review exists for the final spec and has
+   no blocking findings. If absent, spawn it and stop implementation until its
+   result is incorporated.
+6. Re-read the "Layers (LLD)", "Component interactions", and "HTTP boundary
+   (MVP)" sections of
    architecture.md so naming matches exactly (e.g. `LinkController`,
    `AuthController`, `RedirectController`, `HealthController`).
 
@@ -31,8 +48,10 @@ and the project rules in [AGENTS.md](../../../AGENTS.md).
 
 1. **Controller** — add or extend the matching `*Controller`
    (`web` package). HTTP translation only: request/response mapping,
-   status codes, calling exactly one application service method. No business
-   logic, no direct repository or cache access.
+   status codes, and the calls explicitly documented for the flow. Rate-limited
+   flows call `RateLimitService` before the primary application service; other
+   flows call the primary service only. No inline business logic and no direct
+   repository or cache access.
 2. **Service** — add or extend the matching `*Service`
    (`application` package) that owns policy and the transaction boundary.
    Depends on repository/store **interfaces** only, never on `Jpa*`/`Redis*`
@@ -50,20 +69,21 @@ and the project rules in [AGENTS.md](../../../AGENTS.md).
    revocation), matching the key formats and TTLs already defined in the
    "Data" section of architecture.md. Do not introduce a new Redis key
    pattern without documenting it there.
-6. **Security** — if the endpoint is not on the public redirect path, verify
-   it goes through `JwtAuthenticationFilter` and, for mutations,
-   `CsrfProtection`. If it's an owner-only operation, route ownership checks
-   through `OwnershipGuard` (single query, `id AND owner_id`, missing and
-   non-owned both 404 per NFR-SEC-04).
-7. **Rate limiting** — if the endpoint creates/authenticates, wire it through
-   `RateLimitService` / `RateLimitStore` from the application-service layer,
-   never the controller, using the correct Redis key prefix (`rl:auth:`,
-   `rl:create:`, `rl:redirect:`) per the architecture doc.
-8. **Tests** — add a test stub covering the happy path plus the specific
-   failure modes called out in the requirement (unknown/disabled/deleted/
-   expired/case-mismatch for redirects; ownership/ not-owned/missing for
-   management endpoints; rate-limit exceeded where applicable). Reference
-   NFR-TST-01 for which paths are critical.
+6. **Security** — apply the route-specific controls from the "HTTP boundary
+   (MVP)" section. Redirect and health are public; registration, login, reset,
+   and OAuth use their documented CSRF/state controls without an access JWT;
+   refresh authenticates with the refresh cookie; `/me`, logout, account
+   deletion, and owner APIs use `JwtAuthenticationFilter`. Apply
+   `OwnershipGuard` only to owner-scoped link operations (single query,
+   `id AND owner_id`, missing and non-owned both 404 per NFR-SEC-04).
+7. **Rate limiting** — for create, auth, and redirect flows, have the
+   controller call `RateLimitService` before the primary service.
+   `RateLimitService` uses `RateLimitStore` with the documented Redis key
+   prefix (`rl:auth:`, `rl:create:`, or `rl:redirect:`); the controller never
+   accesses the store.
+8. **Tests** — do not create placeholder, disabled, or empty tests. After the
+   endpoint is implemented, tell the user to invoke `$test <spec-slug>` for
+   complete executable tests covering NFR-TST-01 and applicable failure modes.
 9. **Fail closed** — for anything touching redirect resolution or auth
    state, never return a guessed result when the datastore state is unknown;
    return a safe error instead (NFR-REL-02).
@@ -75,4 +95,5 @@ and the project rules in [AGENTS.md](../../../AGENTS.md).
 ## Output
 
 Summarize which files were added/changed, the `FR-*`/`NFR-*` IDs covered, and
-any open question that needs the user's decision before merging.
+any open question that needs the user's decision. Include the exact `$test`
+command to run next.
