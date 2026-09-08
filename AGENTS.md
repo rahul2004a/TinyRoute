@@ -97,6 +97,9 @@ matching `FR-*` / `NFR-*` ID for any non-trivial change.
 - `$design-taste-frontend` (`.agents/skills/design-taste-frontend`) — automatic
   anti-slop guidance for TinyRoute marketing, landing-page, and visual-redesign
   work; `DESIGN.md` and the product requirements remain authoritative.
+- `$web-design` (`.agents/skills/web-design`) — explicit spec-first web-design
+  workflow and reference library; invoke it deliberately, and keep `DESIGN.md`
+  plus TinyRoute requirements and architecture authoritative.
 - `$spec` (`.codex/skills/create-spec`) — write a spec to `.codex/spec/` and
   create a feature branch for a new feature, before any code is written.
 - `$trace` (`.codex/skills/trace-requirement`) — check a proposed change
