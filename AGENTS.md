@@ -16,6 +16,12 @@ feature.
 Source of truth: [docs/architecture/architecture.md](docs/architecture/architecture.md).
 Do not invent a different stack.
 
+Before designing or implementing frontend UI, read [DESIGN.md](DESIGN.md).
+It governs presentation only. Functional requirements and architecture remain
+authoritative for behavior, security, ownership, validation, rate limits,
+analytics policy, and redirect handling. Next.js renders API results; it must
+not reimplement those policies or handle the public redirect route.
+
 Use Spring names from that doc: `*Controller`, `*Service`,
 `JwtAuthenticationFilter`, `Jpa*` / `Redis*` adapters, repository interfaces.
 Never propose Express, Nest, Django, or Next.js API routes as the backend.
