@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Crawl a website with a Playwright-managed headless browser.
+crawl_website.py — Crawl websites with a Playwright headless browser
 
-Capabilities:
-1. Render client-side applications in a real browser engine.
-2. Scroll through the document to trigger lazy content.
-3. Capture full-page and viewport screenshots.
-4. Extract CSS variables, computed styles, fonts, and colors.
-5. Record page structure, images, and linked stylesheets.
+Features:
+1. Real-browser rendering (bypasses most anti-scraping measures and supports SPAs)
+2. Simulated scrolling to the bottom (triggers lazy loading and scroll-linked animations)
+3. Screenshots (full page plus one screenshot per viewport)
+4. Extracts rendered CSS variables, computed styles, fonts, and colors
+5. Extracts page structure (all sections, images, and external CSS)
 
 Usage:
   python3 crawl_website.py --url https://example.com --output ./output
@@ -16,30 +16,30 @@ Usage:
 
 Output:
   output/
-  ├── full-page.png          Full-page or top-viewport screenshot
+  ├── full-page.png          Full-page screenshot
   ├── viewport-001.png       First viewport screenshot
   ├── viewport-002.png       Second viewport screenshot
   ├── ...
   ├── tokens.json            Extracted design tokens
-  ├── structure.json         Sections, images, and stylesheet links
-  └── styles.css             Collected readable CSS
+  ├── structure.json          Page structure (sections, images, CSS links)
+  └── styles.css             All inline <style> blocks and external CSS combined
 """
 
 import argparse
 import json
+import os
+import sys
 import time
 from pathlib import Path
 
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    print("Error: playwright not installed. Run: pip3 install playwright && python3 -m playwright install chromium")
+    sys.exit(1)
+
 
 def crawl(url: str, output_dir: str, scroll_delay: int = 500, full_page: bool = False, viewport_width: int = 1440, viewport_height: int = 900):
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        raise SystemExit(
-            "Error: Playwright is required for crawling but is not installed. "
-            "Install it only when the current task authorizes that dependency."
-        )
-
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
 

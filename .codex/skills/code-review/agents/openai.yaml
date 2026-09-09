@@ -1,8 +1,0 @@
-# Skill metadata for code-review.
-# Explicit-only: review runs on purpose ($review) once code exists, never
-# guessed by Codex from a plain description match.
-interface:
-  display_name: "Code review ($review)"
-
-policy:
-  allow_implicit_invocation: false

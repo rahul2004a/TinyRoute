@@ -1,50 +1,53 @@
-# Design-system profile index
+# Design Systems Index
 
-These profiles describe 58 public websites and were sourced from
-[VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
-under its MIT license.
+Design-system presets from 58 real websites, sourced from [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) (MIT License).
 
 ## Usage
 
-Load profiles on demand; never load the full directory. When the user names a
-reference brand, read only its matching file and extract transferable design
-principles. Do not copy proprietary assets, fonts, wording, or brand identity.
+**Read on demand; do not load everything.** When a user asks for "a page similar to XXX," read the corresponding file for the complete design specification.
 
-Profiles commonly cover visual atmosphere, color roles, typography, components,
-layout, elevation, design safeguards, responsive behavior, and implementation
-prompts. They are observations, not TinyRoute requirements.
+Each file contains nine standardized sections:
+1. Visual Theme & Atmosphere — design philosophy and atmosphere
+2. Color Palette & Roles — complete color system
+3. Typography Rules — type hierarchy
+4. Component Stylings — button, card, input, and navigation styles
+5. Layout Principles — spacing, grid, and container rules
+6. Depth & Elevation — shadow system
+7. Do's and Don'ts — design guardrails
+8. Responsive Behavior — responsive breakpoints
+9. Agent Prompt Guide — quick reference and component examples
 
-## Profiles by category
+## Index by Category
 
 ### AI / ML
 `claude` · `cohere` · `elevenlabs` · `minimax` · `mistral.ai` · `ollama` · `opencode.ai` · `replicate` · `runwayml` · `together.ai` · `voltagent` · `x.ai`
 
-### Developer tools
+### Developer Tools
 `cursor` · `expo` · `linear.app` · `lovable` · `mintlify` · `posthog` · `raycast` · `resend` · `sentry` · `supabase` · `superhuman` · `vercel` · `warp` · `zapier`
 
 ### Infrastructure
 `clickhouse` · `composio` · `hashicorp` · `mongodb` · `sanity` · `stripe`
 
-### Design and productivity
+### Design / Productivity
 `airtable` · `cal` · `clay` · `figma` · `framer` · `intercom` · `miro` · `notion` · `pinterest` · `webflow`
 
-### Financial technology
+### Fintech
 `coinbase` · `kraken` · `revolut` · `wise`
 
-### Enterprise and consumer
+### Enterprise / Consumer
 `airbnb` · `apple` · `ibm` · `nvidia` · `spacex` · `spotify` · `uber`
 
 ### Automotive
 `bmw` · `ferrari` · `lamborghini` · `renault` · `tesla`
 
-## Suggested starting profiles
+## Recommended References by Design Style
 
-| Direction | Profiles | Useful traits |
-|---|---|---|
-| Restrained minimal | `linear.app`, `vercel`, `resend` | Tight hierarchy and precise dark surfaces |
-| Dark technical | `cursor`, `x.ai`, `warp` | Technical density and controlled highlights |
-| Warm professional | `stripe`, `cal`, `notion` | Trust, clarity, and approachable structure |
-| Playful creative | `clay`, `framer`, `figma` | Expressive color and irregular composition |
-| Chinese-language editorial | `minimax` | Chinese typography and content rhythm |
-| Image-led premium | `apple`, `ferrari`, `tesla` | Strong media, whitespace, and detail |
-| Developer SaaS | `supabase`, `posthog`, `sentry` | Product demonstrations and technical proof |
+| Target style | Recommended references | Rationale |
+|----------|----------|------|
+| Restrained minimalism | `linear.app` `vercel` `resend` | Dark minimalism, precise typography, and an Inter type system |
+| Dark technology | `cursor` `x.ai` `warp` | Dark palette, neon highlights, and a strong technical feel |
+| Warm professional | `stripe` `cal` `notion` | Approachable professionalism, trust, and clear hierarchy |
+| Playful creative | `clay` `framer` `figma` | Bold colors, playful interactions, and irregular layouts |
+| Elegant Chinese | `minimax` (Chinese-language AI) | Optimized Chinese typography |
+| Premium brand | `apple` `ferrari` `tesla` | Generous whitespace, image-led design, and meticulous detail |
+| SaaS product page | `supabase` `posthog` `sentry` | Feature presentation with a developer-friendly feel |

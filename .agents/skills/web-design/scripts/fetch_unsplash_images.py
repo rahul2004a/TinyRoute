@@ -96,15 +96,15 @@ def get_images_by_category(category, count=3, width=800, height=600, strict=True
             break
 
     keyword_map = {
-        "person": "portrait", "team": "portrait", "avatar": "portrait",
-        "desk": "workspace", "office": "workspace", "work": "workspace",
-        "code": "technology", "programming": "technology", "ai": "technology", "tech": "technology",
-        "landscape": "nature", "mountain": "nature", "ocean": "nature", "forest": "nature",
-        "gradient": "abstract", "texture": "abstract", "background": "abstract",
-        "showcase": "product", "mockup": "product",
-        "meal": "food", "coffee": "food",
-        "company": "business", "conference": "business", "meeting": "business",
-        "banner": "hero", "cover": "hero",
+        "人物": "portrait", "头像": "portrait", "team": "portrait", "avatar": "portrait",
+        "办公": "workspace", "工作": "workspace", "desk": "workspace", "office": "workspace",
+        "代码": "technology", "编程": "technology", "ai": "technology", "tech": "technology",
+        "风景": "nature", "山": "nature", "海": "nature", "forest": "nature",
+        "抽象": "abstract", "背景": "abstract", "gradient": "abstract", "texture": "abstract",
+        "产品": "product", "展示": "product", "mockup": "product",
+        "美食": "food", "餐": "food", "coffee": "food",
+        "商务": "business", "会议": "business", "meeting": "business",
+        "首屏": "hero", "banner": "hero", "cover": "hero",
     }
 
     if not matched_category:
@@ -125,26 +125,26 @@ def get_images_by_category(category, count=3, width=800, height=600, strict=True
 
 def main():
     parser = argparse.ArgumentParser(description="Generate remote placeholder image candidates")
-    parser.add_argument("--keywords", type=str, required=True, help="Comma-separated image keywords")
-    parser.add_argument("--count", type=int, default=3, help="Number of images per keyword")
-    parser.add_argument("--size", type=str, default="800x600", help="Image dimensions as WIDTHxHEIGHT")
+    parser.add_argument("--keywords", type=str, required=True, help="Image keywords (comma-separated)")
+    parser.add_argument("--count", type=int, default=3, help="Number of images to fetch per keyword")
+    parser.add_argument("--size", type=str, default="800x600", help="Image dimensions, WxH")
     parser.add_argument("--format", type=str, choices=["text", "json"], default="text", help="Output format")
     parser.add_argument(
         "--use-case",
         type=str,
         required=True,
         choices=["placeholder", "wireframe", "internal-mock"],
-        help="Declare placeholder, wireframe, or internal mock usage.",
+        help="Usage declaration. Permitted only for placeholders, wireframes, or internal mock scenarios.",
     )
     parser.add_argument(
         "--ack-remote-placeholders",
         action="store_true",
-        help="Acknowledge that the task permits remote placeholder candidates.",
+        help="Confirm that this task permits remote placeholder image candidates instead of user-provided media or local assets.",
     )
     parser.add_argument(
         "--loose",
         action="store_true",
-        help="Fall back to abstract images when no keyword matches.",
+        help="Allow fallback to abstract when a keyword cannot be matched. Strict matching is the default to avoid irrelevant images.",
     )
     args = parser.parse_args()
 

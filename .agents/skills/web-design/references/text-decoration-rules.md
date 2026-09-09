@@ -1,53 +1,59 @@
-# Text-decoration decision guide
+# Text-decoration Decision Rules
 
-Text decoration is optional. TinyRoute's root `DESIGN.md` currently favors clear,
-unembellished typography and prohibits decorative gradients unless explicitly
-revised.
+Before generating code, apply the following checks to each text level to decide whether to add decorative styling.
 
-## Gradient text
+## Gradient Text
 
-Consider gradient text only when all of these are true:
+**Trigger conditions** (all must be true):
+- Style == "Dark Tech" or "Playful Creative"
+- Font size >= 60px, or the element is the primary Hero h1
 
-- The user explicitly requests a more expressive campaign treatment.
-- The approved design system permits gradients.
-- The element is a large display heading, not body text.
-- Contrast remains sufficient throughout the gradient.
-
+**Implementation**:
 ```css
-.display-accent {
-  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  background-clip: text;
-  color: transparent;
-}
+background: linear-gradient(135deg, [primary-color], [accent-color]);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
 ```
 
-Do not combine gradient text with a glow or heavy shadow.
+**Prohibited**:
+- Restrained Minimal style (undermines the restraint)
+- White background with font size < 40px (poor readability)
+- Body paragraphs (`p`); headings only
 
-## Text shadow
+## Text Shadow
 
-Use text shadow only to solve a concrete contrast or material problem. Prefer a
-subtle shadow on display text over layered novelty effects.
-
+**A. Dark background (background luminance < 30%) and font size >= 80px** → subtle glow:
 ```css
-.display-on-media {
-  text-shadow: 0 2px 16px rgb(0 0 0 / 35%);
-}
+text-shadow: 0 0 40px rgba([primary-color-RGB], 0.4);
 ```
 
-Do not add text shadows to body copy, controls, table content, or analytics.
+**B. Playful Creative style plus primary Hero heading** → layered drop shadow:
+```css
+text-shadow: 3px 3px 0 [accent-color], 6px 6px 0 rgba(0,0,0,0.15);
+```
 
-## Underlines and highlights
+**C. Warm Professional style plus serif heading and dark text** → soft shadow:
+```css
+text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+```
 
-- Use underline offset and thickness to make links recognizable.
-- Use a border or background highlight for a short label only when it belongs to
-  the approved component language.
-- Preserve focus indicators; a hover underline is not a focus ring.
+**Prohibited**:
+- Restrained Minimal style
+- Do not combine with gradient text (visual overload)
+- Body paragraphs (`p`)
 
-## Quick decision table
+## Decorative Underlines / Highlights
 
-| Context | Gradient | Shadow | Underline/highlight |
-|---|---:|---:|---:|
-| TinyRoute product UI | No | No | Functional links only |
-| Standard marketing page | No by default | Rare | Yes, when semantic |
-| Expressive campaign | Explicit approval | Optional | Optional |
-| Body text | No | No | Links only |
+- Section eyebrow (11-13px, letter-spacing > 3px) → `border-bottom: 2px solid [primary-color]` or a background highlight
+- Link hover → underline offset or color transition; do not add text-shadow
+
+## Decision Table (Quick Reference)
+
+| Context | Restrained Minimal | Dark Tech | Warm Professional | Playful Creative |
+|------|---------|---------|---------|---------|
+| Hero h1 gradient | -- | Yes | -- | Yes |
+| Hero h1 shadow | -- | glow | soft | layered |
+| Section h2 gradient | -- | Optional | -- | Yes |
+| Section h2 shadow | -- | -- | soft | Optional |
+| Any decoration on body `p` | -- | -- | -- | -- |

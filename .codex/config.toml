@@ -1,1 +1,0 @@
-notify = ["osascript", "-e", "display notification \"Codex needs your attention\" with title \"Codex\""]

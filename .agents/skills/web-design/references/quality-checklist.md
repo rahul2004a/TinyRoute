@@ -1,53 +1,53 @@
-# Web-design quality checklist
+# Quality Checklist
 
-Use this after the relevant project tests and checks. Root `DESIGN.md` and the
-product requirements remain authoritative.
+After Phase C code generation, check every item below.
 
-## Design-system alignment
+## DESIGN.md Compliance (Required)
 
-- [ ] The implementation uses existing semantic tokens and typography roles.
-- [ ] No unrequested design-system change was introduced.
-- [ ] Component shape, density, borders, and elevation are consistent.
-- [ ] All visible states match the approved design system.
+- [ ] DESIGN.md has been generated and saved in the project directory
+- [ ] DESIGN.md contains all nine sections, with no empty sections
+- [ ] Every color in the code references a CSS variable defined in DESIGN.md; there are no hard-coded hex values
+- [ ] Fonts follow the Typography Rules in DESIGN.md exactly
+- [ ] Interactions implement the tier specified in DESIGN.md (L1/L2/L3) exactly
+- [ ] No rule in the DESIGN.md Do's and Don'ts has been violated
 
-## Content and reference handling
+## Reference-site Analysis (When a Reference URL Is Provided)
 
-- [ ] User content and approved project assets take priority.
-- [ ] Reference sites informed principles rather than copied identity or assets.
-- [ ] No production asset is hotlinked from a reference site.
-- [ ] Intentional differences from a supplied reference are documented.
+- [ ] Analysis combines experiential assessment, token extraction, and screenshot comparison
+- [ ] Original HTML/CSS was fetched with a script or curl; the analysis does not rely solely on an AI summary
+- [ ] Every section on the reference site has been counted
+- [ ] A motion audit was completed if the site has scroll-linked animation
+- [ ] An explicit difference audit compared the generated result with the reference
 
-## Accessibility
+## Typography
 
-- [ ] Semantic landmarks and heading order are correct.
-- [ ] Keyboard navigation and focus visibility work.
-- [ ] Text, controls, status colors, and focus rings meet contrast requirements.
-- [ ] Icon-only controls have accessible names.
-- [ ] Touch targets meet the project minimum.
-- [ ] Meaning is never communicated by color alone.
+- [ ] Fonts follow DESIGN.md and include a Google Fonts `@import` URL plus fallbacks
+- [ ] Decoration decisions for h1/h2/h3 follow `text-decoration-rules.md`
+- [ ] **Context-specific type-size requirements** (use the applicable scene sizes from `scene-defaults.md`; do not apply one scale everywhere):
+  - Landing / Portfolio Hero: ≥ 60px, weight ≥ 700
+  - Blog / article: Hero 32-40px, body 1-1.0625rem, line-height 1.7-1.8
+  - Dashboard / App UI: page title 1.25-1.5rem, body 0.875rem
+  - Presentation / course material: Hero 3-3.5rem (serif), body 0.82-0.85rem
+  - Email: heading 24-28px, body 15-16px
+- [ ] Chinese content: the font stack includes a Chinese typeface, line-height is at least 1.7, and letter-spacing is 0.02em
 
-## Interaction and state
+## Visual System
 
-- [ ] Interactive controls have hover, focus, active, disabled, and loading
-      states where relevant.
-- [ ] Loading, empty, error, and success states preserve layout stability.
-- [ ] Motion has a purpose and respects `prefers-reduced-motion`.
-- [ ] No scroll-jacking, cursor replacement, or decorative animation was added
-      without an explicit brief.
+- [ ] Every color uses a CSS variable
+- [ ] Icons use the project library, lucide-react, or inline SVG; **emoji decoration is permitted only for a Playful Creative tone**
+- [ ] User-provided media has been adapted appropriately; mismatches have been called out
+- [ ] Image placeholders use reference-site URLs or Unsplash; solid-color blocks are prohibited
 
-## Responsive behavior and performance
+## Interaction
 
-- [ ] Mobile and desktop layouts were checked.
-- [ ] Navigation, cards, media, tables, and charts adapt without horizontal
-      overflow.
-- [ ] Images have dimensions, useful alt text, and appropriate loading behavior.
-- [ ] Client-side JavaScript and animation work stay proportional to the task.
-- [ ] Effects pause or degrade when off-screen, on mobile, or under reduced
-      motion when applicable.
+- [ ] Every interactive element has hover and focus states
+- [ ] Entrance animation is implemented (at least an L1 fade-in)
+- [ ] L2+ scroll behavior is implemented (reveal, parallax, and navigation changes)
+- [ ] L3 effects are implemented (pinning, cursor effects, and transitions)
+- [ ] L2+ includes a `prefers-reduced-motion` fallback
 
-## TinyRoute behavior
+## Responsive Design
 
-- [ ] Next.js remains presentation-only.
-- [ ] Ownership, authorization, validation, rate limits, and redirects remain
-      backend-owned.
-- [ ] Unknown state never produces a guessed redirect or authorization result.
+- [ ] Supports at least mobile (< 600px) and desktop layouts
+- [ ] Navigation has a mobile collapse strategy
+- [ ] Images and containers do not overflow

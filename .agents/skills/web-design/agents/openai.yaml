@@ -1,7 +1,0 @@
-interface:
-  display_name: "Web design ($web-design)"
-  short_description: "Spec-first web design references and workflow"
-  default_prompt: "Use $web-design to plan a TinyRoute web design from the existing DESIGN.md."
-
-policy:
-  allow_implicit_invocation: false

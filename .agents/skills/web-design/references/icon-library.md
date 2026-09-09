@@ -1,56 +1,129 @@
-# Icon selection reference
+# Lucide-React Icon Quick Reference by Category
 
-Use the icon family already installed by TinyRoute. The names below use Lucide
-terminology only as a searchable concept index; do not add `lucide-react` unless
-the current task authorizes it.
+The artifact environment includes lucide-react@0.383.0. Import icons directly with `import { IconName } from "lucide-react"`.
+All icons are 24x24 SVGs and support the `size`, `color`, and `strokeWidth` properties.
 
-## Common concepts
+## Navigation
+| Purpose | Icon names | Import |
+|------|--------|------|
+| Menu | Menu, AlignJustify | `import { Menu } from "lucide-react"` |
+| Close | X, XCircle | `import { X } from "lucide-react"` |
+| Back | ArrowLeft, ChevronLeft | `import { ArrowLeft } from "lucide-react"` |
+| Forward | ArrowRight, ChevronRight | `import { ArrowRight } from "lucide-react"` |
+| Up | ArrowUp, ChevronUp | `import { ArrowUp } from "lucide-react"` |
+| Down | ArrowDown, ChevronDown | `import { ArrowDown } from "lucide-react"` |
+| Home | Home | `import { Home } from "lucide-react"` |
+| External link | ExternalLink, ArrowUpRight | `import { ExternalLink } from "lucide-react"` |
+| Search | Search | `import { Search } from "lucide-react"` |
 
-| Purpose | Typical icon names |
-|---|---|
-| Menu and close | `Menu`, `AlignJustify`, `X`, `XCircle` |
-| Back and forward | `ArrowLeft`, `ArrowRight`, `ChevronLeft`, `ChevronRight` |
-| Expand and collapse | `ChevronUp`, `ChevronDown`, `Plus`, `Minus` |
-| Home and external navigation | `Home`, `ExternalLink`, `ArrowUpRight` |
-| Search and filter | `Search`, `Filter`, `SlidersHorizontal` |
-| Link actions | `Link`, `Link2`, `Copy`, `Clipboard`, `Share2` |
-| Edit and delete | `Pencil`, `PenLine`, `Trash2` |
-| Account and users | `User`, `UserCircle`, `Users`, `CircleUser` |
-| Time and location | `Calendar`, `Clock`, `MapPin` |
-| Code and infrastructure | `Code2`, `Terminal`, `Database`, `Server`, `Cloud` |
-| Settings and security | `Settings`, `Wrench`, `Shield`, `Lock` |
-| Success | `Check`, `CheckCircle` |
-| Warning and error | `AlertTriangle`, `AlertCircle`, `XCircle` |
-| Information and loading | `Info`, `Loader2` |
-| Theme | `Sun`, `Moon` |
-| Analytics | `ChartLine`, `ChartBar`, `TrendingUp`, `MousePointerClick` |
+## Social Media
+| Purpose | Icon names | Import |
+|------|--------|------|
+| GitHub | Github | `import { Github } from "lucide-react"` |
+| Twitter/X | Twitter | `import { Twitter } from "lucide-react"` |
+| LinkedIn | Linkedin | `import { Linkedin } from "lucide-react"` |
+| YouTube | Youtube | `import { Youtube } from "lucide-react"` |
+| Instagram | Instagram | `import { Instagram } from "lucide-react"` |
+| Email | Mail, MailOpen | `import { Mail } from "lucide-react"` |
+| Link | Link, Link2 | `import { Link } from "lucide-react"` |
+| Share | Share2 | `import { Share2 } from "lucide-react"` |
 
-## React example
+## Content / Documents
+| Purpose | Icon names |
+|------|--------|
+| File | File, FileText, FilePlus |
+| Folder | Folder, FolderOpen |
+| Image | Image, ImagePlus |
+| Video | Video, Play, Pause |
+| Audio | Music, Volume2 |
+| Download | Download |
+| Upload | Upload |
+| Copy | Copy, Clipboard |
+| Edit | Pencil, PenLine, Edit |
+| Delete | Trash2 |
 
-Adapt imports to the package already present in the project:
+## Users / Personal
+| Purpose | Icon names |
+|------|--------|
+| User | User, UserCircle |
+| User group | Users |
+| Avatar | CircleUser |
+| Location | MapPin |
+| Phone | Phone |
+| Calendar | Calendar |
+| Clock | Clock |
+| Birthday | Cake |
 
-```tsx
-import { ArrowUpRight, Copy } from "lucide-react";
+## Skills / Technology
+| Purpose | Icon names |
+|------|--------|
+| Code | Code, Code2, Terminal |
+| Database | Database |
+| Server | Server |
+| Cloud | Cloud |
+| Settings | Settings, Cog |
+| Tools | Wrench, Hammer |
+| Layers | Layers |
+| Components | Component, Puzzle |
+| CPU | Cpu |
+| Lightning / Fast | Zap |
+| Framework | LayoutGrid, Grid3x3 |
+| API | Webhook |
+| Security | Shield, Lock |
 
-<button type="button" className="action-button">
-  <Copy aria-hidden="true" size={16} strokeWidth={1.75} />
-  <span>Copy link</span>
+## Status / Feedback
+| Purpose | Icon names |
+|------|--------|
+| Success | Check, CheckCircle |
+| Warning | AlertTriangle |
+| Error | AlertCircle, XCircle |
+| Information | Info |
+| Loading | Loader2 (can add `animate-spin`) |
+| Star | Star, StarHalf |
+| Heart | Heart |
+| Like | ThumbsUp |
+
+## Decoration / Layout
+| Purpose | Icon names |
+|------|--------|
+| Sun (light mode) | Sun |
+| Moon (dark mode) | Moon |
+| Quote | Quote |
+| Flame | Flame |
+| Rocket | Rocket |
+| Trophy | Trophy |
+| Target | Target |
+| Light bulb | Lightbulb |
+| Book | BookOpen |
+| Graduation cap | GraduationCap |
+| Briefcase | Briefcase |
+| Building | Building |
+
+## Usage Examples
+
+```jsx
+import { Github, Mail, ArrowUpRight, Moon, Sun } from "lucide-react";
+
+// Basic usage
+<Github size={20} />
+
+// Custom color and stroke
+<Mail size={24} color="var(--color-primary)" strokeWidth={1.5} />
+
+// Use with a button
+<button className="flex items-center gap-2">
+  <ArrowUpRight size={16} />
+  View Project
 </button>
 
-<a href={destination} target="_blank" rel="noreferrer">
-  <span>Open destination</span>
-  <ArrowUpRight aria-hidden="true" size={16} strokeWidth={1.75} />
-</a>
+// Theme-toggle icon
+{isDark ? <Sun size={20} /> : <Moon size={20} />}
 ```
 
-## Rules
+## Notes
 
-1. Use one icon family within a component tree.
-2. Keep a consistent size and stroke scale.
-3. Pair ambiguous icons with visible labels.
-4. Mark decorative icons `aria-hidden="true"`; give icon-only buttons an
-   accessible name.
-5. Do not use emoji as functional controls.
-6. Do not hand-copy proprietary brand marks. Use approved brand assets when
-   identity matters.
-7. Check `package.json` before importing any library.
+1. Always import from lucide-react; do not replace icons with hand-written `<svg>` elements or emoji
+2. When lucide does not provide a social icon (such as WeChat or Weibo), use an inline SVG. There is no preset in `references/`, so write a simplified SVG path in the code
+3. The `size` property accepts a number in pixels. Common values are 16 (inside a small button), 20 (regular), 24 (standard), 32 (large icon), and 48 (decorative)
+4. `strokeWidth` defaults to 2; use 1.5 for thin strokes and 2.5 for thick strokes
+5. `className` accepts Tailwind classes, such as `className="animate-spin"` for a spinning loader

@@ -1,7 +1,0 @@
-# Skill metadata for write-adr.
-# Explicit-only: ADRs are written on purpose ($adr), not guessed by Codex.
-interface:
-  display_name: "Write ADR ($adr)"
-
-policy:
-  allow_implicit_invocation: false

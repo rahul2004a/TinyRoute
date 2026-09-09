@@ -1,8 +1,0 @@
-# Skill metadata for add-endpoint.
-# Explicit-only: endpoint implementation changes application code and runs
-# only when the user deliberately invokes $add-endpoint.
-interface:
-  display_name: "Add endpoint ($add-endpoint)"
-
-policy:
-  allow_implicit_invocation: false

@@ -1,8 +1,0 @@
-# Skill metadata for trace-requirement.
-# Explicit-only: this is a deliberate pre-flight gate ($trace), not something
-# Codex should trigger on its own guess that a task matches.
-interface:
-  display_name: "Trace requirement ($trace)"
-
-policy:
-  allow_implicit_invocation: false
