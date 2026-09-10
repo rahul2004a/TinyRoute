@@ -138,8 +138,9 @@ Before changing files, check the current branch and working-tree status.
 - Keep one feature or concern per branch. Never implement or commit directly on
   `main`; changes enter `main` only through a pull request.
 - After implementation is authorized, agents may push the feature branch and
-  open or update its pull request without additional approval. Never
-  force-push any branch.
+  create or update its pull request without additional approval. Do not launch
+  or open the pull-request page in a browser unless the user explicitly asks.
+  Never force-push any branch.
 - Do not merge a pull request or delete a local or remote branch unless the
   user explicitly requests that action. The user owns final pull-request review
   and merge. Never delete `main`.
