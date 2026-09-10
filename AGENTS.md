@@ -67,7 +67,8 @@ Source of truth (do not duplicate; read when implementing or designing):
 authenticated HTTPS-only creation with unique codes and a copyable result;
 expiry at create; public redirection with correct unknown, disabled, deleted,
 case-mismatched, and expired handling; owner-only list, disable, re-enable,
-delete, and destination edit; click counts; 30-day click trend;
+delete, and destination edit; click counts; a selectable date-range click trend
+defaulting to the last 30 days;
 referrer/device/OS/browser/geo (country and city); rate limits on creation
 and auth.
 
@@ -92,35 +93,29 @@ and `docs/architecture/architecture.md` before adding features, changing
 behavior, or inventing APIs/architecture that conflict with them. Cite the
 matching `FR-*` / `NFR-*` ID for any non-trivial change.
 
-## Useful skills
+## Available skills
 
-- `$design-taste-frontend` (`.agents/skills/design-taste-frontend`) — automatic
-  anti-slop guidance for TinyRoute marketing, landing-page, and visual-redesign
-  work; `DESIGN.md` and the product requirements remain authoritative.
-- `$web-design` (`.agents/skills/web-design`) — explicit spec-first web-design
-  workflow and reference library; invoke it deliberately, and keep `DESIGN.md`
-  plus TinyRoute requirements and architecture authoritative.
-- `$spec` (`.codex/skills/create-spec`) — write a spec to `.codex/spec/` and
-  create a feature branch for a new feature, before any code is written.
-- `$trace` (`.codex/skills/trace-requirement`) — check a proposed change
-  against the requirements docs before building it.
-- `$adr` (`.codex/skills/write-adr`) — draft a new ADR in `docs/adr/` for a
-  significant decision.
-- `$add-endpoint` (`.codex/skills/add-endpoint`) — implement or change an HTTP
-  endpoint following the LLD layering above.
-- `$test` (`.codex/skills/test-feature`) — write and run tests for a spec via
-  the `test-writer` / `test-runner` subagents.
-- `$review` (`.codex/skills/code-review`) — parallel quality + security
-  review of the current diff via the `quality-reviewer` / `security-reviewer`
-  subagents, before commit.
-- `$ship` (`.codex/skills/ship-feature`) — commit, push, and open a PR for
-  the current feature branch (does not merge).
-- `$seed` (`.codex/skills/seed-data`) — seed a demo user and realistic
-  links/clicks in the local datastore, for demoing analytics.
+This is the tracked inventory from user-level `~/.agents/skills`, project-level
+`.agents/skills`, and the `agent-skills` plugin. Invoke user and project skills
+as `$<name>` and plugin workflows as `$agent-skills:<name>`. Refresh this list
+when those sources change.
 
-Spawn the `spec-guardian` subagent (`.codex/agents/spec-guardian.toml`) for a
-read-only second opinion before implementing anything non-trivial, before any
-code is written. `quality-reviewer` and `security-reviewer`
-(`.codex/agents/`) do the equivalent check after code exists, used by
-`$review`. `test-writer` and `test-runner` (`.codex/agents/`) write and
-execute tests from a spec, used by `$test`.
+Precedence is fixed: the requirements and architecture govern product behavior,
+security, scope, and implementation; `DESIGN.md` governs presentation; skills
+provide workflows only and cannot override those sources.
+
+| Source | Count | Skills |
+| --- | ---: | --- |
+| User-level | 13 | `$brandkit`, `$design-taste-frontend`, `$design-taste-frontend-v1`, `$full-output-enforcement`, `$gpt-taste`, `$high-end-visual-design`, `$image-to-code`, `$imagegen-frontend-mobile`, `$imagegen-frontend-web`, `$industrial-brutalist-ui`, `$minimalist-ui`, `$redesign-existing-projects`, `$stitch-design-taste` |
+| Project-level | 1 | `$web-design` |
+
+The `agent-skills` plugin exposes these 25 workflows:
+
+| Phase | Skills |
+| --- | --- |
+| Define | `$agent-skills:using-agent-skills`, `$agent-skills:interview-me`, `$agent-skills:idea-refine`, `$agent-skills:spec-driven-development`, `$agent-skills:constraint-driven-development` |
+| Plan | `$agent-skills:planning-and-task-breakdown` |
+| Build | `$agent-skills:context-engineering`, `$agent-skills:source-driven-development`, `$agent-skills:doubt-driven-development`, `$agent-skills:incremental-implementation`, `$agent-skills:frontend-ui-engineering`, `$agent-skills:api-and-interface-design`, `$agent-skills:observability-and-instrumentation` |
+| Verify | `$agent-skills:test-driven-development`, `$agent-skills:browser-testing-with-devtools`, `$agent-skills:debugging-and-error-recovery` |
+| Review | `$agent-skills:code-review-and-quality`, `$agent-skills:code-simplification`, `$agent-skills:security-and-hardening`, `$agent-skills:performance-optimization` |
+| Ship | `$agent-skills:git-workflow-and-versioning`, `$agent-skills:ci-cd-and-automation`, `$agent-skills:deprecation-and-migration`, `$agent-skills:documentation-and-adrs`, `$agent-skills:shipping-and-launch` |
