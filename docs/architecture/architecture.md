@@ -4,12 +4,40 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 
 ## Stack (locked)
 
-| Piece       | Role                                                                                   |
-| ----------- | -------------------------------------------------------------------------------------- |
-| Next.js     | Browser UI. HTTP client only. It does not enforce ownership or redirect policy.        |
-| Spring Boot | Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, rate limits. |
-| PostgreSQL  | System of record for users and links (including tombstones).                           |
-| Redis       | Disposable: refresh sessions, JWT revocation, redirect cache (TTL ≤ 5 s), rate-limit counters. |
+| Piece | Role |
+| --- | --- |
+| Next.js App Router + React | Browser UI on Node.js 24 LTS. HTTP client only; no ownership or redirect policy. |
+| TypeScript | Strictly typed frontend source and API contracts. |
+| Tailwind CSS + shadcn/ui | Styling and owned component source. shadcn/ui uses Radix UI primitives. |
+| Lucide React | The single interface icon family. |
+| React Hook Form + Zod | Form state and client-boundary validation. Spring Boot remains authoritative. |
+| TanStack Query | Browser-side remote data cache and request lifecycle. |
+| Recharts | Client-rendered analytics charts with accessible data-table fallbacks. |
+| next-themes | Light, dark, and system theme selection using a `data-theme` attribute. |
+| Vitest + React Testing Library | Unit and component tests. |
+| Playwright | Browser and end-to-end workflow tests. |
+| ESLint + Prettier | Static analysis and formatting. |
+| pnpm | Frontend package manager and committed lockfile owner. |
+| Spring Boot | Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, and rate limits. |
+| PostgreSQL | System of record for users and links, including tombstones. |
+| Redis | Disposable refresh sessions, JWT revocation, redirect cache (TTL ≤ 5 s), and rate-limit counters. |
+
+The frontend execution model is Server Components for layouts and static
+structure, with narrowly scoped Client Components for forms, TanStack Query,
+charts, and theme controls. A shared typed HTTP client sends browser requests
+directly to the Spring Boot JSON API with credentials and the API-required CSRF
+protection. Next.js route handlers and Server Actions must not proxy these
+requests or duplicate backend validation, authorization, rate limits,
+transactions, redirect handling, or other policy.
+
+TanStack Query owns remote server state only; local interaction state stays in
+React or React Hook Form. Zod improves client feedback and validates data at the
+UI boundary, but API errors and Spring Boot validation remain authoritative.
+Recharts charts must preserve reduced-motion behavior and provide equivalent
+tabular data. Exact dependency versions are chosen during frontend bootstrap,
+pinned in `package.json`, and locked by `pnpm-lock.yaml`; local development, CI,
+and the frontend container use Node.js 24 LTS. See
+[ADR 0001](../decisions/0001-frontend-stack.md) for the decision and tradeoffs.
 
 Single-region, modest hardware. HTTPS at the edge (NFR-SEC-01). Health check reports process + datastore (NFR-AVL-02).
 

@@ -8,13 +8,18 @@ feature.
 
 - Backend is **Spring Boot** (Java). Controllers, services, filters, repositories, JPA,
   Redis adapters.
-- Frontend is **Next.js**. HTTP client only; no ownership or redirect policy
-  in the UI.
+- Frontend is **Next.js App Router + React** on **Node.js 24 LTS**, with strict
+  TypeScript, Tailwind CSS, shadcn/ui on Radix UI, and Lucide React. Forms use
+  React Hook Form + Zod; remote data uses TanStack Query; charts use Recharts;
+  themes use next-themes. Use pnpm, ESLint, Prettier, Vitest + React Testing
+  Library, and Playwright. HTTP client only; no ownership or redirect policy in
+  the UI.
 - PostgreSQL is the system of record. Redis is refresh sessions, JWT
   revocation, redirect cache, and rate limits.
 
 Source of truth: [docs/architecture/architecture.md](docs/architecture/architecture.md).
-Do not invent a different stack.
+Decision record: [docs/decisions/0001-frontend-stack.md](docs/decisions/0001-frontend-stack.md).
+Do not invent a different stack or accept a different shadcn primitive backend.
 
 Before designing or implementing frontend UI, read [DESIGN.md](DESIGN.md).
 It governs presentation only. Functional requirements and architecture remain

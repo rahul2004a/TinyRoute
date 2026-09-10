@@ -59,12 +59,12 @@ spacing:
 
 ## Authority
 
-This file governs presentation only. Product behavior and policy come from
-[functional requirements](docs/requirements/Functional.md),
-[non-functional requirements](docs/requirements/Non-Functional.md), and
-[architecture](docs/architecture/architecture.md). Next.js renders Spring Boot
-API results and does not handle GET /{code}. Installed frontend skills provide
-reusable workflows; this file records only TinyRoute-specific decisions.
+This file governs presentation only. Product policy comes from [functional
+requirements](docs/requirements/Functional.md), [non-functional
+requirements](docs/requirements/Non-Functional.md), [architecture](docs/architecture/architecture.md),
+and the [frontend stack ADR](docs/decisions/0001-frontend-stack.md). Next.js renders
+Spring Boot API results and does not handle GET /{code}. Skills provide reusable
+workflows; this file records only TinyRoute-specific presentation decisions.
 
 ## 1. Visual theme and atmosphere
 
@@ -80,8 +80,8 @@ calm, precise, trust-first visual language.
 Use restrained neutral surfaces, crisp typography, sparse borders, and route
 teal as the only accent. Marketing may use an asymmetric split hero with a real
 TinyRoute UI or screenshot. Product screens prioritize scanning and task
-completion. Support light, dark, and system preference without switching theme
-families between sections.
+completion. Use next-themes with `data-theme` for light, dark, and system
+preference without switching theme families between sections.
 
 ## 2. Color palette and roles
 
@@ -133,7 +133,7 @@ families between sections.
 }
 ~~~
 
-A manual dark theme uses the same dark tokens at the root. Components reference
+A forced dark theme uses the same dark tokens at the root. Components reference
 semantic variables. Pair status colors with text or an icon. Do not use pure
 black, decorative gradients, neon glow, or a second accent. Verify WCAG AA
 contrast in both themes.
@@ -159,6 +159,7 @@ faces, decorative eyebrows, heading gradients, or text shadows.
 
 ## 4. Component styling
 
+Implement with Tailwind CSS, locally owned shadcn/ui on Radix UI, and Lucide icons.
 Controls use an 8px radius, panels use 12px, and pills are limited to status
 badges and selected filters. Interactive components need default, hover,
 active, focus-visible, disabled, loading, and error states when applicable.
@@ -188,10 +189,9 @@ reused. Missing and non-owned resources look identical
 
 Analytics leads with total clicks, then the selectable daily trend, then
 referrer, device, operating system, browser, country, and city. Default to 30
-days. Charts require direct labels, keyboard-reachable tooltips, an accessible
-summary, and a table fallback. Label data as delayed by up to one minute and
-never expose raw tracking inputs (FR-ANA-01 through FR-ANA-04, NFR-CON-03,
-NFR-PRV-02, NFR-PRV-03).
+days. Recharts requires direct labels, reachable tooltips, accessible summaries, and table fallbacks.
+Label data as delayed by up to one minute; never expose raw tracking inputs
+(FR-ANA-01 through FR-ANA-04, NFR-CON-03, NFR-PRV-02, NFR-PRV-03).
 
 Authentication uses a narrow centered panel. Keep email/password and Google
 methods clear. Account deletion is separated from routine settings and states
@@ -262,7 +262,7 @@ listeners, cursor replacement, card tilt, confetti, or animated metrics.
 - Preserve input and context after recoverable failures.
 - Implement loading, empty, success, validation, rate-limit, and safe-error
   states.
-- Use one icon family after verifying the dependency.
+- Use Lucide React as the single interface icon family.
 
 ### Do not
 
