@@ -132,10 +132,12 @@ Before changing files, check the current branch and working-tree status.
   without explicit approval.
 - Keep one feature or concern per branch. Never implement or commit directly on
   `main`; changes enter `main` only through a pull request.
-- Do not push a branch, open or update a pull request, merge, or delete a local
-  or remote branch unless the user explicitly requests that action.
-- The user owns final pull-request review and merge. Never force-push to or
-  delete `main`.
+- After implementation is authorized, agents may push the feature branch and
+  open or update its pull request without additional approval. Never
+  force-push any branch.
+- Do not merge a pull request or delete a local or remote branch unless the
+  user explicitly requests that action. The user owns final pull-request review
+  and merge. Never delete `main`.
 - After a pull request is merged, its feature branch may be deleted. Prefer
   GitHub's automatic remote-branch deletion; delete a local branch only when the
   user explicitly requests it.
