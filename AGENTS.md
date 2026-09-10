@@ -93,6 +93,53 @@ and `docs/architecture/architecture.md` before adding features, changing
 behavior, or inventing APIs/architecture that conflict with them. Cite the
 matching `FR-*` / `NFR-*` ID for any non-trivial change.
 
+## Feature specification lifecycle
+
+Use a stable kebab-case feature name for every non-trivial feature, for example
+`custom-aliases`.
+
+While planning and implementing:
+
+- Store the feature specification at `docs/spec/<feature-name>/spec.md`.
+- Keep the active implementation plan at `tasks/plan.md`.
+- Keep the active checklist at `tasks/todo.md`.
+- Do not overwrite active task files containing incomplete work for another
+  feature.
+
+Before marking the pull request ready for review, confirm that all acceptance
+criteria and task checkboxes are finished, relevant tests and builds pass, and
+documentation is current. Then archive the active files:
+
+- `tasks/plan.md` -> `docs/spec/<feature-name>/plan.md`
+- `tasks/todo.md` -> `docs/spec/<feature-name>/todo.md`
+
+Preserve completed checkboxes in the archived `todo.md` and include the archived
+files in the feature branch and pull request. Do not archive or replace partially
+completed task files. After archiving, `tasks/` is available for the next
+feature.
+
+## Branch and pull-request workflow
+
+Before changing files, check the current branch and working-tree status.
+
+- Start every feature, including its specification and task files, on a branch
+  named `feature/<feature-name>`, where `<feature-name>` is the same stable
+  kebab-case name used under `docs/spec/`.
+- Use `fix/<name>`, `docs/<name>`, `chore/<name>`, or `refactor/<name>` for
+  non-feature work.
+- Create branches from a clean, current `main`. If unrelated changes exist,
+  stop and ask; never discard, stash, commit, or carry them into the new branch
+  without explicit approval.
+- Keep one feature or concern per branch. Never implement or commit directly on
+  `main`; changes enter `main` only through a pull request.
+- Do not push a branch, open or update a pull request, merge, or delete a local
+  or remote branch unless the user explicitly requests that action.
+- The user owns final pull-request review and merge. Never force-push to or
+  delete `main`.
+- After a pull request is merged, its feature branch may be deleted. Prefer
+  GitHub's automatic remote-branch deletion; delete a local branch only when the
+  user explicitly requests it.
+
 ## Available skills
 
 This is the tracked inventory from user-level `~/.agents/skills`, project-level
