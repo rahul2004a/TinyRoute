@@ -6,8 +6,13 @@ feature.
 
 ## Stack (locked)
 
-- Backend is **Spring Boot** (Java). Controllers, services, filters, repositories, JPA,
-  Redis adapters.
+- Backend is **Java + Spring Boot** with Spring Web MVC, Spring Security,
+  Spring Data JPA/Hibernate, Jakarta Bean Validation, PostgreSQL, Redis,
+  Flyway, Spring Security JOSE/Nimbus JWT, Argon2id, Spring Security OAuth2
+  Client, Spring Mail, bounded `@Async` execution, Spring Boot Actuator, and
+  SLF4J + Logback. Tests use JUnit 5, Mockito, Spring Boot Test, MockMvc, and
+  JaCoCo. Build with Maven and package with Docker. Controllers, services,
+  filters, repositories, JPA, Redis adapters.
 - Frontend is **Next.js App Router + React** on **Node.js 24 LTS**, with strict
   TypeScript, Tailwind CSS, shadcn/ui on Radix UI, and Lucide React. Forms use
   React Hook Form + Zod; remote data uses TanStack Query; charts use Recharts;
@@ -16,9 +21,12 @@ feature.
   the UI.
 - PostgreSQL is the system of record. Redis is refresh sessions, JWT
   revocation, redirect cache, and rate limits.
+- This is the lean MVP backend baseline. Add another dependency or tool only
+  when a functional or non-functional requirement clearly needs it.
 
 Source of truth: [docs/architecture/architecture.md](docs/architecture/architecture.md).
 Decision record: [docs/decisions/0001-frontend-stack.md](docs/decisions/0001-frontend-stack.md).
+Backend decision record: [docs/decisions/0002-backend-stack.md](docs/decisions/0002-backend-stack.md).
 Do not invent a different stack or accept a different shadcn primitive backend.
 
 Before designing or implementing frontend UI, read [DESIGN.md](DESIGN.md).

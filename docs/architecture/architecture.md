@@ -18,9 +18,26 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 | Playwright | Browser and end-to-end workflow tests. |
 | ESLint + Prettier | Static analysis and formatting. |
 | pnpm | Frontend package manager and committed lockfile owner. |
-| Spring Boot | Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, and rate limits. |
+| Java + Spring Boot | Backend runtime and application framework. Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, and rate limits. |
+| Spring Web MVC | Servlet-based HTTP controllers, filters, and request handling. |
+| Spring Security | Authentication, authorization, CSRF protection, and security filters. |
+| Spring Data JPA + Hibernate | Repository implementation and relational persistence. |
+| Jakarta Bean Validation | Authoritative request and domain-boundary validation. |
 | PostgreSQL | System of record for users and links, including tombstones. |
 | Redis | Disposable refresh sessions, JWT revocation, redirect cache (TTL ≤ 5 s), and rate-limit counters. |
+| Flyway | Versioned PostgreSQL schema migrations. |
+| Spring Security JOSE / Nimbus JWT | JWT signing and verification. |
+| Argon2id | Password hashing. |
+| Spring Security OAuth2 Client | Google OAuth 2.0 sign-in. |
+| Spring Mail | Registration and password-reset email delivery. |
+| Spring `@Async` + bounded executor | In-process asynchronous click recording without an unbounded task queue. |
+| Spring Boot Actuator | Application and datastore health endpoints. |
+| SLF4J + Logback | Application logging. |
+| JUnit 5 + Mockito | Backend unit tests and test doubles. |
+| Spring Boot Test + MockMvc | Backend integration and HTTP-layer tests. |
+| JaCoCo | Backend test coverage reporting. |
+| Maven | Backend build and dependency management. |
+| Docker | Repeatable application packaging and local deployment. |
 
 The frontend execution model is Server Components for layouts and static
 structure, with narrowly scoped Client Components for forms, TanStack Query,
@@ -38,6 +55,12 @@ tabular data. Exact dependency versions are chosen during frontend bootstrap,
 pinned in `package.json`, and locked by `pnpm-lock.yaml`; local development, CI,
 and the frontend container use Node.js 24 LTS. See
 [ADR 0001](../decisions/0001-frontend-stack.md) for the decision and tradeoffs.
+
+The backend dependencies above are the lean MVP baseline. Exact versions are
+chosen during backend bootstrap, pinned in `pom.xml`, and resolved by Maven.
+Add another dependency or tool only when a functional or non-functional
+requirement clearly needs it; document significant additions as architecture
+decisions. See [ADR 0002](../decisions/0002-backend-stack.md).
 
 Single-region, modest hardware. HTTPS at the edge (NFR-SEC-01). Health check reports process + datastore (NFR-AVL-02).
 
@@ -174,7 +197,7 @@ Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or Redir
 
 ## Domain model (MVP Must)
 
-**User** — `id`, `emailNormalized`, `tokenVersion`, optional `deletedAt`. No `passwordHash` or profile data lives on User. Password hashes live on `AuthIdentity` (`PASSWORD` only). Argon2id/bcrypt with per-user salt (NFR-SEC-02). Increment `tokenVersion` on password reset and account deletion so previously issued JWTs fail verification (NFR-SEC-09). Account deletion anonymizes the user record while preserving its internal id for link tombstones.
+**User** — `id`, `emailNormalized`, `tokenVersion`, optional `deletedAt`. No `passwordHash` or profile data lives on User. Password hashes live on `AuthIdentity` (`PASSWORD` only). Argon2id with a unique salt per password (NFR-SEC-02). Increment `tokenVersion` on password reset and account deletion so previously issued JWTs fail verification (NFR-SEC-09). Account deletion anonymizes the user record while preserving its internal id for link tombstones.
 
 **AuthIdentity** — `provider` (`PASSWORD` | `GOOGLE`), `subject` (normalized email or Google `sub`), optional `secretHash`. Unique `(provider, subject)`. No OTP or display name here.
 
