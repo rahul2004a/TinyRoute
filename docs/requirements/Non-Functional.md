@@ -107,7 +107,7 @@ These are sized so the project is interesting to discuss without needing expensi
 | ID         | Requirement          | Target                                                                                                       | Priority | Release |
 | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------ | -------- | ------- |
 | NFR-MNT-01 | Automated checks     | Linting, formatting, and tests run in CI on every push. A red build blocks merge.                            | Must     | MVP     |
-| NFR-MNT-02 | Local setup          | A new developer can run the project locally from a clean clone in under 15 minutes using the README.         | Must     | MVP     |
+| NFR-MNT-02 | Local setup          | A new developer can run the project locally from a clean clone in under 15 minutes using the README, with one documented `docker compose up -d` command starting PostgreSQL and Redis. | Must     | MVP     |
 | NFR-MNT-03 | Documented decisions | Significant technical choices are recorded as short ADRs in `docs/adr/`.                                     | Should   | MVP     |
 | NFR-TST-01 | Critical-path tests  | Automated tests cover create, resolve, unknown, disabled, deleted, ownership enforcement, and rate limiting. | Must     | MVP     |
 | NFR-TST-02 | Coverage             | At least 70% line coverage on application code, with the critical paths fully covered.                       | Should   | MVP     |

@@ -21,6 +21,20 @@ feature.
   the UI.
 - PostgreSQL is the system of record. Redis is refresh sessions, JWT
   revocation, redirect cache, and rate limits.
+- Local development infrastructure is a root-level `compose.yml` containing
+  PostgreSQL and Redis only. Pin both image versions, add health checks, and
+  persist PostgreSQL data in a named volume; Redis development data may be
+  disposable. The Spring Boot application runs separately through Maven or the
+  IDE. Docker Compose is for development infrastructure only and must never be
+  a production dependency.
+- Spring configuration consists of `application.yml`, `application-dev.yml`,
+  and `application-prod.yml`. Activate `dev` or `prod` externally with
+  `SPRING_PROFILES_ACTIVE`; do not hard-code an active profile. The `dev`
+  profile connects to the Compose services exposed on localhost. The `prod`
+  profile receives private external PostgreSQL and Redis endpoints and all
+  secrets from the environment.
+- Never commit real credentials. `.env.example` may contain safe local
+  placeholders only.
 - This is the lean MVP backend baseline. Add another dependency or tool only
   when a functional or non-functional requirement clearly needs it.
 
