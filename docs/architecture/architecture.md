@@ -37,7 +37,8 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 | Spring Boot Test + MockMvc | Backend integration and HTTP-layer tests. |
 | JaCoCo | Backend test coverage reporting. |
 | Maven | Backend build and dependency management. |
-| Docker | Repeatable application packaging and local deployment. |
+| Docker | Repeatable packaging of the Next.js and Spring Boot applications as separate production images. |
+| Docker Compose | Development-only PostgreSQL and Redis provisioning. |
 
 The frontend execution model is Server Components for layouts and static
 structure, with narrowly scoped Client Components for forms, TanStack Query,
@@ -63,6 +64,35 @@ requirement clearly needs it; document significant additions as architecture
 decisions. See [ADR 0002](../decisions/0002-backend-stack.md).
 
 Single-region, modest hardware. HTTPS at the edge (NFR-SEC-01). Health check reports process + datastore (NFR-AVL-02).
+
+## Development and production environments
+
+Docker Compose provisions infrastructure for local development; Spring
+profiles configure how the backend connects to that infrastructure. The
+repository root contains `compose.yml` with PostgreSQL and Redis services only.
+Both services use pinned image versions and health checks. PostgreSQL uses a
+named volume so local records survive container recreation; Redis development
+data may be disposable. A developer starts both datastores with the single
+documented `docker compose up -d` command, then runs Spring Boot through Maven
+or the IDE (NFR-MNT-02).
+
+Spring configuration is split by responsibility:
+
+- `application.yml` contains shared, non-secret defaults.
+- `application-dev.yml` connects to the Compose ports exposed on localhost.
+- `application-prod.yml` connects to private, externally managed PostgreSQL
+  and Redis services. Production endpoints and secrets are supplied by the
+  environment (NFR-SEC-03, NFR-SEC-11/12).
+
+The active profile is always selected outside the application with
+`SPRING_PROFILES_ACTIVE`; no profile is hard-coded in configuration or an
+image. Real credentials are never committed. `.env.example` contains safe
+local placeholders only (NFR-SEC-03).
+
+The development Compose file is not a production deployment definition and
+production must not depend on it. Production continues to run separate,
+reproducible Next.js and Spring Boot images on ECS Fargate, with PostgreSQL and
+Redis external to those stateless containers (NFR-DEP-05/06/08).
 
 ## High-level design
 
