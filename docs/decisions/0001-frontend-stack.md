@@ -4,6 +4,10 @@
 - Date: 2026-09-10
 - Owners: TinyRoute maintainers
 
+> [ADR 0003](0003-production-infrastructure-and-delivery.md) supersedes only
+> this record's frontend-container deployment detail. The frontend technology
+> stack remains accepted.
+
 ## Context
 
 TinyRoute needs an accessible, responsive frontend for authentication, link

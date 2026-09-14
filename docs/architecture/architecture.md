@@ -37,8 +37,11 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 | Spring Boot Test + MockMvc | Backend integration and HTTP-layer tests. |
 | JaCoCo | Backend test coverage reporting. |
 | Maven | Backend build and dependency management. |
-| Docker | Repeatable packaging of the Next.js and Spring Boot applications as separate production images. |
+| Docker | Repeatable packaging of the Spring Boot backend as a production image. |
 | Docker Compose | Development-only PostgreSQL and Redis provisioning. |
+| Vercel | Production Next.js hosting; deployment is controlled by GitHub Actions. |
+| Terraform | Modular, reproducible AWS production infrastructure. |
+| GitHub Actions | CI, Terraform plan/apply, and future Vercel/ECS deployments. |
 
 The frontend execution model is Server Components for layouts and static
 structure, with narrowly scoped Client Components for forms, TanStack Query,
@@ -54,7 +57,7 @@ UI boundary, but API errors and Spring Boot validation remain authoritative.
 Recharts charts must preserve reduced-motion behavior and provide equivalent
 tabular data. Exact dependency versions are chosen during frontend bootstrap,
 pinned in `package.json`, and locked by `pnpm-lock.yaml`; local development, CI,
-and the frontend container use Node.js 24 LTS. See
+and Vercel use Node.js 24 LTS. See
 [ADR 0001](../decisions/0001-frontend-stack.md) for the decision and tradeoffs.
 
 The backend dependencies above are the lean MVP baseline. Exact versions are
@@ -63,7 +66,9 @@ Add another dependency or tool only when a functional or non-functional
 requirement clearly needs it; document significant additions as architecture
 decisions. See [ADR 0002](../decisions/0002-backend-stack.md).
 
-Single-region, modest hardware. HTTPS at the edge (NFR-SEC-01). Health check reports process + datastore (NFR-AVL-02).
+Single-region AWS backend on modest hardware, with the frontend on Vercel.
+HTTPS at each public edge (NFR-SEC-01). Health check reports process + datastore
+(NFR-AVL-02).
 
 ## Development and production environments
 
@@ -90,13 +95,41 @@ image. Real credentials are never committed. `.env.example` contains safe
 local placeholders only (NFR-SEC-03).
 
 The development Compose file is not a production deployment definition and
-production must not depend on it. Production continues to run separate,
-reproducible Next.js and Spring Boot images on ECS Fargate, with PostgreSQL and
-Redis external to those stateless containers (NFR-DEP-05/06/08).
+production must not depend on it. Production runs Next.js on Vercel and a
+reproducible Spring Boot image on ECS Fargate, with PostgreSQL and Redis external
+to the stateless backend container (NFR-DEP-05/06/08).
+
+## Production infrastructure and delivery
+
+The accepted production target is future work; no cloud resources or workflows
+exist yet. Terraform will provision the AWS backend platform in `ap-south-1`
+from `infra/terraform/environments/prod`, composing `network`, `edge`,
+`database`, `cache`, and `backend-platform` modules. It uses an existing
+encrypted/versioned S3 backend with native lockfile locking and existing GitHub
+OIDC plan/apply roles. Terraform does not manage Vercel or GitHub settings.
+
+The VPC spans two Availability Zones. The ALB uses public subnets; ECS tasks use
+private subnets and one NAT Gateway for required Google OAuth and email egress;
+RDS PostgreSQL and ElastiCache Redis use isolated data subnets. Security groups
+allow database and cache traffic from ECS only. The lean production baseline is
+single-AZ RDS with daily backups and a single Redis node (NFR-BAK-01..03,
+NFR-SEC-12).
+
+An existing Route53 zone supplies `app.<zone>` for Vercel, `api.<zone>` for the
+Spring API, and `go.<zone>` for public redirects. ACM protects the two AWS
+hosts; Vercel protects the app host. Auth cookies are host-only to the API host,
+and Spring permits credentialed browser calls only from the exact app origin.
+
+Future GitHub Actions run credential-free Terraform checks on every pull
+request, allow cloud plans only for trusted same-repository branches, and gate
+production applies behind GitHub environment approval. AWS authentication uses
+OIDC. Later application workflows deploy digest-addressed backend images to ECS
+and use the Vercel CLI for frontend previews and production releases. See
+[ADR 0003](../decisions/0003-production-infrastructure-and-delivery.md).
 
 ## High-level design
 
-Signed-in users hit Next.js, which calls the Spring Boot JSON API with HttpOnly cookies: a short-lived JWT access token and a Redis-backed refresh session (NFR-SEC-06). Visitors hit `GET /{code}` with no account. Ingress terminates TLS and routes both. Cookie-based JWTs still require CSRF on mutations.
+Signed-in users hit Next.js at `app.<zone>` on Vercel, which calls the Spring Boot JSON API at `api.<zone>` with host-only HttpOnly cookies: a short-lived JWT access token and a Redis-backed refresh session (NFR-SEC-06). The browser sends credentials only to the exact allowed API origin, and cookie-based JWT mutations still require CSRF. Visitors hit `go.<zone>/{code}` through the AWS HTTPS load balancer with no account; public redirect requests do not carry API authentication cookies.
 
 Inside the monolith: Auth, URL (create/manage), Redirect, and analytics paths that are **not** on the redirect critical path. Redis is consulted first for redirects; a miss or Redis failure falls through to PostgreSQL. If PostgreSQL cannot determine link state, the service returns an error and **never** guesses a `Location` (NFR-REL-02).
 

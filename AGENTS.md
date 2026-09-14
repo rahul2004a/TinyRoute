@@ -18,7 +18,8 @@ feature.
   React Hook Form + Zod; remote data uses TanStack Query; charts use Recharts;
   themes use next-themes. Use pnpm, ESLint, Prettier, Vitest + React Testing
   Library, and Playwright. HTTP client only; no ownership or redirect policy in
-  the UI.
+  the UI. Production frontend hosting is Vercel, deployed through GitHub
+  Actions with the Vercel CLI; do not create a production frontend container.
 - PostgreSQL is the system of record. Redis is refresh sessions, JWT
   revocation, redirect cache, and rate limits.
 - Local development infrastructure is a root-level `compose.yml` containing
@@ -35,12 +36,19 @@ feature.
   secrets from the environment.
 - Never commit real credentials. `.env.example` may contain safe local
   placeholders only.
+- Future production infrastructure uses modular Terraform under
+  `infra/terraform/`, with a single `environments/prod` root and reusable
+  `network`, `edge`, `database`, `cache`, and `backend-platform` modules. It
+  provisions the AWS backend platform in `ap-south-1`; it does not manage the
+  Vercel application. GitHub Actions uses existing AWS OIDC plan/apply roles,
+  never static AWS keys, and production changes require environment approval.
 - This is the lean MVP backend baseline. Add another dependency or tool only
   when a functional or non-functional requirement clearly needs it.
 
 Source of truth: [docs/architecture/architecture.md](docs/architecture/architecture.md).
 Decision record: [docs/decisions/0001-frontend-stack.md](docs/decisions/0001-frontend-stack.md).
 Backend decision record: [docs/decisions/0002-backend-stack.md](docs/decisions/0002-backend-stack.md).
+Production infrastructure and delivery decision: [docs/decisions/0003-production-infrastructure-and-delivery.md](docs/decisions/0003-production-infrastructure-and-delivery.md).
 Do not invent a different stack or accept a different shadcn primitive backend.
 
 Before designing or implementing frontend UI, read [DESIGN.md](DESIGN.md).
@@ -111,7 +119,7 @@ redirecting).
   sustained
 - Create/list/manage p95 under 500 ms
 - Fail closed: never guess a destination when state is unknown
-- Health check endpoint; single-region, modest hardware
+- Health check endpoint; single-region AWS backend on modest hardware
 
 ## When in doubt
 
