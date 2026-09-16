@@ -31,14 +31,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create strict Next App Router, Tailwind/shadcn prerequisites, TanStack provider and a typed credentialed HTTP client. No API routes or backend policy.
 
 **Acceptance criteria:**
-- [ ] Node 24/pnpm/strict TS/lint are configured
-- [ ] Client maps ApiError and sends credentials
-- [ ] Provider smoke test needs no application call
+- [x] Node 24/pnpm/strict TS/lint are configured
+- [x] Client maps ApiError and sends credentials
+- [x] Provider smoke test needs no application call
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** None.
 
