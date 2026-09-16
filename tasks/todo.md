@@ -7,14 +7,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create the smallest locked-stack backend with health and MockMvc test harness; do not implement auth.
 
 **Acceptance criteria:**
-- [ ] Maven uses only required locked dependencies
-- [ ] Actuator health starts
-- [ ] No profile or secret is committed
+- [x] Maven uses only required locked dependencies
+- [x] Actuator health starts
+- [x] No profile or secret is committed
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** None.
 
