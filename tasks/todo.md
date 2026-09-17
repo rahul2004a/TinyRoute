@@ -105,14 +105,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement Argon2id plus a fixed-algorithm issuer/verifier with contract claims.
 
 **Acceptance criteria:**
-- [ ] Password values are Argon2id only
-- [ ] JWT validates issuer/audience/algorithm/kid/expiry/skew/token version
-- [ ] Keys and secrets never log
+- [x] Password values are Argon2id only
+- [x] JWT validates issuer/audience/algorithm/kid/expiry/skew/token version
+- [x] Keys and secrets never log
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Password*Test,*Jwt*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Password*Test,*Jwt*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Task 1.
 

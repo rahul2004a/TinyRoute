@@ -280,7 +280,13 @@ Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or Redir
 
 **RefreshSession** — opaque random refresh token in an HttpOnly / Secure / SameSite cookie; only the token hash lives in Redis as `refresh:{tokenHash}` → `{userId, lastAccessAt}`, with a sliding 30-day idle TTL (NFR-SEC-06, FR-ACC-03). Used only to mint a replacement access JWT. Raw refresh tokens are never stored.
 
-**AccessToken** — signed JWT, 15-minute expiry, HttpOnly / Secure / SameSite cookie. Claims: `sub` (user UUID), `jti`, `iat`, `exp`, `typ=ACCESS`, `tokenVersion`. No email, password data, or OAuth tokens (NFR-PRV-01). Signing keys come from the environment and include a `kid` for rotation (NFR-SEC-10). On logout, `jti` is written to `revoked-access:{jti}` until `exp`.
+**AccessToken** — RS256-signed JWT, 15-minute expiry, HttpOnly / Secure /
+SameSite cookie. Claims: `sub` (user UUID), `jti`, `iat`, `exp`, `typ=ACCESS`,
+`tokenVersion`, `iss`, and `aud`. Verification accepts only RS256, validates a
+60-second clock skew, and selects an environment-managed public key by `kid`;
+retiring public keys remain available through the last possible token expiry.
+No email, password data, or OAuth tokens are claims (NFR-PRV-01). On logout,
+`jti` is written to `revoked-access:{jti}` until `exp`.
 
 **RedirectLookup** — `{status, destination?, expiresAt?}`. RedirectService only redirects a known ACTIVE, unexpired lookup; malformed or incomplete cache entries are misses, never redirects. A cached entry expires no later than the link's `expiresAt`.
 
