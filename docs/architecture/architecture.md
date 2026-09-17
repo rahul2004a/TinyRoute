@@ -140,23 +140,27 @@ Click totals, 30-day trends, and aggregated referrer/device/OS/browser/country/c
 Controllers translate HTTP only. Services own policy and transactions. Repositories own persistence. Redis access goes through adapters.
 
 ```
-web          RedirectController, AuthController, LinkController, AnalyticsController,
+controller   RedirectController, AuthController, LinkController, AnalyticsController,
              HealthController
+dto          HTTP request and response DTOs
 security     JwtAuthenticationFilter, CsrfProtection, OwnershipGuard
-application  AuthService, LinkService, RedirectService, RateLimitService,
+service      AuthService, LinkService, RedirectService, RateLimitService,
              ClickCountService (async), AnalyticsService
-auth         AuthProvider map (PasswordAuthProvider, GoogleAuthProvider),
+client       AuthProvider map (PasswordAuthProvider, GoogleAuthProvider),
              OtpSender map (EmailOtpSender), GoogleOAuthClient, PasswordHasher,
              JwtTokenService, PasswordResetMailer
-domain       User, AuthIdentity, PendingRegistration, Link, LinkStatus, ShortCode,
+model        User, AuthIdentity, PendingRegistration, Link, LinkStatus, ShortCode,
              DestinationUrl, RefreshSession, AccessToken, RedirectLookup, GoogleProfile,
              ClickEvent, AnalyticsRange, AnalyticsResponse, PasswordResetToken
-persistence  UserRepository, AuthIdentityRepository, PendingRegistrationRepository,
+repository   UserRepository, AuthIdentityRepository, PendingRegistrationRepository,
              LinkRepository, ClickEventRepository, PasswordResetTokenRepository  (interfaces)
-             Jpa* adapters (parameterized JPA, including JpaClickEventRepository)
+repository/jpa
+             Jpa* repository interfaces (including JpaClickEventRepository)
 cache        RedirectCache, RefreshSessionStore, JwtRevocationStore, RateLimitStore  (interfaces)
              RedisRedirectCache, RedisRefreshSessionStore, RedisJwtRevocationStore,
              RedisRateLimitStore  (implementations)
+config       Spring configuration classes
+exception    application exceptions and HTTP exception handling
 ```
 
 Services depend on interfaces, not on Redis or JPA types. That is the same pattern as a typical LLD class diagram: `uses` from controller to service, `depends on` from service to repository/store interface, `implements` from `Jpa*` / `Redis*` to that interface.

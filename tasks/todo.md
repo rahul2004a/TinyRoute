@@ -80,14 +80,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add Flyway/JPA user and local/Google identity boundaries with database-enforced normalized uniqueness.
 
 **Acceptance criteria:**
-- [ ] Migration has users/identities, foreign keys and unique constraints
-- [ ] Jpa repositories expose only AuthService needs
-- [ ] Integration tests reject duplicate email and provider-subject races
+- [x] Migration has users/identities, foreign keys and unique constraints
+- [x] Jpa repositories expose only AuthService needs
+- [x] Integration tests reject duplicate email and provider-subject races
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*UserRepositoryTest,*AuthIdentityRepositoryTest' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*UserRepositoryTest,*AuthIdentityRepositoryTest' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 1, 3.
 

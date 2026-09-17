@@ -1,3 +1,5 @@
 spring:
   application:
     name: tinyroute
+  jpa:
+    open-in-view: false

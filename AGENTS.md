@@ -79,6 +79,48 @@ behind interfaces (`RedirectCache`, `RefreshSessionStore`,
 - Avoid premature abstractions, unnecessary framework additions, and new
   dependencies unless the requirement calls for them.
 
+## Backend folder structure
+
+Use one project-wide, layer-first package structure. Do **not** organize Java
+code as `<feature>/controller` or create feature packages such as `auth/`.
+
+```text
+backend/
+  src/
+    main/
+      java/com/tinyroute/
+        controller/   HTTP controllers only
+        dto/          request and response DTOs
+        service/      business rules, transactions, and async workers
+        repository/   application repository interfaces
+          jpa/        Jpa* repository interfaces
+        model/        JPA entities, enums, and value objects
+        cache/        cache-store interfaces and Redis* implementations
+        security/     Spring Security filters, guards, and authentication support
+        client/       external integrations, such as Google OAuth and email
+        config/       Spring configuration classes
+        exception/    application exceptions and HTTP exception handling
+      resources/
+        application.yml
+        application-dev.yml
+        application-prod.yml
+        db/migration/ Flyway migrations
+    test/
+      java/com/tinyroute/
+        controller/   controller tests
+        service/      service tests
+        repository/   database integration tests
+        security/     security tests
+```
+
+Keep test packages aligned with the code they test. Controllers translate HTTP
+only and call services; services own business rules and transactions;
+repositories access PostgreSQL; cache classes access Redis. Put a new class in
+the layer named above, even when the class concerns authentication, links, or
+analytics. Keep application repository contracts in `repository/` and put
+JPA-specific repository interfaces in `repository/jpa/`. Do not create unused
+empty folders.
+
 ## Requirements and scope guardrails
 
 Source of truth (do not duplicate; read when implementing or designing):
