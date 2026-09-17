@@ -129,14 +129,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement RefreshSessionStore, JwtRevocationStore and RateLimitStore through Redis adapters.
 
 **Acceptance criteria:**
-- [ ] Refresh rotation is atomic and reuse kills chain
-- [ ] Revocations last until access expiry
-- [ ] Rate keys use trusted-proxy HMAC client hash and action limits
+- [x] Refresh rotation is atomic and reuse kills chain
+- [x] Revocations last until access expiry
+- [x] Rate keys use trusted-proxy HMAC client hash and action limits
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Redis*Test,*RateLimit*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Redis*Test,*RateLimit*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised live Redis rotation/reuse, revocation expiry, and atomic rate-limit paths through integration tests.
 
 **Dependencies:** Tasks 1, 3, 5.
 

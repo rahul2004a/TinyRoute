@@ -1,5 +1,9 @@
 spring:
   application:
     name: tinyroute
+  data:
+    redis:
+      repositories:
+        enabled: false
   jpa:
     open-in-view: false

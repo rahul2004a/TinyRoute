@@ -10,3 +10,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+tinyroute:
+  rate-limit:
+    hmac-secret: ${RATE_LIMIT_HMAC_SECRET}
+    trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS}
