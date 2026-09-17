@@ -54,8 +54,8 @@ function resolveApiUrl(path: string): string {
   }
 
   const baseUrl = new URL(configuredBaseUrl);
-  if (baseUrl.protocol !== "http:" && baseUrl.protocol !== "https:") {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL must use HTTP or HTTPS");
+  if (baseUrl.protocol !== "https:") {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL must use HTTPS");
   }
 
   const requestUrl = new URL(path, baseUrl);

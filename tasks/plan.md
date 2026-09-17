@@ -43,7 +43,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ### Phase 1: executable foundation and security boundary
 
 - [x] Task 1: Bootstrap Spring Boot and its focused test harness.
-- [ ] Task 2: Bootstrap strict Next.js and its typed HTTP-client shell.
+- [x] Task 2: Bootstrap strict Next.js and its typed HTTP-client shell.
 - [ ] Task 3: Add Compose-only PostgreSQL/Redis and externalized dev/prod configuration.
 - [ ] Task 4: Add user and authentication-identity persistence.
 - [ ] Task 5: Add Argon2id and fixed JWT primitives.

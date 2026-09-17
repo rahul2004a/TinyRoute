@@ -77,4 +77,15 @@ describe("apiRequest", () => {
     ).rejects.toThrow("API path must start with a single slash");
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("rejects an HTTP API base URL before sending credentials", async () => {
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8080";
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      apiRequest("/api/auth/login", { responseSchema }),
+    ).rejects.toThrow("NEXT_PUBLIC_API_BASE_URL must use HTTPS");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
