@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:tinyroute}
+    username: ${POSTGRES_USER:tinyroute}
+    password: ${POSTGRES_PASSWORD:local-dev-password}
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}

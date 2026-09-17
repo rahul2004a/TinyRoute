@@ -56,14 +56,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add development-only Compose PostgreSQL/Redis plus externalized Spring dev/prod profiles.
 
 **Acceptance criteria:**
-- [ ] Compose has only pinned DB/cache, health checks and named PostgreSQL volume
-- [ ] Dev uses localhost and prod uses environment secrets/endpoints
-- [ ] .env.example has placeholders only
+- [x] Compose has only pinned DB/cache, health checks and named PostgreSQL volume
+- [x] Dev uses localhost and prod uses environment secrets/endpoints
+- [x] .env.example has placeholders only
 
 **Verification:**
-- [ ] Tests pass: `docker compose config && mvn -f backend/pom.xml verify`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `docker compose config && mvn -f backend/pom.xml verify`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Task 1.
 
