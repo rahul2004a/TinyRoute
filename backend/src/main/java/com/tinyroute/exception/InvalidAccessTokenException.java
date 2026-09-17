@@ -1,4 +1,4 @@
-package com.tinyroute.security;
+package com.tinyroute.exception;
 
 public final class InvalidAccessTokenException extends RuntimeException {
 

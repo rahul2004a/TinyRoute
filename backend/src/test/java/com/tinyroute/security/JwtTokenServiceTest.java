@@ -7,6 +7,7 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.tinyroute.config.JwtProperties;
+import com.tinyroute.exception.InvalidAccessTokenException;
 import com.tinyroute.model.AccessToken;
 import org.junit.jupiter.api.Test;
 
