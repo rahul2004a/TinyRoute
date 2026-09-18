@@ -153,14 +153,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add JwtAuthenticationFilter, exact CORS, CSRF, host-only cookie handling and JSON error translation.
 
 **Acceptance criteria:**
-- [ ] Only configured origins get credentialed CORS
-- [ ] CSRF endpoint is no-store and mutations need header
-- [ ] Cookie/error invariants follow contracts
+- [x] Only configured origins get credentialed CORS
+- [x] CSRF endpoint is no-store and mutations need header
+- [x] Cookie/error invariants follow contracts
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Security*Test,*Csrf*Test,*JwtAuthenticationFilterTest' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Security*Test,*Csrf*Test,*JwtAuthenticationFilterTest' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised the live Spring security context for allowed-origin CSRF bootstrap and cross-origin, missing-CSRF, unauthenticated, invalid-token, and unavailable-revocation rejection paths.
 
 **Dependencies:** Tasks 1, 2, 5, 6.
 

@@ -12,6 +12,8 @@ spring:
       ddl-auto: validate
 
 tinyroute:
+  security:
+    allowed-origins: ${ALLOWED_FRONTEND_ORIGINS}
   rate-limit:
     hmac-secret: ${RATE_LIMIT_HMAC_SECRET}
     trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS}

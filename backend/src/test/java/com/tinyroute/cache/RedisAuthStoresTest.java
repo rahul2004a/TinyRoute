@@ -1,11 +1,13 @@
 package com.tinyroute.cache;
 
 import com.tinyroute.model.RefreshSessionRotation;
+import com.tinyroute.config.TestJwtTokenConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("dev")
+@Import(TestJwtTokenConfiguration.class)
 class RedisAuthStoresTest {
 
     @Autowired

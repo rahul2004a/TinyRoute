@@ -1,5 +1,6 @@
 package com.tinyroute.repository;
 
+import com.tinyroute.config.TestJwtTokenConfiguration;
 import com.tinyroute.model.User;
 
 import org.junit.jupiter.api.AfterEach;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.UUID;
@@ -17,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("dev")
+@Import(TestJwtTokenConfiguration.class)
 class UserRepositoryTest {
 
     @Autowired

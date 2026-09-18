@@ -1,6 +1,9 @@
 spring:
   application:
     name: tinyroute
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   data:
     redis:
       repositories:
