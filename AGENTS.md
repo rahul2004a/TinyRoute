@@ -95,7 +95,8 @@ backend/
         repository/   application repository interfaces
           jpa/        Jpa* repository interfaces
         model/        JPA entities, enums, and value objects
-        cache/        cache-store interfaces and Redis* implementations
+        cache/        cache-store interfaces
+          redis/      Redis* implementations
         security/     Spring Security filters, guards, and authentication support
         client/       external integrations, such as Google OAuth and email
         config/       Spring configuration classes
@@ -117,7 +118,8 @@ Keep test packages aligned with the code they test. Controllers translate HTTP
 only and call services; services own business rules and transactions;
 repositories access PostgreSQL; cache classes access Redis. Put a new class in
 the layer named above, even when the class concerns authentication, links, or
-analytics. Keep application repository contracts in `repository/` and put
+analytics. Keep cache-store contracts in `cache/` and Redis adapters in
+`cache/redis/`. Keep application repository contracts in `repository/` and put
 JPA-specific repository interfaces in `repository/jpa/`. Do not create unused
 empty folders.
 

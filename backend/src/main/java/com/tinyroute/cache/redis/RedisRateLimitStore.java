@@ -1,5 +1,6 @@
-package com.tinyroute.cache;
+package com.tinyroute.cache.redis;
 
+import com.tinyroute.cache.RateLimitStore;
 import com.tinyroute.model.RateLimitCounter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;

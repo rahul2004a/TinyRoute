@@ -1,5 +1,6 @@
-package com.tinyroute.cache;
+package com.tinyroute.cache.redis;
 
+import com.tinyroute.cache.JwtRevocationStore;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
