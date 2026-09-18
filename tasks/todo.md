@@ -178,14 +178,14 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement pending registration, verification, bounded resend and async mail without enumeration.
 
 **Acceptance criteria:**
-- [ ] Registration yields generic accepted response
-- [ ] OTP activates once and handles invalid/expired/exhausted cases
-- [ ] Raw OTP is neither stored nor logged
+- [x] Registration yields generic accepted response
+- [x] OTP activates once and handles invalid/expired/exhausted cases
+- [x] Raw OTP is neither stored nor logged
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Registration*Test,*Otp*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Registration*Test,*Otp*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised registration, OTP verification, resend, and their primary rejection paths through the live Spring MVC context.
 
 **Dependencies:** Tasks 4–7.
 

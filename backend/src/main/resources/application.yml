@@ -10,3 +10,11 @@ spring:
         enabled: false
   jpa:
     open-in-view: false
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+management:
+  health:
+    mail:
+      enabled: false

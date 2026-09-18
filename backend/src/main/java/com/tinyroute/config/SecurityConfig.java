@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,11 +27,12 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            SecurityErrorResponseWriter securityErrors
+            SecurityErrorResponseWriter securityErrors,
+            CsrfTokenRepository csrfTokenRepository
     ) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
-                .csrf(Customizer.withDefaults())
+                .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(securityErrors)
@@ -49,6 +52,11 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    CsrfTokenRepository csrfTokenRepository() {
+        return new HttpSessionCsrfTokenRepository();
     }
 
     @Bean

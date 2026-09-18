@@ -1,4 +1,7 @@
 spring:
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
   datasource:
     url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:tinyroute}
     username: ${POSTGRES_USER:tinyroute}
@@ -17,3 +20,5 @@ tinyroute:
   rate-limit:
     hmac-secret: ${RATE_LIMIT_HMAC_SECRET:local-dev-rate-limit-secret}
     trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS:127.0.0.1/32}
+  mail:
+    registration-from: ${REGISTRATION_MAIL_FROM:no-reply@tinyroute.local}

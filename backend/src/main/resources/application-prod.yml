@@ -1,4 +1,9 @@
 spring:
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
@@ -17,3 +22,5 @@ tinyroute:
   rate-limit:
     hmac-secret: ${RATE_LIMIT_HMAC_SECRET}
     trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS}
+  mail:
+    registration-from: ${REGISTRATION_MAIL_FROM}
