@@ -2,10 +2,11 @@
 @import "tw-animate-css";
 
 :root {
-  --background: #f7f6f2;
-  --foreground: #181817;
-  --muted-text: #686761;
-  --accent: #2563eb;
+  --background: #f6f9f8;
+  --foreground: #0b1311;
+  --muted-text: #52615d;
+  --border: #cfddd8;
+  --accent: #0f766e;
 }
 
 @theme inline {

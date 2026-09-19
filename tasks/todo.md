@@ -203,13 +203,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build accessible registration/verification/resend UI that delegates policy to API.
 
 **Acceptance criteria:**
-- [ ] Accessible email/password and CSRF submission
-- [ ] No email-existence disclosure
-- [ ] Tests cover fields, generic success, invalid OTP and keyboard use
+- [x] Accessible email/password and CSRF submission
+- [x] No email-existence disclosure
+- [x] Tests cover fields, generic success, invalid OTP and keyboard use
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- registration`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Tests pass: `pnpm --dir frontend test --run -- registration`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 2, 7, 8.
