@@ -8,6 +8,7 @@ import com.tinyroute.model.AuthenticatedSession;
 import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.service.AuthService;
 import com.tinyroute.model.RateLimitAction;
+import com.tinyroute.model.RateLimitDecision;
 import com.tinyroute.service.RateLimitService;
 import com.tinyroute.exception.RateLimitExceededException;
 import com.tinyroute.security.TokenHashing;
@@ -81,17 +82,15 @@ public class AuthController {
 
     @PostMapping("/register/resend-otp")
     public ResponseEntity<PendingRegistrationResponse> resendRegistrationOtp(
-            @CookieValue(AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME) String pendingToken
-    ) {
+            @CookieValue(AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME) String pendingToken) {
         requireAllowed(rateLimitService.allow(
                 RateLimitAction.OTP_RESEND_PENDING_REGISTRATION,
-                TokenHashing.sha256(pendingToken)
-        ));
+                TokenHashing.sha256(pendingToken)));
         authService.resendRegistrationOtp(pendingToken);
         return ResponseEntity.accepted().body(PendingRegistrationResponse.pendingVerification());
     }
 
-    private void requireAllowed(com.tinyroute.model.RateLimitDecision decision) {
+    private void requireAllowed(RateLimitDecision decision) {
         if (!decision.allowed()) {
             throw new RateLimitExceededException(decision.retryAfter());
         }
