@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class SpringMailRegistrationMailAdapter implements RegistrationMailAdapter {
@@ -24,12 +25,13 @@ public class SpringMailRegistrationMailAdapter implements RegistrationMailAdapte
 
     @Override
     @Async("registrationMailExecutor")
-    public void sendOtp(String email, String otp) {
+    public CompletableFuture<Void> sendOtp(String email, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);
         message.setTo(email);
         message.setSubject("Verify your TinyRoute email");
         message.setText("Your TinyRoute verification code is " + otp + ". It expires in 10 minutes.");
         mailSender.send(message);
+        return CompletableFuture.completedFuture(null);
     }
 }

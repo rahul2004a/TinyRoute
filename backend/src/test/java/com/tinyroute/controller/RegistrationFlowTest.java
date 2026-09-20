@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -278,8 +279,9 @@ class RegistrationFlowTest {
         private String otp;
 
         @Override
-        public void sendOtp(String email, String otp) {
+        public CompletableFuture<Void> sendOtp(String email, String otp) {
             this.otp = otp;
+            return CompletableFuture.completedFuture(null);
         }
 
         String lastOtp() {

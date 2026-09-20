@@ -34,6 +34,18 @@ class ProfileConfigurationTest {
                 .containsEntry("spring.data.redis.port", "${REDIS_PORT}");
     }
 
+    @Test
+    void mailDeliveryUsesFiniteConnectionReadAndWriteTimeoutsInEveryProfile() {
+        for (String profile : java.util.List.of("application-dev.yml", "application-prod.yml")) {
+            Properties properties = loadProperties(profile);
+
+            assertThat(properties)
+                    .containsEntry("spring.mail.properties[mail.smtp.connectiontimeout]", 5000)
+                    .containsEntry("spring.mail.properties[mail.smtp.timeout]", 5000)
+                    .containsEntry("spring.mail.properties[mail.smtp.writetimeout]", 5000);
+        }
+    }
+
     private Properties loadProperties(String fileName) {
         ClassPathResource resource = new ClassPathResource(fileName);
         assertThat(resource.exists()).isTrue();

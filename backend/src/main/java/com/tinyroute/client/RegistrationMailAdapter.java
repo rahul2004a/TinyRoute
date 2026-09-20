@@ -1,6 +1,8 @@
 package com.tinyroute.client;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface RegistrationMailAdapter {
 
-    void sendOtp(String email, String otp);
+    CompletableFuture<Void> sendOtp(String email, String otp);
 }

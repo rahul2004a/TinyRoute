@@ -1,5 +1,6 @@
 package com.tinyroute.config;
 
+import com.tinyroute.client.RegistrationMailCapacity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -14,8 +15,8 @@ public class AsyncConfiguration {
     TaskExecutor registrationMailExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(100);
+        executor.setMaxPoolSize(RegistrationMailCapacity.MAX_WORKERS);
+        executor.setQueueCapacity(RegistrationMailCapacity.QUEUE_CAPACITY);
         executor.setThreadNamePrefix("registration-mail-");
         executor.initialize();
         return executor;

@@ -1,6 +1,8 @@
 package com.tinyroute.service;
 
 import com.tinyroute.cache.RefreshSessionStore;
+import com.tinyroute.client.RegistrationMailCapacity;
+import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.exception.OtpExpiredException;
 import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.model.AuthIdentity;
@@ -18,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.security.SecureRandom;
 import java.text.Normalizer;
@@ -42,6 +46,7 @@ public class AuthService {
     private final ApplicationEventPublisher eventPublisher;
     private final JwtTokenService jwtTokenService;
     private final RefreshSessionStore refreshSessionStore;
+    private final RegistrationMailCapacity registrationMailCapacity;
     private final Clock clock;
 
     @Autowired
@@ -52,7 +57,8 @@ public class AuthService {
             PasswordHasher passwordHasher,
             ApplicationEventPublisher eventPublisher,
             JwtTokenService jwtTokenService,
-            RefreshSessionStore refreshSessionStore
+            RefreshSessionStore refreshSessionStore,
+            RegistrationMailCapacity registrationMailCapacity
     ) {
         this(
                 userRepository,
@@ -62,6 +68,7 @@ public class AuthService {
                 eventPublisher,
                 jwtTokenService,
                 refreshSessionStore,
+                registrationMailCapacity,
                 Clock.systemUTC()
         );
     }
@@ -74,6 +81,7 @@ public class AuthService {
             ApplicationEventPublisher eventPublisher,
             JwtTokenService jwtTokenService,
             RefreshSessionStore refreshSessionStore,
+            RegistrationMailCapacity registrationMailCapacity,
             Clock clock
     ) {
         this.userRepository = Objects.requireNonNull(userRepository);
@@ -83,6 +91,7 @@ public class AuthService {
         this.eventPublisher = Objects.requireNonNull(eventPublisher);
         this.jwtTokenService = Objects.requireNonNull(jwtTokenService);
         this.refreshSessionStore = Objects.requireNonNull(refreshSessionStore);
+        this.registrationMailCapacity = Objects.requireNonNull(registrationMailCapacity);
         this.clock = Objects.requireNonNull(clock);
     }
 
@@ -98,6 +107,7 @@ public class AuthService {
         if (userRepository.findByEmailNormalized(normalizedEmail).isPresent()) {
             return Optional.of(pendingToken);
         }
+        reserveMailDelivery();
 
         PendingRegistration pendingRegistration = pendingRegistrationRepository.findByEmailNormalized(normalizedEmail)
                 .map(existing -> {
@@ -110,6 +120,20 @@ public class AuthService {
         pendingRegistrationRepository.save(pendingRegistration);
         eventPublisher.publishEvent(new RegistrationOtpRequested(normalizedEmail, otp));
         return Optional.of(pendingToken);
+    }
+
+    private void reserveMailDelivery() {
+        if (!registrationMailCapacity.tryReserve()) {
+            throw new ServiceUnavailableException();
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_COMMITTED) {
+                    registrationMailCapacity.release();
+                }
+            }
+        });
     }
 
     @Transactional(noRollbackFor = {OtpInvalidException.class, OtpExpiredException.class})
