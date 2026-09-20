@@ -109,13 +109,15 @@ public class AuthService {
         }
         reserveMailDelivery();
 
+        String pendingTokenHash = TokenHashing.sha256(pendingToken);
+        Instant otpExpiresAt = now.plus(OTP_TTL);
         PendingRegistration pendingRegistration = pendingRegistrationRepository.findByEmailNormalized(normalizedEmail)
                 .map(existing -> {
-                    existing.replace(TokenHashing.sha256(pendingToken), passwordHash, otpHash, now.plus(OTP_TTL), now);
+                    existing.replace(pendingTokenHash, passwordHash, otpHash, otpExpiresAt, now);
                     return existing;
                 })
                 .orElseGet(() -> PendingRegistration.create(
-                        TokenHashing.sha256(pendingToken), normalizedEmail, passwordHash, otpHash, now.plus(OTP_TTL), now
+                        pendingTokenHash, normalizedEmail, passwordHash, otpHash, otpExpiresAt, now
                 ));
         pendingRegistrationRepository.save(pendingRegistration);
         eventPublisher.publishEvent(new RegistrationOtpRequested(normalizedEmail, otp));

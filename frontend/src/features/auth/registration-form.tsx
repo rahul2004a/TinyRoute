@@ -73,47 +73,41 @@ export function RegistrationForm({
     resolver: zodResolver(otpSchema),
   });
 
-  async function submitRegistration(values: RegistrationValues) {
+  async function runSubmission(submission: () => Promise<void>) {
     setIsSubmitting(true);
     setSubmissionError("");
     try {
+      await submission();
+    } catch (error) {
+      setSubmissionError(errorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function submitRegistration(values: RegistrationValues) {
+    await runSubmission(async () => {
       const csrfToken = await fetchCsrfToken();
       await startRegistration(values, csrfToken);
       setNotice(genericRegistrationMessage);
       setStep("verify");
-    } catch (error) {
-      setSubmissionError(errorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   }
 
   async function submitOtp(values: OtpValues) {
-    setIsSubmitting(true);
-    setSubmissionError("");
-    try {
+    await runSubmission(async () => {
       const csrfToken = await fetchCsrfToken();
       await verifyRegistration(values.otp, csrfToken);
       setNotice("Your email is verified. You are signed in.");
-    } catch (error) {
-      setSubmissionError(errorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   }
 
   async function resendOtp() {
-    setIsSubmitting(true);
-    setSubmissionError("");
-    try {
+    await runSubmission(async () => {
       const csrfToken = await fetchCsrfToken();
       await resendRegistrationOtp(csrfToken);
       setNotice("A new verification code is on its way.");
-    } catch (error) {
-      setSubmissionError(errorMessage(error));
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   }
 
   if (step === "verify") {
