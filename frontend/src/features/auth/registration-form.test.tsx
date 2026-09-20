@@ -40,6 +40,8 @@ describe("RegistrationForm", () => {
     const user = userEvent.setup();
     render(<RegistrationForm />);
 
+    expect(screen.getByText("TinyRoute")).toBeTruthy();
+
     await user.type(
       screen.getByLabelText("Email address"),
       "person@example.com",
@@ -57,6 +59,34 @@ describe("RegistrationForm", () => {
       "If the address can receive a TinyRoute verification email, a code is on its way.",
     );
     expect(screen.queryByText(/already exists/i)).toBeNull();
+  });
+
+  it("lets a person reveal and re-mask their password without changing it", async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm />);
+
+    const password = screen.getByLabelText("Password");
+    await user.type(password, "correct-horse-battery");
+
+    expect(password.getAttribute("type")).toBe("password");
+    expect(
+      screen
+        .getByRole("button", { name: "Show password" })
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
+
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+
+    expect(password.getAttribute("type")).toBe("text");
+    expect((password as HTMLInputElement).value).toBe("correct-horse-battery");
+    expect(
+      screen
+        .getByRole("button", { name: "Hide password" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+
+    await user.keyboard("{Enter}");
+    expect(password.getAttribute("type")).toBe("password");
   });
 
   it("shows an invalid OTP response and allows a keyboard user to resend a code", async () => {
