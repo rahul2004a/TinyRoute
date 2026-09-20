@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.http.HttpHeaders;
 import jakarta.servlet.http.Cookie;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -72,7 +71,7 @@ class RegistrationFlowTest {
         MvcResult csrf = csrf();
 
         mockMvc.perform(post("/api/auth/register/verify")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .cookie(pendingCookie(registration))
@@ -87,7 +86,7 @@ class RegistrationFlowTest {
 
         MvcResult secondCsrf = csrf();
         mockMvc.perform(post("/api/auth/register/verify")
-                        .session((MockHttpSession) secondCsrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(secondCsrf))
                         .header("X-CSRF-TOKEN", jsonValue(secondCsrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .cookie(pendingCookie(registration))
@@ -105,7 +104,7 @@ class RegistrationFlowTest {
         for (int attempt = 0; attempt < 5; attempt++) {
             MvcResult csrf = csrf();
             mockMvc.perform(post("/api/auth/register/verify")
-                            .session((MockHttpSession) csrf.getRequest().getSession(false))
+                            .cookie(csrfCookie(csrf))
                             .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                             .header("X-Forwarded-For", clientAddress)
                             .cookie(pendingCookie(registration))
@@ -125,7 +124,7 @@ class RegistrationFlowTest {
         MvcResult csrf = csrf();
 
         mockMvc.perform(post("/api/auth/register/verify")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .cookie(pendingCookie(registration))
@@ -145,7 +144,7 @@ class RegistrationFlowTest {
         for (int attempt = 0; attempt < 3; attempt++) {
             MvcResult csrf = csrf();
             mockMvc.perform(post("/api/auth/register/resend-otp")
-                            .session((MockHttpSession) csrf.getRequest().getSession(false))
+                            .cookie(csrfCookie(csrf))
                             .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                             .header("X-Forwarded-For", clientAddress)
                             .cookie(pendingCookie(registration)))
@@ -157,7 +156,7 @@ class RegistrationFlowTest {
 
         MvcResult csrf = csrf();
         mockMvc.perform(post("/api/auth/register/resend-otp")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .cookie(pendingCookie(registration)))
@@ -171,7 +170,7 @@ class RegistrationFlowTest {
         MvcResult csrf = csrf();
 
         mockMvc.perform(post("/api/auth/register")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .contentType("application/json")
@@ -189,7 +188,7 @@ class RegistrationFlowTest {
         MvcResult csrf = csrf();
 
         mockMvc.perform(post("/api/auth/register/verify")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .contentType("application/json")
@@ -216,7 +215,7 @@ class RegistrationFlowTest {
         MvcResult csrf = csrf();
 
         mockMvc.perform(post("/api/auth/register")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .contentType("application/json")
@@ -230,7 +229,7 @@ class RegistrationFlowTest {
     private MvcResult startRegistration() throws Exception {
         MvcResult csrf = csrf();
         return mockMvc.perform(post("/api/auth/register")
-                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .cookie(csrfCookie(csrf))
                         .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
                         .header("X-Forwarded-For", clientAddress)
                         .contentType("application/json")
@@ -252,6 +251,10 @@ class RegistrationFlowTest {
         String setCookie = registration.getResponse().getHeader(HttpHeaders.SET_COOKIE);
         String value = setCookie.substring("pending_registration=".length(), setCookie.indexOf(';'));
         return new Cookie("pending_registration", value);
+    }
+
+    private Cookie csrfCookie(MvcResult csrf) {
+        return csrf.getResponse().getCookie("__Host-tinyroute_csrf");
     }
 
     private String jsonValue(MvcResult result, String field) throws Exception {

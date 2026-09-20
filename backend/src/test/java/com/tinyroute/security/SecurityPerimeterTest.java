@@ -39,6 +39,21 @@ class SecurityPerimeterTest {
     }
 
     @Test
+    void csrfBootstrapUsesASecureHostOnlyCookieInsteadOfAnApplicationSession() throws Exception {
+        mockMvc.perform(get("/api/auth/csrf").header(HttpHeaders.ORIGIN, ALLOWED_ORIGIN))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOWED_ORIGIN))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .httpOnly("__Host-tinyroute_csrf", true))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .secure("__Host-tinyroute_csrf", true))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .path("__Host-tinyroute_csrf", "/"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie()
+                        .doesNotExist("JSESSIONID"));
+    }
+
+    @Test
     void rejectsCorsRequestsFromOriginsOutsideTheExactAllowlist() throws Exception {
         mockMvc.perform(options("/api/auth/csrf")
                         .header(HttpHeaders.ORIGIN, "https://attacker.example")
