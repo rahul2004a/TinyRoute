@@ -44,11 +44,11 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 - [x] Task 1: Bootstrap Spring Boot and its focused test harness.
 - [x] Task 2: Bootstrap strict Next.js and its typed HTTP-client shell.
-- [ ] Task 3: Add Compose-only PostgreSQL/Redis and externalized dev/prod configuration.
-- [ ] Task 4: Add user and authentication-identity persistence.
-- [ ] Task 5: Add Argon2id and fixed JWT primitives.
-- [ ] Task 6: Add Redis refresh-session, JWT-revocation and rate-limit adapters.
-- [ ] Task 7: Wire JWT filtering, exact CORS, CSRF and cookie helpers.
+- [x] Task 3: Add Compose-only PostgreSQL/Redis and externalized dev/prod configuration.
+- [x] Task 4: Add user and authentication-identity persistence.
+- [x] Task 5: Add Argon2id and fixed JWT primitives.
+- [x] Task 6: Add Redis refresh-session, JWT-revocation and rate-limit adapters.
+- [x] Task 7: Wire JWT filtering, exact CORS, CSRF and cookie helpers.
 
 ### Checkpoint: security foundation
 
@@ -59,8 +59,8 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 ### Phase 2: local account lifecycle
 
-- [ ] Task 8: Deliver registration, verification OTP and resend APIs.
-- [ ] Task 9: Deliver accessible registration/OTP UI.
+- [x] Task 8: Deliver registration, verification OTP and resend APIs.
+- [ ] Task 9: Deliver accessible registration/OTP UI (automated checks complete; manual acceptance/rejection-path verification remains).
 - [ ] Task 10: Deliver password sign-in and current-session APIs.
 - [ ] Task 11: Deliver login UI and session bootstrap.
 - [ ] Task 12: Deliver atomic refresh rotation and sign-out APIs.
