@@ -89,15 +89,15 @@ public class AuthService {
     @Transactional
     public Optional<String> startRegistration(String email, String password) {
         String normalizedEmail = normalizeEmail(email);
-        if (userRepository.findByEmailNormalized(normalizedEmail).isPresent()) {
-            return Optional.empty();
-        }
-
         Instant now = clock.instant();
         String pendingToken = randomToken();
         String otp = randomOtp();
         String passwordHash = passwordHasher.hash(password);
         String otpHash = passwordHasher.hash(otp);
+
+        if (userRepository.findByEmailNormalized(normalizedEmail).isPresent()) {
+            return Optional.of(pendingToken);
+        }
 
         PendingRegistration pendingRegistration = pendingRegistrationRepository.findByEmailNormalized(normalizedEmail)
                 .map(existing -> {

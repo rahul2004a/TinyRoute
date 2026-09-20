@@ -62,6 +62,22 @@ public record ApiErrorResponse(Error error) {
         ));
     }
 
+    public static ApiErrorResponse requestBodyTooLarge(String requestId) {
+        return new ApiErrorResponse(new Error(
+                "VALIDATION_ERROR",
+                "The request body is too large.",
+                requestId
+        ));
+    }
+
+    public static ApiErrorResponse serviceUnavailable(String requestId) {
+        return new ApiErrorResponse(new Error(
+                "SERVICE_UNAVAILABLE",
+                "The service is temporarily unavailable.",
+                requestId
+        ));
+    }
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Error(
             String code,

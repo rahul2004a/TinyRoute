@@ -4,6 +4,7 @@ import com.tinyroute.dto.PendingRegistrationResponse;
 import com.tinyroute.dto.OtpVerificationRequest;
 import com.tinyroute.dto.RegistrationRequest;
 import com.tinyroute.dto.SessionResponse;
+import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.model.AuthenticatedSession;
 import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.service.AuthService;
@@ -63,15 +64,16 @@ public class AuthController {
 
     @PostMapping("/register/verify")
     public ResponseEntity<SessionResponse> verifyRegistration(
-            @CookieValue(AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME) String pendingToken,
+            @CookieValue(value = AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME, required = false) String pendingToken,
             @Valid @RequestBody OtpVerificationRequest request,
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {
+        String verifiedPendingToken = requirePendingRegistrationToken(pendingToken);
         requireAllowed(rateLimitService.allowClient(RateLimitAction.OTP_VERIFY_CLIENT, servletRequest));
         requireAllowed(rateLimitService.allow(
                 RateLimitAction.OTP_VERIFY_PENDING_REGISTRATION,
-                TokenHashing.sha256(pendingToken)));
-        AuthenticatedSession session = authService.verifyRegistration(pendingToken, request.otp());
+                TokenHashing.sha256(verifiedPendingToken)));
+        AuthenticatedSession session = authService.verifyRegistration(verifiedPendingToken, request.otp());
         csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
         return ResponseEntity.status(201)
                 .header("Set-Cookie", authCookieService.accessCookie(session.accessToken()).toString())
@@ -82,11 +84,12 @@ public class AuthController {
 
     @PostMapping("/register/resend-otp")
     public ResponseEntity<PendingRegistrationResponse> resendRegistrationOtp(
-            @CookieValue(AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME) String pendingToken) {
+            @CookieValue(value = AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME, required = false) String pendingToken) {
+        String verifiedPendingToken = requirePendingRegistrationToken(pendingToken);
         requireAllowed(rateLimitService.allow(
                 RateLimitAction.OTP_RESEND_PENDING_REGISTRATION,
-                TokenHashing.sha256(pendingToken)));
-        authService.resendRegistrationOtp(pendingToken);
+                TokenHashing.sha256(verifiedPendingToken)));
+        authService.resendRegistrationOtp(verifiedPendingToken);
         return ResponseEntity.accepted().body(PendingRegistrationResponse.pendingVerification());
     }
 
@@ -94,5 +97,12 @@ public class AuthController {
         if (!decision.allowed()) {
             throw new RateLimitExceededException(decision.retryAfter());
         }
+    }
+
+    private String requirePendingRegistrationToken(String pendingToken) {
+        if (pendingToken == null || pendingToken.isBlank()) {
+            throw new OtpInvalidException();
+        }
+        return pendingToken;
     }
 }

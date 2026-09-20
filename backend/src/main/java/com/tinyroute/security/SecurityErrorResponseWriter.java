@@ -48,6 +48,10 @@ public class SecurityErrorResponseWriter implements AuthenticationEntryPoint, Ac
         write(response, HttpStatus.SERVICE_UNAVAILABLE, ApiErrorResponse.sessionUnavailable(requestId()));
     }
 
+    public void requestBodyTooLarge(HttpServletResponse response) throws IOException {
+        write(response, HttpStatus.PAYLOAD_TOO_LARGE, ApiErrorResponse.requestBodyTooLarge(requestId()));
+    }
+
     private void write(HttpServletResponse response, HttpStatus status, ApiErrorResponse body) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

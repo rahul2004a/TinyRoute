@@ -1,6 +1,7 @@
 package com.tinyroute.service;
 
 import com.tinyroute.cache.RateLimitStore;
+import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.model.RateLimitAction;
 import com.tinyroute.model.RateLimitCounter;
 import com.tinyroute.model.RateLimitDecision;
@@ -26,8 +27,14 @@ public class RateLimitService {
     }
 
     public RateLimitDecision allow(RateLimitAction action, String subjectHash) {
-        String key = "rl:auth:" + action.keySegment() + ":" + Objects.requireNonNull(subjectHash);
-        RateLimitCounter counter = rateLimitStore.increment(key, action.window());
-        return new RateLimitDecision(counter.count() <= action.maximumAttempts(), counter.retryAfter());
+        RateLimitAction requiredAction = Objects.requireNonNull(action);
+        String requiredSubjectHash = Objects.requireNonNull(subjectHash);
+        String key = "rl:auth:" + requiredAction.keySegment() + ":" + requiredSubjectHash;
+        try {
+            RateLimitCounter counter = rateLimitStore.increment(key, requiredAction.window());
+            return new RateLimitDecision(counter.count() <= requiredAction.maximumAttempts(), counter.retryAfter());
+        } catch (RuntimeException exception) {
+            throw new ServiceUnavailableException(exception);
+        }
     }
 }

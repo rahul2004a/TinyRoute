@@ -1,6 +1,7 @@
 package com.tinyroute.cache;
 
 import com.tinyroute.config.RateLimitProperties;
+import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.model.RateLimitAction;
 import com.tinyroute.model.RateLimitCounter;
 import com.tinyroute.security.ClientAddressResolver;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RateLimitServiceTest {
 
@@ -54,6 +56,18 @@ class RateLimitServiceTest {
 
         assertThat(service.allowClient(RateLimitAction.REGISTER, request).allowed()).isFalse();
         assertThat(service.allowClient(RateLimitAction.PASSWORD_LOGIN, request).allowed()).isTrue();
+    }
+
+    @Test
+    void failsClosedWhenTheRateLimitStoreIsUnavailable() {
+        RateLimitStore unavailableStore = (key, window) -> {
+            throw new IllegalStateException("Redis unavailable");
+        };
+
+        assertThatThrownBy(() -> service(unavailableStore).allowClient(
+                RateLimitAction.REGISTER,
+                request("192.0.2.10", null)
+        )).isInstanceOf(ServiceUnavailableException.class);
     }
 
     private RateLimitService service(RateLimitStore store) {

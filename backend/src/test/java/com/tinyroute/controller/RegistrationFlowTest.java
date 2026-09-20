@@ -166,7 +166,7 @@ class RegistrationFlowTest {
     }
 
     @Test
-    void returnsTheSameAcceptedResponseForAnExistingAccountWithoutCreatingAPendingRecord() throws Exception {
+    void returnsTheSameAcceptedResponseAndPendingCookieForAnExistingAccountWithoutCreatingAPendingRecord() throws Exception {
         userRepository.save(User.create("user@example.com"));
         MvcResult csrf = csrf();
 
@@ -178,9 +178,25 @@ class RegistrationFlowTest {
                         .content("{\"email\":\"user@example.com\",\"password\":\"valid-password-12\"}"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("PENDING_VERIFICATION"))
-                .andExpect(cookie().doesNotExist("pending_registration"));
+                .andExpect(cookie().httpOnly("pending_registration", true))
+                .andExpect(cookie().secure("pending_registration", true));
 
         assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
+    }
+
+    @Test
+    void returnsASafeOtpErrorWhenThePendingRegistrationCookieIsMissing() throws Exception {
+        MvcResult csrf = csrf();
+
+        mockMvc.perform(post("/api/auth/register/verify")
+                        .session((MockHttpSession) csrf.getRequest().getSession(false))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .header("X-Forwarded-For", clientAddress)
+                        .contentType("application/json")
+                        .content("{\"otp\":\"000000\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("OTP_INVALID"))
+                .andExpect(jsonPath("$.error.requestId").isNotEmpty());
     }
 
     @Test

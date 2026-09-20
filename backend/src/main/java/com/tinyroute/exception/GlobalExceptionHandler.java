@@ -1,6 +1,7 @@
 package com.tinyroute.exception;
 
 import com.tinyroute.dto.error.ApiErrorResponse;
+import com.tinyroute.security.RequestBodyTooLargeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.rateLimited(UUID.randomUUID().toString(), retryAfterSeconds));
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleServiceUnavailable() {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiErrorResponse.serviceUnavailable(UUID.randomUUID().toString()));
+    }
+
     @ExceptionHandler(OtpInvalidException.class)
     public ResponseEntity<ApiErrorResponse> handleOtpInvalid() {
         return ResponseEntity.badRequest().body(ApiErrorResponse.otpInvalid(UUID.randomUUID().toString()));
@@ -52,8 +59,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiErrorResponse> handleMalformedJson() {
+    public ResponseEntity<ApiErrorResponse> handleMalformedJson(HttpMessageNotReadableException exception) {
+        if (wasCausedByRequestBodyLimit(exception)) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(ApiErrorResponse.requestBodyTooLarge(UUID.randomUUID().toString()));
+        }
         return ResponseEntity.badRequest()
                 .body(ApiErrorResponse.validationError(UUID.randomUUID().toString(), Map.of()));
+    }
+
+    private boolean wasCausedByRequestBodyLimit(Throwable exception) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof RequestBodyTooLargeException) {
+                return true;
+            }
+        }
+        return false;
     }
 }

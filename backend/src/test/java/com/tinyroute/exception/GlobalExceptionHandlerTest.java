@@ -27,12 +27,25 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.error.requestId").isNotEmpty());
     }
 
+    @Test
+    void returnsASafeServiceUnavailableErrorForAnUnavailableSecurityDependency() throws Exception {
+        mockMvc.perform(get("/test/unavailable").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"))
+                .andExpect(jsonPath("$.error.requestId").isNotEmpty());
+    }
+
     @RestController
     static final class ThrowingController {
 
         @GetMapping("/test/protected")
         void protectedEndpoint() {
             throw new InvalidAccessTokenException();
+        }
+
+        @GetMapping("/test/unavailable")
+        void unavailableEndpoint() {
+            throw new ServiceUnavailableException();
         }
     }
 }
