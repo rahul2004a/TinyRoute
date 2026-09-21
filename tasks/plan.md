@@ -62,7 +62,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - [x] Task 8: Deliver registration, verification OTP and resend APIs.
 - [x] Task 9: Deliver accessible registration/OTP UI.
 - [x] Task 10: Deliver password sign-in and current-session APIs.
-- [ ] Task 11: Deliver login UI and session bootstrap.
+- [x] Task 11: Deliver login UI and session bootstrap.
 - [ ] Task 12: Deliver atomic refresh rotation and sign-out APIs.
 - [ ] Task 13: Deliver browser refresh and sign-out UX.
 

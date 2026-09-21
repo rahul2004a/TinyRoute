@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { apiRequest } from "../../lib/api-client";
+import { ApiClientError, apiRequest } from "../../lib/api-client";
 
 const csrfTokenSchema = z.object({
   csrfToken: z.string().min(1),
@@ -17,10 +17,15 @@ const sessionSchema = z.object({
   }),
 });
 
+export type Session =
+  { authenticated: false } | { authenticated: true; user: { email: string } };
+
 export type RegistrationInput = {
   email: string;
   password: string;
 };
+
+export type LoginInput = RegistrationInput;
 
 function mutationOptions(csrfToken: string, body?: object) {
   return {
@@ -53,6 +58,30 @@ export function verifyRegistration(otp: string, csrfToken: string) {
     ...mutationOptions(csrfToken, { otp }),
     responseSchema: sessionSchema,
   });
+}
+
+export async function login(
+  input: LoginInput,
+  csrfToken: string,
+): Promise<void> {
+  await apiRequest("/api/auth/login", {
+    ...mutationOptions(csrfToken, input),
+    responseSchema: sessionSchema,
+  });
+}
+
+export async function getCurrentSession(): Promise<Session> {
+  try {
+    return await apiRequest("/api/auth/me", {
+      method: "GET",
+      responseSchema: sessionSchema,
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 401) {
+      return { authenticated: false };
+    }
+    throw error;
+  }
 }
 
 export function resendRegistrationOtp(csrfToken: string) {

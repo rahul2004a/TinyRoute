@@ -284,15 +284,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Accessible generic login errors
-- [ ] Authenticated UI derives from me
-- [ ] Tests cover success, rate limit and expiry
+- [x] Accessible generic login errors
+- [x] Authenticated UI derives from me
+- [x] Tests cover success, rate limit and expiry
 
 **Verification:**
 
-- [ ] Tests pass: `pnpm --dir frontend test --run -- login`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run -- login`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
+- [x] Manual check: verified the rendered login form, visible keyboard focus, and keyboard-submitted validation rejection at `http://localhost:3000/login`; focused component tests exercise the successful `/me` bootstrap and rate-limit rejection.
 
 **Dependencies:** Tasks 2, 7, 10.
 
