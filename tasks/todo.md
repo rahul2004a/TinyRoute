@@ -7,11 +7,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create the smallest locked-stack backend with health and MockMvc test harness; do not implement auth.
 
 **Acceptance criteria:**
+
 - [x] Maven uses only required locked dependencies
 - [x] Actuator health starts
 - [x] No profile or secret is committed
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml test`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -19,6 +21,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** None.
 
 **Files likely touched:**
+
 - `backend/pom.xml`
 - `backend/src/main/java/.../TinyRouteApplication.java`
 - `backend/src/main/resources/application.yml`
@@ -31,11 +34,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create strict Next App Router, Tailwind/shadcn prerequisites, TanStack provider and a typed credentialed HTTP client. No API routes or backend policy.
 
 **Acceptance criteria:**
+
 - [x] Node 24/pnpm/strict TS/lint are configured
 - [x] Client maps ApiError and sends credentials
 - [x] Provider smoke test needs no application call
 
 **Verification:**
+
 - [x] Tests pass: `pnpm --dir frontend test --run`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -43,6 +48,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** None.
 
 **Files likely touched:**
+
 - `frontend/package.json`
 - `frontend/tsconfig.json`
 - `frontend/src/app/layout.tsx`
@@ -56,11 +62,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add development-only Compose PostgreSQL/Redis plus externalized Spring dev/prod profiles.
 
 **Acceptance criteria:**
+
 - [x] Compose has only pinned DB/cache, health checks and named PostgreSQL volume
 - [x] Dev uses localhost and prod uses environment secrets/endpoints
 - [x] .env.example has placeholders only
 
 **Verification:**
+
 - [x] Tests pass: `docker compose config && mvn -f backend/pom.xml verify`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -68,6 +76,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Task 1.
 
 **Files likely touched:**
+
 - `compose.yml`
 - `.env.example`
 - `backend/src/main/resources/application-dev.yml`
@@ -80,11 +89,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add Flyway/JPA user and local/Google identity boundaries with database-enforced normalized uniqueness.
 
 **Acceptance criteria:**
+
 - [x] Migration has users/identities, foreign keys and unique constraints
 - [x] Jpa repositories expose only AuthService needs
 - [x] Integration tests reject duplicate email and provider-subject races
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*UserRepositoryTest,*AuthIdentityRepositoryTest' test`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -92,6 +103,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 1, 3.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V1__create_users_and_auth_identities.sql`
 - `backend/src/main/java/.../auth/User.java`
 - `backend/src/main/java/.../auth/AuthIdentity.java`
@@ -105,11 +117,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement Argon2id plus a fixed-algorithm issuer/verifier with contract claims.
 
 **Acceptance criteria:**
+
 - [x] Password values are Argon2id only
 - [x] JWT validates issuer/audience/algorithm/kid/expiry/skew/token version
 - [x] Keys and secrets never log
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Password*Test,*Jwt*Test' test`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -117,6 +131,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Task 1.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/PasswordHasher.java`
 - `backend/src/main/java/.../auth/JwtService.java`
 - `backend/src/main/java/.../config/JwtProperties.java`
@@ -129,11 +144,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement RefreshSessionStore, JwtRevocationStore and RateLimitStore through Redis adapters.
 
 **Acceptance criteria:**
+
 - [x] Refresh rotation is atomic and reuse kills chain
 - [x] Revocations last until access expiry
 - [x] Rate keys use trusted-proxy HMAC client hash and action limits
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Redis*Test,*RateLimit*Test' test`
 - [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
 - [x] Manual check: exercised live Redis rotation/reuse, revocation expiry, and atomic rate-limit paths through integration tests.
@@ -141,6 +158,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 1, 3, 5.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/RedisRefreshSessionStore.java`
 - `backend/src/main/java/.../auth/RedisJwtRevocationStore.java`
 - `backend/src/main/java/.../rate/RedisRateLimitStore.java`
@@ -153,11 +171,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add JwtAuthenticationFilter, exact CORS, CSRF, host-only cookie handling and JSON error translation.
 
 **Acceptance criteria:**
+
 - [x] Only configured origins get credentialed CORS
 - [x] CSRF endpoint is no-store and mutations need header
 - [x] Cookie/error invariants follow contracts
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Security*Test,*Csrf*Test,*JwtAuthenticationFilterTest' test`
 - [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
 - [x] Manual check: exercised the live Spring security context for allowed-origin CSRF bootstrap and cross-origin, missing-CSRF, unauthenticated, invalid-token, and unavailable-revocation rejection paths.
@@ -165,6 +185,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 1, 2, 5, 6.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../config/SecurityConfig.java`
 - `backend/src/main/java/.../auth/JwtAuthenticationFilter.java`
 - `backend/src/main/java/.../auth/CsrfController.java`
@@ -178,11 +199,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement pending registration, verification, bounded resend and async mail without enumeration.
 
 **Acceptance criteria:**
+
 - [x] Registration yields generic accepted response
 - [x] OTP activates once and handles invalid/expired/exhausted cases
 - [x] Raw OTP is neither stored nor logged
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Registration*Test,*Otp*Test' test`
 - [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
 - [x] Manual check: exercised registration, OTP verification, resend, and their primary rejection paths through the live Spring MVC context.
@@ -190,6 +213,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 4–7.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V2__create_pending_registrations.sql`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
@@ -203,18 +227,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build accessible registration/verification/resend UI that delegates policy to API.
 
 **Acceptance criteria:**
+
 - [x] Accessible email/password and CSRF submission
 - [x] No email-existence disclosure
 - [x] Tests cover fields, generic success, invalid OTP and keyboard use
 
 **Verification:**
+
 - [x] Tests pass: `pnpm --dir frontend test --run -- registration`
 - [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 2, 7, 8.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/register/page.tsx`
 - `frontend/src/app/(auth)/verify-email/page.tsx`
 - `frontend/src/features/auth/registration-form.tsx`
@@ -228,11 +255,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement verified local login and current-session retrieval with generic failures.
 
 **Acceptance criteria:**
+
 - [ ] Verified user receives documented session cookies
 - [ ] Unknown/wrong/unverified input is indistinguishable
 - [ ] me rejects stale, revoked and expired tokens
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordLogin*Test,*CurrentSession*Test' test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -240,6 +269,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 4–8.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/LoginRequest.java`
@@ -253,11 +283,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build login and client session query based on backend me, not client authorization.
 
 **Acceptance criteria:**
+
 - [ ] Accessible generic login errors
 - [ ] Authenticated UI derives from me
 - [ ] Tests cover success, rate limit and expiry
 
 **Verification:**
+
 - [ ] Tests pass: `pnpm --dir frontend test --run -- login`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -265,6 +297,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 2, 7, 10.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/login/page.tsx`
 - `frontend/src/features/auth/login-form.tsx`
 - `frontend/src/features/auth/use-session.ts`
@@ -278,11 +311,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement CSRF-bound refresh rotation and logout revocation/cookie clearing.
 
 **Acceptance criteria:**
+
 - [ ] Refresh rejects reuse/expiry/stale-version/bad CSRF
 - [ ] Logout revokes server state before clearing
 - [ ] No token appears in JSON and responses are no-store
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Refresh*Test,*Logout*Test' test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -290,6 +325,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 5–7, 10.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/RefreshSessionStore.java`
@@ -303,11 +339,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Connect session UI to refresh/logout; retain CSRF only in memory.
 
 **Acceptance criteria:**
+
 - [ ] One documented refresh recovery path
 - [ ] No browser token storage
 - [ ] Network logout failure remains retryable
 
 **Verification:**
+
 - [ ] Tests pass: `pnpm --dir frontend test --run -- session logout`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -315,6 +353,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 2, 7, 11, 12.
 
 **Files likely touched:**
+
 - `frontend/src/features/auth/auth-api.ts`
 - `frontend/src/features/auth/use-session.ts`
 - `frontend/src/features/auth/logout-button.tsx`
@@ -328,11 +367,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Use backend OAuth2 Client for state/nonce/PKCE and validated OIDC callback.
 
 **Acceptance criteria:**
+
 - [ ] Start binds short-lived state/nonce/PKCE with fixed redirect URI
 - [ ] Callback validates signature/issuer/audience/expiry/nonce/email_verified
 - [ ] Persist only Google sub and reject collisions without auto-linking
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*GoogleOidc*Test,*OauthCallback*Test' test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -340,6 +381,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 4–7, 12.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../config/OAuth2ClientConfig.java`
 - `backend/src/main/java/.../auth/GoogleOidcService.java`
 - `backend/src/main/java/.../auth/OAuthCallbackController.java`
@@ -353,11 +395,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add Google actions and callback result presentation; browser owns no OAuth policy.
 
 **Acceptance criteria:**
+
 - [ ] Action starts backend authorization
 - [ ] Success/failure reach documented destinations
 - [ ] Tests need no provider credential
 
 **Verification:**
+
 - [ ] Tests pass: `pnpm --dir frontend test --run -- google oauth`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -365,6 +409,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 11, 13, 14.
 
 **Files likely touched:**
+
 - `frontend/src/features/auth/google-sign-in-button.tsx`
 - `frontend/src/app/(auth)/login/page.tsx`
 - `frontend/src/app/(auth)/oauth-result/page.tsx`
@@ -377,11 +422,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement generic request plus atomic one-time completion with hashed 256-bit opaque fragment token.
 
 **Acceptance criteria:**
+
 - [ ] Known/unknown email yield same accepted result
 - [ ] Only hash persists and raw token is fragment-only
 - [ ] Completion updates password and invalidates all sessions once
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordReset*Test' test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -389,6 +436,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 4–8, 12.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V3__create_password_reset_tokens.sql`
 - `backend/src/main/java/.../auth/PasswordResetService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
@@ -402,11 +450,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build accessible request/completion views that consume fragment token safely in browser.
 
 **Acceptance criteria:**
+
 - [ ] Request is generic
 - [ ] Completion validates confirmation and failure cases
 - [ ] Raw token stays out of HTTP query, analytics and logs
 
 **Verification:**
+
 - [ ] Tests pass: `pnpm --dir frontend test --run -- password-reset`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -414,6 +464,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 2, 7, 16.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/password-reset/page.tsx`
 - `frontend/src/app/(auth)/password-reset/complete/page.tsx`
 - `frontend/src/features/auth/password-reset-form.tsx`
@@ -426,11 +477,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Delete auth artifacts and call LinkService tombstone contract without direct link persistence access.
 
 **Acceptance criteria:**
+
 - [ ] Delete needs current auth/CSRF and ends sign-in/refresh
 - [ ] Calls LinkService.tombstoneOwnedLinks(userId) and links fail closed
 - [ ] Retry/cache failures are observable
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*AccountDeletion*Test' test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -438,6 +491,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 4–7, 12; blocked until LinkService.tombstoneOwnedLinks(userId) plus cache eviction exist.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../links/LinkService.java`
@@ -451,11 +505,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add explicit confirmation and cleanup only after server-confirmed deletion.
 
 **Acceptance criteria:**
+
 - [ ] Destructive action is accessible and CSRF-protected
 - [ ] Confirmed response clears client state
 - [ ] Failure is retryable and never falsely shows deletion
 
 **Verification:**
+
 - [ ] Tests pass: `pnpm --dir frontend test --run -- account-delete`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -463,6 +519,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 13, 18.
 
 **Files likely touched:**
+
 - `frontend/src/app/(account)/settings/page.tsx`
 - `frontend/src/features/auth/delete-account-dialog.tsx`
 - `frontend/src/features/auth/auth-api.ts`
@@ -475,11 +532,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add safe telemetry/cross-layer tests and execute security, performance, runtime and contract review.
 
 **Acceptance criteria:**
+
 - [ ] Telemetry records safe auth outcomes and no secrets
 - [ ] Contract/integration/Playwright cover documented behavior
 - [ ] Evidence covers cited NFRs and review findings
 
 **Verification:**
+
 - [ ] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
 - [ ] Build succeeds: run the relevant backend/frontend build for this slice.
 - [ ] Manual check: exercise the acceptance path and its primary rejection path.
@@ -487,6 +546,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** Tasks 8–19, with Task 18 unblocked.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthObservability.java`
 - `backend/src/test/java/.../auth/AuthContractIT.java`
 - `frontend/e2e/account-authentication.spec.ts`
