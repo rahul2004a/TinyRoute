@@ -3,9 +3,11 @@ package com.tinyroute.controller;
 import com.tinyroute.dto.PendingRegistrationResponse;
 import com.tinyroute.dto.OtpVerificationRequest;
 import com.tinyroute.dto.RegistrationRequest;
+import com.tinyroute.dto.LoginRequest;
 import com.tinyroute.dto.SessionResponse;
 import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.model.AuthenticatedSession;
+import com.tinyroute.model.AccessToken;
 import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.service.AuthService;
 import com.tinyroute.model.RateLimitAction;
@@ -18,11 +20,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.Objects;
 
@@ -91,6 +95,25 @@ public class AuthController {
                 TokenHashing.sha256(verifiedPendingToken)));
         authService.resendRegistrationOtp(verifiedPendingToken);
         return ResponseEntity.accepted().body(PendingRegistrationResponse.pendingVerification());
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<SessionResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse) {
+        requireAllowed(rateLimitService.allowClient(RateLimitAction.PASSWORD_LOGIN, servletRequest));
+        AuthenticatedSession session = authService.login(request.email(), request.password());
+        csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
+        return ResponseEntity.ok()
+                .header("Set-Cookie", authCookieService.accessCookie(session.accessToken()).toString())
+                .header("Set-Cookie", authCookieService.refreshCookie(session.refreshToken()).toString())
+                .body(SessionResponse.authenticated(session.email()));
+    }
+
+    @GetMapping("/me")
+    public SessionResponse currentSession(@AuthenticationPrincipal AccessToken accessToken) {
+        return SessionResponse.authenticated(authService.currentSessionEmail(accessToken));
     }
 
     private void requireAllowed(RateLimitDecision decision) {

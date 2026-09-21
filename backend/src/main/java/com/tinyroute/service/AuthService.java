@@ -3,9 +3,12 @@ package com.tinyroute.service;
 import com.tinyroute.cache.RefreshSessionStore;
 import com.tinyroute.client.RegistrationMailCapacity;
 import com.tinyroute.exception.ServiceUnavailableException;
+import com.tinyroute.exception.AuthenticationFailedException;
 import com.tinyroute.exception.OtpExpiredException;
 import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.model.AuthIdentity;
+import com.tinyroute.model.AccessToken;
+import com.tinyroute.model.AuthProvider;
 import com.tinyroute.model.AuthenticatedSession;
 import com.tinyroute.model.PendingRegistration;
 import com.tinyroute.model.RegistrationOtpRequested;
@@ -47,6 +50,7 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final RefreshSessionStore refreshSessionStore;
     private final RegistrationMailCapacity registrationMailCapacity;
+    private final String loginFailurePasswordHash;
     private final Clock clock;
 
     @Autowired
@@ -92,6 +96,7 @@ public class AuthService {
         this.jwtTokenService = Objects.requireNonNull(jwtTokenService);
         this.refreshSessionStore = Objects.requireNonNull(refreshSessionStore);
         this.registrationMailCapacity = Objects.requireNonNull(registrationMailCapacity);
+        this.loginFailurePasswordHash = passwordHasher.hash(randomToken());
         this.clock = Objects.requireNonNull(clock);
     }
 
@@ -164,6 +169,44 @@ public class AuthService {
         String refreshToken = randomToken();
         refreshSessionStore.create(TokenHashing.sha256(refreshToken), user.id());
         return new AuthenticatedSession(user.id(), user.emailNormalized(), accessToken, refreshToken);
+    }
+
+    @Transactional(readOnly = true)
+    public AuthenticatedSession login(String email, String password) {
+        String normalizedEmail = normalizeEmail(email);
+        User user = userRepository.findByEmailNormalized(normalizedEmail).orElse(null);
+        if (user == null || user.deletedAt() != null) {
+            verifyLoginFailurePassword(password);
+            throw new AuthenticationFailedException();
+        }
+        AuthIdentity passwordIdentity = authIdentityRepository
+                .findByUserIdAndProvider(user.id(), AuthProvider.PASSWORD)
+                .orElse(null);
+        if (passwordIdentity == null) {
+            verifyLoginFailurePassword(password);
+            throw new AuthenticationFailedException();
+        }
+        if (!passwordHasher.matches(password, passwordIdentity.secretHash())) {
+            throw new AuthenticationFailedException();
+        }
+
+        String accessToken = jwtTokenService.issueAccessToken(user.id(), user.tokenVersion());
+        String refreshToken = randomToken();
+        refreshSessionStore.create(TokenHashing.sha256(refreshToken), user.id());
+        return new AuthenticatedSession(user.id(), user.emailNormalized(), accessToken, refreshToken);
+    }
+
+    private void verifyLoginFailurePassword(String password) {
+        passwordHasher.matches(password, loginFailurePasswordHash);
+    }
+
+    @Transactional(readOnly = true)
+    public String currentSessionEmail(AccessToken accessToken) {
+        User user = userRepository.findById(accessToken.userId())
+                .filter(existing -> existing.deletedAt() == null)
+                .filter(existing -> existing.tokenVersion() == accessToken.tokenVersion())
+                .orElseThrow(AuthenticationFailedException::new);
+        return user.emailNormalized();
     }
 
     @Transactional(noRollbackFor = OtpExpiredException.class)

@@ -15,16 +15,20 @@ import java.util.Map;
 public class TestJwtTokenConfiguration {
 
     @Bean
-    JwtTokenService jwtTokenService() throws Exception {
-        KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    KeyPair testJwtKeyPair() throws Exception {
+        return KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    }
+
+    @Bean
+    JwtTokenService jwtTokenService(KeyPair testJwtKeyPair) {
         JwtProperties properties = new JwtProperties();
         properties.setIssuer("https://api.tinyroute.test");
         properties.setAudience("tinyroute-web");
         properties.setActiveKeyId("test");
-        properties.setSigningPrivateKeyBase64(Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
+        properties.setSigningPrivateKeyBase64(Base64.getEncoder().encodeToString(testJwtKeyPair.getPrivate().getEncoded()));
         properties.setVerificationPublicKeys(Map.of(
                 "test",
-                Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded())
+                Base64.getEncoder().encodeToString(testJwtKeyPair.getPublic().getEncoded())
         ));
         properties.setAccessTokenTtl(Duration.ofMinutes(15));
         properties.setClockSkew(Duration.ofSeconds(60));

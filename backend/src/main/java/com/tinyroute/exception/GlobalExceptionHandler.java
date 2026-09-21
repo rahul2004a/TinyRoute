@@ -18,8 +18,8 @@ import java.util.UUID;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidAccessTokenException.class)
-    public ResponseEntity<ApiErrorResponse> handleInvalidAccessToken() {
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthenticationFailed() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiErrorResponse.authenticationFailed(UUID.randomUUID().toString()));
     }

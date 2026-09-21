@@ -256,15 +256,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Verified user receives documented session cookies
-- [ ] Unknown/wrong/unverified input is indistinguishable
-- [ ] me rejects stale, revoked and expired tokens
+- [x] Verified user receives documented session cookies
+- [x] Unknown/wrong/unverified input is indistinguishable
+- [x] me rejects stale, revoked and expired tokens
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordLogin*Test,*CurrentSession*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordLogin*Test,*CurrentSession*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised login and current-session success and rejection paths through the live Spring MVC context.
 
 **Dependencies:** Tasks 4–8.
 
