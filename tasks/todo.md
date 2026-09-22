@@ -368,15 +368,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Start binds short-lived state/nonce/PKCE with fixed redirect URI
-- [ ] Callback validates signature/issuer/audience/expiry/nonce/email_verified
-- [ ] Persist only Google sub and reject collisions without auto-linking
+- [x] Start binds short-lived state/nonce/PKCE with fixed redirect URI
+- [x] Callback validates signature/issuer/audience/expiry/nonce/email_verified
+- [x] Persist only Google sub and reject collisions without auto-linking
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*GoogleOidc*Test,*OauthCallback*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*GoogleOidc*Test,*OauthCallback*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml verify`
+- [x] Manual check: exercised controlled Spring MVC start, callback success, replay, state-mismatch, provider-failure, and collision paths; live Google authorization remains configuration-dependent and is intentionally not exercised with production credentials.
 
 **Dependencies:** Tasks 4–7, 12.
 
