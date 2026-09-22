@@ -340,15 +340,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] One documented refresh recovery path
-- [ ] No browser token storage
-- [ ] Network logout failure remains retryable
+- [x] One documented refresh recovery path
+- [x] No browser token storage
+- [x] Network logout failure remains retryable
 
 **Verification:**
 
-- [ ] Tests pass: `pnpm --dir frontend test --run -- session logout`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run -- session logout`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
+- [x] Manual check: exercised refresh recovery, retryable network logout failure, and successful local-session clearing through rendered React lifecycle tests; local browser navigation was unavailable because the configured HTTPS API was not running.
 
 **Dependencies:** Tasks 2, 7, 11, 12.
 
