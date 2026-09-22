@@ -2,6 +2,9 @@ package com.tinyroute.service;
 
 import com.tinyroute.cache.RefreshSessionStore;
 import com.tinyroute.cache.JwtRevocationStore;
+import com.tinyroute.cache.OAuthTransactionStore;
+import com.tinyroute.client.GoogleOAuthClient;
+import com.tinyroute.exception.OAuthFailedException;
 import com.tinyroute.client.RegistrationMailCapacity;
 import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.exception.AuthenticationFailedException;
@@ -16,6 +19,9 @@ import com.tinyroute.model.RegistrationOtpRequested;
 import com.tinyroute.model.RefreshSession;
 import com.tinyroute.model.RefreshSessionRotation;
 import com.tinyroute.model.User;
+import com.tinyroute.model.OAuthAuthorization;
+import com.tinyroute.model.OAuthTransaction;
+import com.tinyroute.model.GoogleIdentity;
 import com.tinyroute.repository.AuthIdentityRepository;
 import com.tinyroute.repository.PendingRegistrationRepository;
 import com.tinyroute.repository.UserRepository;
@@ -53,6 +59,8 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final RefreshSessionStore refreshSessionStore;
     private final JwtRevocationStore jwtRevocationStore;
+    private final OAuthTransactionStore oauthTransactionStore;
+    private final GoogleOAuthClient googleOAuthClient;
     private final RegistrationMailCapacity registrationMailCapacity;
     private final String loginFailurePasswordHash;
     private final Clock clock;
@@ -67,6 +75,8 @@ public class AuthService {
             JwtTokenService jwtTokenService,
             RefreshSessionStore refreshSessionStore,
             JwtRevocationStore jwtRevocationStore,
+            OAuthTransactionStore oauthTransactionStore,
+            GoogleOAuthClient googleOAuthClient,
             RegistrationMailCapacity registrationMailCapacity
     ) {
         this(
@@ -78,6 +88,8 @@ public class AuthService {
                 jwtTokenService,
                 refreshSessionStore,
                 jwtRevocationStore,
+                oauthTransactionStore,
+                googleOAuthClient,
                 registrationMailCapacity,
                 Clock.systemUTC()
         );
@@ -92,6 +104,8 @@ public class AuthService {
             JwtTokenService jwtTokenService,
             RefreshSessionStore refreshSessionStore,
             JwtRevocationStore jwtRevocationStore,
+            OAuthTransactionStore oauthTransactionStore,
+            GoogleOAuthClient googleOAuthClient,
             RegistrationMailCapacity registrationMailCapacity,
             Clock clock
     ) {
@@ -103,6 +117,8 @@ public class AuthService {
         this.jwtTokenService = Objects.requireNonNull(jwtTokenService);
         this.refreshSessionStore = Objects.requireNonNull(refreshSessionStore);
         this.jwtRevocationStore = Objects.requireNonNull(jwtRevocationStore);
+        this.oauthTransactionStore = Objects.requireNonNull(oauthTransactionStore);
+        this.googleOAuthClient = Objects.requireNonNull(googleOAuthClient);
         this.registrationMailCapacity = Objects.requireNonNull(registrationMailCapacity);
         this.loginFailurePasswordHash = passwordHasher.hash(randomToken());
         this.clock = Objects.requireNonNull(clock);
@@ -265,6 +281,59 @@ public class AuthService {
                     TokenHashing.sha256(refreshToken), accessToken.userId(), accessToken.tokenId()
             );
         }
+    }
+
+    public OAuthAuthorization startGoogleAuthorization() {
+        String state = randomToken();
+        OAuthTransaction transaction = new OAuthTransaction(randomToken(), randomToken());
+        try {
+            oauthTransactionStore.create(TokenHashing.sha256(state), transaction);
+            return new OAuthAuthorization(state, googleOAuthClient.authorizationUri(state, transaction));
+        } catch (RuntimeException exception) {
+            throw new ServiceUnavailableException(exception);
+        }
+    }
+
+    public void discardGoogleAuthorization(String state) {
+        if (state == null || state.isBlank()) {
+            return;
+        }
+        try {
+            oauthTransactionStore.consume(TokenHashing.sha256(state));
+        } catch (RuntimeException exception) {
+            throw new ServiceUnavailableException(exception);
+        }
+    }
+
+    @Transactional
+    public AuthenticatedSession finishGoogleAuthorization(String state, String code) {
+        OAuthTransaction transaction;
+        try {
+            transaction = oauthTransactionStore.consume(TokenHashing.sha256(state))
+                    .orElseThrow(OAuthFailedException::new);
+        } catch (OAuthFailedException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new ServiceUnavailableException(exception);
+        }
+        GoogleIdentity googleIdentity = googleOAuthClient.exchangeAuthorizationCode(code, transaction);
+        AuthIdentity existingIdentity = authIdentityRepository
+                .findByProviderAndSubject(AuthProvider.GOOGLE, googleIdentity.subject())
+                .orElse(null);
+        if (existingIdentity != null) {
+            if (existingIdentity.user().deletedAt() != null) {
+                throw new OAuthFailedException();
+            }
+            return issueSession(existingIdentity.user());
+        }
+
+        String email = normalizeEmail(googleIdentity.email());
+        if (userRepository.findByEmailNormalized(email).isPresent()) {
+            throw new OAuthFailedException();
+        }
+        User user = userRepository.save(User.create(email));
+        authIdentityRepository.save(AuthIdentity.google(user, googleIdentity.subject()));
+        return issueSession(user);
     }
 
     @Transactional(noRollbackFor = OtpExpiredException.class)

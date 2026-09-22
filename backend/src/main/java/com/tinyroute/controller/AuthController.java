@@ -6,9 +6,12 @@ import com.tinyroute.dto.RegistrationRequest;
 import com.tinyroute.dto.LoginRequest;
 import com.tinyroute.dto.SessionResponse;
 import com.tinyroute.exception.OtpInvalidException;
+import com.tinyroute.exception.OAuthFailedException;
 import com.tinyroute.exception.AuthenticationFailedException;
 import com.tinyroute.model.AuthenticatedSession;
 import com.tinyroute.model.AccessToken;
+import com.tinyroute.model.OAuthAuthorization;
+import com.tinyroute.config.GoogleOAuthProperties;
 import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.service.AuthService;
 import com.tinyroute.model.RateLimitAction;
@@ -30,6 +33,8 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,16 +44,19 @@ public class AuthController {
     private final RateLimitService rateLimitService;
     private final AuthCookieService authCookieService;
     private final CsrfTokenRepository csrfTokenRepository;
+    private final GoogleOAuthProperties googleOAuthProperties;
 
     public AuthController(
             AuthService authService,
             RateLimitService rateLimitService,
             AuthCookieService authCookieService,
-            CsrfTokenRepository csrfTokenRepository) {
+            CsrfTokenRepository csrfTokenRepository,
+            GoogleOAuthProperties googleOAuthProperties) {
         this.authService = Objects.requireNonNull(authService);
         this.rateLimitService = Objects.requireNonNull(rateLimitService);
         this.authCookieService = Objects.requireNonNull(authCookieService);
         this.csrfTokenRepository = Objects.requireNonNull(csrfTokenRepository);
+        this.googleOAuthProperties = Objects.requireNonNull(googleOAuthProperties);
     }
 
     @PostMapping("/register")
@@ -117,6 +125,42 @@ public class AuthController {
         return SessionResponse.authenticated(authService.currentSessionEmail(accessToken));
     }
 
+    @GetMapping("/google/start")
+    public ResponseEntity<Void> startGoogleAuthorization(HttpServletRequest servletRequest) {
+        requireAllowed(rateLimitService.allowClient(RateLimitAction.GOOGLE_START, servletRequest));
+        OAuthAuthorization authorization = authService.startGoogleAuthorization();
+        return ResponseEntity.status(302)
+                .location(authorization.authorizationUri())
+                .header("Set-Cookie", authCookieService.oauthStateCookie(authorization.state()).toString())
+                .build();
+    }
+
+    @GetMapping("/google/callback")
+    public ResponseEntity<Void> googleCallback(
+            @CookieValue(value = AuthCookieService.OAUTH_STATE_COOKIE_NAME, required = false) String stateCookie,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String state,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String code,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse
+    ) {
+        if (!hasMatchingState(stateCookie, state) || code == null || code.isBlank()) {
+            authService.discardGoogleAuthorization(stateCookie);
+            return oauthFailureRedirect();
+        }
+        try {
+            AuthenticatedSession session = authService.finishGoogleAuthorization(state, code);
+            csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
+            return ResponseEntity.status(303)
+                    .location(googleOAuthProperties.successEndpoint())
+                    .header("Set-Cookie", authCookieService.accessCookie(session.accessToken()).toString())
+                    .header("Set-Cookie", authCookieService.refreshCookie(session.refreshToken()).toString())
+                    .header("Set-Cookie", authCookieService.clearOauthStateCookie().toString())
+                    .build();
+        } catch (OAuthFailedException exception) {
+            return oauthFailureRedirect();
+        }
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<SessionResponse> refresh(
             @CookieValue(value = AuthCookieService.REFRESH_COOKIE_NAME, required = false) String refreshToken
@@ -168,5 +212,19 @@ public class AuthController {
             throw new AuthenticationFailedException();
         }
         return refreshToken;
+    }
+
+    private boolean hasMatchingState(String stateCookie, String state) {
+        if (stateCookie == null || state == null || stateCookie.isBlank() || state.isBlank()) {
+            return false;
+        }
+        return MessageDigest.isEqual(stateCookie.getBytes(StandardCharsets.US_ASCII), state.getBytes(StandardCharsets.US_ASCII));
+    }
+
+    private ResponseEntity<Void> oauthFailureRedirect() {
+        return ResponseEntity.status(303)
+                .location(googleOAuthProperties.failureEndpoint())
+                .header("Set-Cookie", authCookieService.clearOauthStateCookie().toString())
+                .build();
     }
 }
