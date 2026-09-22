@@ -312,15 +312,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Refresh rejects reuse/expiry/stale-version/bad CSRF
-- [ ] Logout revokes server state before clearing
-- [ ] No token appears in JSON and responses are no-store
+- [x] Refresh rejects reuse/expiry/stale-version/bad CSRF
+- [x] Logout revokes server state before clearing
+- [x] No token appears in JSON and responses are no-store
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Refresh*Test,*Logout*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Refresh*Test,*Logout*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml verify`
+- [x] Manual check: exercised refresh, reuse invalidation, CSRF rejection, and logout revocation through the live Spring MVC context backed by Compose PostgreSQL and Redis.
 
 **Dependencies:** Tasks 5–7, 10.
 

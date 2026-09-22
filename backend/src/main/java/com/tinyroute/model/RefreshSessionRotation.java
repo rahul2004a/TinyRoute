@@ -1,9 +1,8 @@
 package com.tinyroute.model;
 
 import java.util.Optional;
-import java.util.UUID;
 
-public record RefreshSessionRotation(Status status, Optional<UUID> userId) {
+public record RefreshSessionRotation(Status status, Optional<RefreshSession> session) {
 
     public enum Status {
         ROTATED,
@@ -11,8 +10,8 @@ public record RefreshSessionRotation(Status status, Optional<UUID> userId) {
         REUSED
     }
 
-    public static RefreshSessionRotation rotated(UUID userId) {
-        return new RefreshSessionRotation(Status.ROTATED, Optional.of(userId));
+    public static RefreshSessionRotation rotated(RefreshSession session) {
+        return new RefreshSessionRotation(Status.ROTATED, Optional.of(session));
     }
 
     public static RefreshSessionRotation missing() {

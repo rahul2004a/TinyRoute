@@ -60,15 +60,15 @@ class RedisAuthStoresTest {
 
     @Test
     void atomicallyRotatesARefreshSessionAndInvalidatesItsFamilyOnReuse() {
-        refreshSessionStore.create(firstTokenHash, userId);
+        refreshSessionStore.create(firstTokenHash, userId, 0, tokenId);
 
-        RefreshSessionRotation rotation = refreshSessionStore.rotate(firstTokenHash, secondTokenHash);
+        RefreshSessionRotation rotation = refreshSessionStore.rotate(firstTokenHash, secondTokenHash, UUID.randomUUID());
 
         assertThat(rotation.status()).isEqualTo(RefreshSessionRotation.Status.ROTATED);
-        assertThat(rotation.userId()).contains(userId);
-        assertThat(refreshSessionStore.rotate(firstTokenHash, thirdTokenHash).status())
+        assertThat(rotation.session()).hasValueSatisfying(session -> assertThat(session.userId()).isEqualTo(userId));
+        assertThat(refreshSessionStore.rotate(firstTokenHash, thirdTokenHash, UUID.randomUUID()).status())
                 .isEqualTo(RefreshSessionRotation.Status.REUSED);
-        assertThat(refreshSessionStore.rotate(secondTokenHash, thirdTokenHash).status())
+        assertThat(refreshSessionStore.rotate(secondTokenHash, thirdTokenHash, UUID.randomUUID()).status())
                 .isEqualTo(RefreshSessionRotation.Status.MISSING);
     }
 

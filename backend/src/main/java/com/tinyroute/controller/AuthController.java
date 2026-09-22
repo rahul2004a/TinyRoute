@@ -6,6 +6,7 @@ import com.tinyroute.dto.RegistrationRequest;
 import com.tinyroute.dto.LoginRequest;
 import com.tinyroute.dto.SessionResponse;
 import com.tinyroute.exception.OtpInvalidException;
+import com.tinyroute.exception.AuthenticationFailedException;
 import com.tinyroute.model.AuthenticatedSession;
 import com.tinyroute.model.AccessToken;
 import com.tinyroute.security.AuthCookieService;
@@ -116,6 +117,39 @@ public class AuthController {
         return SessionResponse.authenticated(authService.currentSessionEmail(accessToken));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<SessionResponse> refresh(
+            @CookieValue(value = AuthCookieService.REFRESH_COOKIE_NAME, required = false) String refreshToken
+    ) {
+        String verifiedRefreshToken = requireRefreshToken(refreshToken);
+        requireAllowed(rateLimitService.allow(
+                RateLimitAction.REFRESH_SESSION_FAMILY,
+                authService.refreshRateLimitSubject(verifiedRefreshToken)
+        ));
+        AuthenticatedSession session = authService.refresh(verifiedRefreshToken);
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-store")
+                .header("Set-Cookie", authCookieService.accessCookie(session.accessToken()).toString())
+                .header("Set-Cookie", authCookieService.refreshCookie(session.refreshToken()).toString())
+                .body(SessionResponse.authenticated(session.email()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal AccessToken accessToken,
+            @CookieValue(value = AuthCookieService.REFRESH_COOKIE_NAME, required = false) String refreshToken,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse
+    ) {
+        authService.logout(accessToken, refreshToken);
+        csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
+        return ResponseEntity.noContent()
+                .header("Cache-Control", "no-store")
+                .header("Set-Cookie", authCookieService.clearAccessCookie().toString())
+                .header("Set-Cookie", authCookieService.clearRefreshCookie().toString())
+                .build();
+    }
+
     private void requireAllowed(RateLimitDecision decision) {
         if (!decision.allowed()) {
             throw new RateLimitExceededException(decision.retryAfter());
@@ -127,5 +161,12 @@ public class AuthController {
             throw new OtpInvalidException();
         }
         return pendingToken;
+    }
+
+    private String requireRefreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new AuthenticationFailedException();
+        }
+        return refreshToken;
     }
 }
