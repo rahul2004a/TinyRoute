@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { ApiClientError } from "../../lib/api-client";
 import { fetchCsrfToken, login } from "./auth-api";
+import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
 
 const loginSchema = z.object({
@@ -79,6 +80,7 @@ export function LoginForm() {
         >
           Signed in as {session.data.user.email}.
         </p>
+        <LogoutButton />
       </section>
     );
   }

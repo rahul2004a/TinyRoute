@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 import { ApiClientError, apiRequest } from "../../lib/api-client";
-
-const csrfTokenSchema = z.object({
-  csrfToken: z.string().min(1),
-});
+import { clearCsrfToken, getCsrfToken } from "../../lib/csrf";
 
 const pendingRegistrationSchema = z.object({
   status: z.literal("PENDING_VERIFICATION"),
@@ -27,6 +24,8 @@ export type RegistrationInput = {
 
 export type LoginInput = RegistrationInput;
 
+const emptyResponseSchema = z.undefined();
+
 function mutationOptions(csrfToken: string, body?: object) {
   return {
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -39,11 +38,7 @@ function mutationOptions(csrfToken: string, body?: object) {
 }
 
 export async function fetchCsrfToken(): Promise<string> {
-  const response = await apiRequest("/api/auth/csrf", {
-    method: "GET",
-    responseSchema: csrfTokenSchema,
-  });
-  return response.csrfToken;
+  return getCsrfToken();
 }
 
 export function startRegistration(input: RegistrationInput, csrfToken: string) {
@@ -53,11 +48,13 @@ export function startRegistration(input: RegistrationInput, csrfToken: string) {
   });
 }
 
-export function verifyRegistration(otp: string, csrfToken: string) {
-  return apiRequest("/api/auth/register/verify", {
+export async function verifyRegistration(otp: string, csrfToken: string) {
+  const response = await apiRequest("/api/auth/register/verify", {
     ...mutationOptions(csrfToken, { otp }),
     responseSchema: sessionSchema,
   });
+  clearCsrfToken();
+  return response;
 }
 
 export async function login(
@@ -68,6 +65,7 @@ export async function login(
     ...mutationOptions(csrfToken, input),
     responseSchema: sessionSchema,
   });
+  clearCsrfToken();
 }
 
 export async function getCurrentSession(): Promise<Session> {
@@ -78,11 +76,58 @@ export async function getCurrentSession(): Promise<Session> {
     });
   } catch (error) {
     if (error instanceof ApiClientError && error.status === 401) {
-      return { authenticated: false };
+      try {
+        return await refreshSession();
+      } catch (refreshError) {
+        if (
+          refreshError instanceof ApiClientError &&
+          refreshError.status === 401
+        ) {
+          clearCsrfToken();
+          return { authenticated: false };
+        }
+        if (
+          refreshError instanceof ApiClientError &&
+          refreshError.status === 403
+        ) {
+          clearCsrfToken();
+        }
+        throw refreshError;
+      }
     }
     throw error;
   }
 }
+
+export async function refreshSession(): Promise<Session> {
+  const csrfToken = await getCsrfToken();
+  return apiRequest("/api/auth/refresh", {
+    ...mutationOptions(csrfToken),
+    responseSchema: sessionSchema,
+  });
+}
+
+export async function logout(): Promise<void> {
+  try {
+    const csrfToken = await getCsrfToken();
+    await apiRequest("/api/auth/logout", {
+      ...mutationOptions(csrfToken),
+      responseSchema: emptyResponseSchema,
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 401) {
+      clearCsrfToken();
+      return;
+    }
+    if (error instanceof ApiClientError && error.status === 403) {
+      clearCsrfToken();
+    }
+    throw error;
+  }
+  clearCsrfToken();
+}
+
+export { clearCsrfToken };
 
 export function resendRegistrationOtp(csrfToken: string) {
   return apiRequest("/api/auth/register/resend-otp", {
