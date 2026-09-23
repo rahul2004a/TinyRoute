@@ -48,6 +48,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiErrorResponse.otpExpired(UUID.randomUUID().toString()));
     }
 
+    @ExceptionHandler(ResetTokenInvalidException.class)
+    public ResponseEntity<ApiErrorResponse> handleResetTokenInvalid() {
+        return ResponseEntity.badRequest().body(ApiErrorResponse.resetTokenInvalid(UUID.randomUUID().toString()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
         Map<String, String> fieldErrors = new LinkedHashMap<>();

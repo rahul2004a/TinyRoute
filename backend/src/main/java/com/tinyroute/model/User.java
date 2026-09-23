@@ -71,6 +71,10 @@ public class User {
         return updatedAt;
     }
 
+    public void incrementTokenVersion() {
+        tokenVersion++;
+    }
+
     @PrePersist
     void setCreationTimestamps() {
         Instant now = Instant.now();

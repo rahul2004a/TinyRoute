@@ -5,6 +5,9 @@ import com.tinyroute.dto.OtpVerificationRequest;
 import com.tinyroute.dto.RegistrationRequest;
 import com.tinyroute.dto.LoginRequest;
 import com.tinyroute.dto.SessionResponse;
+import com.tinyroute.dto.GenericAcceptedResponse;
+import com.tinyroute.dto.PasswordResetRequest;
+import com.tinyroute.dto.PasswordResetConfirmationRequest;
 import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.exception.OAuthFailedException;
 import com.tinyroute.exception.AuthenticationFailedException;
@@ -192,6 +195,25 @@ public class AuthController {
                 .header("Set-Cookie", authCookieService.clearAccessCookie().toString())
                 .header("Set-Cookie", authCookieService.clearRefreshCookie().toString())
                 .build();
+    }
+
+    @PostMapping("/password-reset")
+    public ResponseEntity<GenericAcceptedResponse> requestPasswordReset(
+            @Valid @RequestBody PasswordResetRequest request,
+            HttpServletRequest servletRequest) {
+        requireAllowed(rateLimitService.allowClient(RateLimitAction.PASSWORD_RESET_REQUEST, servletRequest));
+        authService.requestPasswordReset(request.email());
+        return ResponseEntity.accepted().body(GenericAcceptedResponse.accepted());
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Void> confirmPasswordReset(
+            @Valid @RequestBody PasswordResetConfirmationRequest request,
+            HttpServletRequest servletRequest) {
+        requireAllowed(rateLimitService.allowClient(RateLimitAction.RESET_CONFIRM_CLIENT, servletRequest));
+        requireAllowed(rateLimitService.allow(RateLimitAction.RESET_CONFIRM_TOKEN, TokenHashing.sha256(request.token())));
+        authService.confirmPasswordReset(request.token(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     private void requireAllowed(RateLimitDecision decision) {

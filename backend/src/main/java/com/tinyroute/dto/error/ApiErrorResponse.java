@@ -52,6 +52,10 @@ public record ApiErrorResponse(Error error) {
         return new ApiErrorResponse(new Error("OTP_EXPIRED", "The verification code has expired.", requestId));
     }
 
+    public static ApiErrorResponse resetTokenInvalid(String requestId) {
+        return new ApiErrorResponse(new Error("RESET_TOKEN_INVALID", "The password reset token is invalid.", requestId));
+    }
+
     public static ApiErrorResponse validationError(String requestId, Map<String, String> fieldErrors) {
         return new ApiErrorResponse(new Error(
                 "VALIDATION_ERROR",

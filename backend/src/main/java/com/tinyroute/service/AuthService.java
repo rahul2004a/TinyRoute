@@ -6,6 +6,7 @@ import com.tinyroute.cache.OAuthTransactionStore;
 import com.tinyroute.client.GoogleOAuthClient;
 import com.tinyroute.exception.OAuthFailedException;
 import com.tinyroute.client.RegistrationMailCapacity;
+import com.tinyroute.exception.ResetTokenInvalidException;
 import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.exception.AuthenticationFailedException;
 import com.tinyroute.exception.OtpExpiredException;
@@ -22,9 +23,12 @@ import com.tinyroute.model.User;
 import com.tinyroute.model.OAuthAuthorization;
 import com.tinyroute.model.OAuthTransaction;
 import com.tinyroute.model.GoogleIdentity;
+import com.tinyroute.model.PasswordResetRequested;
+import com.tinyroute.model.PasswordResetToken;
 import com.tinyroute.repository.AuthIdentityRepository;
 import com.tinyroute.repository.PendingRegistrationRepository;
 import com.tinyroute.repository.UserRepository;
+import com.tinyroute.repository.PasswordResetTokenRepository;
 import com.tinyroute.security.PasswordHasher;
 import com.tinyroute.security.JwtTokenService;
 import com.tinyroute.security.TokenHashing;
@@ -49,6 +53,7 @@ import java.util.Optional;
 public class AuthService {
 
     private static final Duration OTP_TTL = Duration.ofMinutes(10);
+    private static final Duration PASSWORD_RESET_TTL = Duration.ofMinutes(30);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
@@ -62,6 +67,7 @@ public class AuthService {
     private final OAuthTransactionStore oauthTransactionStore;
     private final GoogleOAuthClient googleOAuthClient;
     private final RegistrationMailCapacity registrationMailCapacity;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final String loginFailurePasswordHash;
     private final Clock clock;
 
@@ -77,7 +83,8 @@ public class AuthService {
             JwtRevocationStore jwtRevocationStore,
             OAuthTransactionStore oauthTransactionStore,
             GoogleOAuthClient googleOAuthClient,
-            RegistrationMailCapacity registrationMailCapacity
+            RegistrationMailCapacity registrationMailCapacity,
+            PasswordResetTokenRepository passwordResetTokenRepository
     ) {
         this(
                 userRepository,
@@ -91,6 +98,7 @@ public class AuthService {
                 oauthTransactionStore,
                 googleOAuthClient,
                 registrationMailCapacity,
+                passwordResetTokenRepository,
                 Clock.systemUTC()
         );
     }
@@ -107,6 +115,7 @@ public class AuthService {
             OAuthTransactionStore oauthTransactionStore,
             GoogleOAuthClient googleOAuthClient,
             RegistrationMailCapacity registrationMailCapacity,
+            PasswordResetTokenRepository passwordResetTokenRepository,
             Clock clock
     ) {
         this.userRepository = Objects.requireNonNull(userRepository);
@@ -120,6 +129,7 @@ public class AuthService {
         this.oauthTransactionStore = Objects.requireNonNull(oauthTransactionStore);
         this.googleOAuthClient = Objects.requireNonNull(googleOAuthClient);
         this.registrationMailCapacity = Objects.requireNonNull(registrationMailCapacity);
+        this.passwordResetTokenRepository = Objects.requireNonNull(passwordResetTokenRepository);
         this.loginFailurePasswordHash = passwordHasher.hash(randomToken());
         this.clock = Objects.requireNonNull(clock);
     }
@@ -281,6 +291,50 @@ public class AuthService {
                     TokenHashing.sha256(refreshToken), accessToken.userId(), accessToken.tokenId()
             );
         }
+    }
+
+    @Transactional
+    public void requestPasswordReset(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        String token = randomToken();
+        String tokenHash = TokenHashing.sha256(token);
+        User user = userRepository.findByEmailNormalized(normalizedEmail)
+                .filter(existing -> existing.deletedAt() == null)
+                .orElse(null);
+        if (user == null || authIdentityRepository
+                .findByUserIdAndProvider(user.id(), AuthProvider.PASSWORD).isEmpty()) {
+            return;
+        }
+
+        Instant expiresAt = clock.instant().plus(PASSWORD_RESET_TTL);
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByUserIdForUpdate(user.id())
+                .map(existing -> {
+                    existing.replace(tokenHash, expiresAt);
+                    return existing;
+                })
+                .orElseGet(() -> PasswordResetToken.create(user, tokenHash, expiresAt));
+        passwordResetTokenRepository.save(resetToken);
+        eventPublisher.publishEvent(new PasswordResetRequested(normalizedEmail, token));
+    }
+
+    @Transactional(noRollbackFor = ResetTokenInvalidException.class)
+    public void confirmPasswordReset(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository
+                .findByTokenHashForUpdate(TokenHashing.sha256(token))
+                .orElseThrow(ResetTokenInvalidException::new);
+        if (!clock.instant().isBefore(resetToken.expiresAt())) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new ResetTokenInvalidException();
+        }
+
+        User user = resetToken.user();
+        AuthIdentity passwordIdentity = authIdentityRepository
+                .findByUserIdAndProvider(user.id(), AuthProvider.PASSWORD)
+                .orElseThrow(ResetTokenInvalidException::new);
+        passwordIdentity.replacePasswordHash(passwordHasher.hash(newPassword));
+        user.incrementTokenVersion();
+        passwordResetTokenRepository.delete(resetToken);
+        refreshSessionStore.deleteAllByUserId(user.id());
     }
 
     public OAuthAuthorization startGoogleAuthorization() {

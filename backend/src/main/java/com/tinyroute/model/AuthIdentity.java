@@ -80,6 +80,13 @@ public class AuthIdentity {
         return secretHash;
     }
 
+    public void replacePasswordHash(String replacementSecretHash) {
+        if (provider != AuthProvider.PASSWORD) {
+            throw new IllegalStateException("Only password identities have password hashes");
+        }
+        secretHash = Objects.requireNonNull(replacementSecretHash);
+    }
+
     public Instant createdAt() {
         return createdAt;
     }
