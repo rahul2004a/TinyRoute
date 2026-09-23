@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { ApiClientError } from "../../lib/api-client";
 import { fetchCsrfToken, login } from "./auth-api";
+import { GoogleSignInButton } from "./google-sign-in-button";
 import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
 
@@ -36,7 +37,9 @@ function inputClassName(hasError: boolean) {
   }`;
 }
 
-export function LoginForm() {
+export function LoginForm({
+  oauthFailed = false,
+}: Readonly<{ oauthFailed?: boolean }>) {
   const queryClient = useQueryClient();
   const session = useSession();
   const [submissionError, setSubmissionError] = useState("");
@@ -102,6 +105,14 @@ export function LoginForm() {
           role="alert"
         >
           We couldn’t check your session. Please refresh and try again.
+        </p>
+      ) : null}
+      {oauthFailed ? (
+        <p
+          className="mt-5 text-sm font-medium text-(--auth-danger)"
+          role="alert"
+        >
+          Google sign-in could not be completed. Please try again.
         </p>
       ) : null}
       {submissionError ? (
@@ -172,6 +183,7 @@ export function LoginForm() {
           Sign in
         </button>
       </form>
+      <GoogleSignInButton />
     </section>
   );
 }

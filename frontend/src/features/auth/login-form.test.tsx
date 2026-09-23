@@ -7,6 +7,8 @@ import { ApiClientError } from "../../lib/api-client";
 import { LoginForm } from "./login-form";
 import { fetchCsrfToken, getCurrentSession, login } from "./auth-api";
 
+const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 vi.mock("./auth-api", () => ({
   fetchCsrfToken: vi.fn(),
   getCurrentSession: vi.fn(),
@@ -32,9 +34,15 @@ function renderLoginForm() {
 describe("LoginForm", () => {
   afterEach(() => {
     cleanup();
+    if (originalApiBaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_API_BASE_URL = originalApiBaseUrl;
+    }
   });
 
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.tinyroute.test";
     fetchCsrfTokenMock.mockResolvedValue("csrf-token");
     getCurrentSessionMock.mockResolvedValue({ authenticated: false });
     loginMock.mockResolvedValue(undefined);
@@ -102,5 +110,21 @@ describe("LoginForm", () => {
 
     expect(await screen.findByRole("button", { name: "Sign in" })).toBeTruthy();
     expect(screen.queryByText(/^Signed in as /)).toBeNull();
+  });
+
+  it("presents the fixed Google callback failure without provider details", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LoginForm oauthFailed />
+      </QueryClientProvider>,
+    );
+
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "Google sign-in could not be completed. Please try again.",
+    );
   });
 });
