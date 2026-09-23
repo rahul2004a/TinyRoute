@@ -396,15 +396,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Action starts backend authorization
-- [ ] Success/failure reach documented destinations
-- [ ] Tests need no provider credential
+- [x] Action starts backend authorization
+- [x] Success/failure reach documented destinations
+- [x] Tests need no provider credential
 
 **Verification:**
 
-- [ ] Tests pass: `pnpm --dir frontend test --run -- google oauth`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run -- google oauth`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 11, 13, 14.
 
@@ -423,15 +423,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Known/unknown email yield same accepted result
-- [ ] Only hash persists and raw token is fragment-only
-- [ ] Completion updates password and invalidates all sessions once
+- [x] Known/unknown email yield same accepted result
+- [x] Only hash persists and raw token is fragment-only
+- [x] Completion updates password and invalidates all sessions once
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordReset*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordReset*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 4–8, 12.
 
