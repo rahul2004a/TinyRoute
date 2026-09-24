@@ -46,6 +46,28 @@ class ProfileConfigurationTest {
         }
     }
 
+    @Test
+    void developmentProfileCanAuthenticateToAnSmtpServerWithRequiredStartTls() {
+        Properties properties = loadProperties("application-dev.yml");
+
+        assertThat(properties)
+                .containsEntry("spring.mail.username", "${MAIL_USERNAME:}")
+                .containsEntry("spring.mail.password", "${MAIL_PASSWORD:}")
+                .containsEntry("spring.mail.properties[mail.smtp.auth]", "${MAIL_SMTP_AUTH:false}")
+                .containsEntry("spring.mail.properties[mail.smtp.starttls.enable]", "${MAIL_SMTP_STARTTLS:false}")
+                .containsEntry("spring.mail.properties[mail.smtp.starttls.required]", "${MAIL_SMTP_STARTTLS:false}");
+    }
+
+    @Test
+    void developmentProfileServesHttpsWithLocalCertificate() {
+        Properties properties = loadProperties("application-dev.yml");
+
+        assertThat(properties)
+                .containsEntry("server.port", 8443)
+                .containsEntry("server.ssl.certificate", "${DEV_TLS_CERTIFICATE:file:../.local-certs/localhost.pem}")
+                .containsEntry("server.ssl.certificate-private-key", "${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}");
+    }
+
     private Properties loadProperties(String fileName) {
         ClassPathResource resource = new ClassPathResource(fileName);
         assertThat(resource.exists()).isTrue();

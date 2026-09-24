@@ -1,8 +1,19 @@
+server:
+  port: 8443
+  ssl:
+    certificate: ${DEV_TLS_CERTIFICATE:file:../.local-certs/localhost.pem}
+    certificate-private-key: ${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}
+
 spring:
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_SMTP_STARTTLS:false}
+      "[mail.smtp.starttls.required]": ${MAIL_SMTP_STARTTLS:false}
       "[mail.smtp.connectiontimeout]": 5000
       "[mail.smtp.timeout]": 5000
       "[mail.smtp.writetimeout]": 5000

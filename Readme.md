@@ -115,6 +115,7 @@ Redis access.
 - JDK 21
 - Node.js 24 LTS and pnpm 12
 - Docker Engine with Docker Compose
+- `mkcert` for browser-trusted local HTTPS
 
 ### Start local infrastructure
 
@@ -155,10 +156,37 @@ The committed `.env.example` and `frontend/.env.example` contain placeholders
 only. Never commit JWT signing keys, database credentials, OAuth credentials,
 email credentials, or a populated `.env`/`.env.local` file.
 
-The project does not yet publish a stable full-browser runtime command: the
-in-progress authentication feature is still supplying its local JWT and email
-configuration. The verification commands above are the supported way to check
-the current foundation.
+### Local HTTPS for registration
+
+From the repository root, create and trust a local certificate, then start both
+applications over HTTPS:
+
+```sh
+TRUST_STORES=system mkcert -install
+mkdir -p .local-certs
+mkcert -cert-file .local-certs/localhost.pem -key-file .local-certs/localhost-key.pem localhost 127.0.0.1 ::1
+SPRING_PROFILES_ACTIVE=dev mvn -f backend/pom.xml spring-boot:run
+```
+
+Run the frontend in a second terminal from the repository root:
+
+```sh
+pnpm --dir frontend exec next dev --experimental-https --experimental-https-key ../.local-certs/localhost-key.pem --experimental-https-cert ../.local-certs/localhost.pem
+```
+
+Open `https://localhost:3000/register`. The frontend calls
+`https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
+its working directory, so the development profile reads `../.local-certs/`.
+An IDE with another working directory can set `DEV_TLS_CERTIFICATE` and
+`DEV_TLS_PRIVATE_KEY` to absolute `file:` URLs. Keep `.local-certs/` private.
+The backend also needs its normal local database, Redis, JWT signing, and mail
+configuration. If `frontend/.env.local` already exists, set only
+`NEXT_PUBLIC_API_BASE_URL=https://localhost:8443` in that file and restart Next.
+
+For a fresh frontend checkout, copy `frontend/.env.example` to
+`frontend/.env.local` before starting Next. Existing `.env.local` settings
+should be preserved. The in-progress authentication feature still needs local
+JWT and email configuration before a complete registration can succeed.
 
 ## Security model
 
