@@ -85,6 +85,12 @@ export function LoginForm({
           Signed in as {session.data.user.email}.
         </p>
         <LogoutButton />
+        <Link
+          className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
+          href="/settings"
+        >
+          Account settings
+        </Link>
       </section>
     );
   }

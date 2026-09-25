@@ -89,7 +89,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ### Phase 4: deletion and release evidence
 
 - [x] Task 18: Deliver account deletion through the LinkService tombstone contract.
-- [ ] Task 19: Deliver account-deletion UI and client cleanup.
+- [x] Task 19: Deliver account-deletion UI and client cleanup.
 - [ ] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
 
 ### Checkpoint: implementation review

@@ -506,15 +506,17 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Destructive action is accessible and CSRF-protected
-- [ ] Confirmed response clears client state
-- [ ] Failure is retryable and never falsely shows deletion
+- [x] Destructive action is accessible and CSRF-protected
+- [x] Confirmed response clears client state
+- [x] Failure is retryable and never falsely shows deletion
 
 **Verification:**
 
-- [ ] Tests pass: `pnpm --dir frontend test --run -- account-delete`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run -- account-delete`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
+
+Browser check used a disposable local HTTPS API stub: a failed `503` kept confirmation retryable, then a `204` showed deletion. No real account was deleted. The frontend production build passed with `next build --webpack` because Turbopack could not bind a local port in this environment.
 
 **Dependencies:** Tasks 13, 18.
 

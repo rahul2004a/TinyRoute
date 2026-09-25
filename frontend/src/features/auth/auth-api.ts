@@ -129,6 +129,23 @@ export async function logout(): Promise<void> {
   clearCsrfToken();
 }
 
+export async function deleteAccount(): Promise<void> {
+  const csrfToken = await getCsrfToken();
+  try {
+    await apiRequest("/api/auth/account", {
+      method: "DELETE",
+      headers: { "X-CSRF-TOKEN": csrfToken },
+      responseSchema: emptyResponseSchema,
+    });
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 403) {
+      clearCsrfToken();
+    }
+    throw error;
+  }
+  clearCsrfToken();
+}
+
 export { clearCsrfToken };
 
 export function resendRegistrationOtp(csrfToken: string) {
