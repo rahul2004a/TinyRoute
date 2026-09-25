@@ -14,4 +14,6 @@ public interface PasswordResetTokenRepository {
     PasswordResetToken save(PasswordResetToken passwordResetToken);
 
     void delete(PasswordResetToken passwordResetToken);
+
+    void deleteByUser_Id(UUID userId);
 }

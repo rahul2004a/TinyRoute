@@ -75,6 +75,15 @@ public class User {
         tokenVersion++;
     }
 
+    public void deleteAndAnonymize(Instant now) {
+        if (deletedAt != null) {
+            throw new IllegalStateException("Account is already deleted");
+        }
+        tokenVersion++;
+        deletedAt = Objects.requireNonNull(now);
+        emailNormalized = "deleted+" + id + "@invalid.tinyroute";
+    }
+
     @PrePersist
     void setCreationTimestamps() {
         Instant now = Instant.now();

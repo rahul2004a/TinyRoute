@@ -478,17 +478,17 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Delete needs current auth/CSRF and ends sign-in/refresh
-- [ ] Calls LinkService.tombstoneOwnedLinks(userId) and links fail closed
-- [ ] Retry/cache failures are observable
+- [x] Delete needs current auth/CSRF and ends sign-in/refresh
+- [x] Calls LinkService.tombstoneOwnedLinks(userId) and links fail closed
+- [x] Retry/cache failures are observable
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*AccountDeletion*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*AccountDeletion*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
-**Dependencies:** Tasks 4–7, 12; blocked until LinkService.tombstoneOwnedLinks(userId) plus cache eviction exist.
+**Dependencies:** Tasks 4–7, 12; the LinkService tombstone and cache eviction prerequisite was added in this task.
 
 **Files likely touched:**
 

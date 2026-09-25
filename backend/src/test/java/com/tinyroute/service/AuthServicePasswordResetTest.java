@@ -118,6 +118,9 @@ class AuthServicePasswordResetTest {
                 mock(GoogleOAuthClient.class),
                 mock(RegistrationMailCapacity.class),
                 resetTokens,
+                mock(LinkService.class),
+                mock(com.tinyroute.repository.AccountDeletionCleanupRepository.class),
+                mock(AccountDeletionRetryJob.class),
                 Clock.fixed(NOW, ZoneOffset.UTC)
         );
     }

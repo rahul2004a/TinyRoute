@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -189,6 +190,21 @@ public class AuthController {
             HttpServletResponse servletResponse
     ) {
         authService.logout(accessToken, refreshToken);
+        csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
+        return ResponseEntity.noContent()
+                .header("Cache-Control", "no-store")
+                .header("Set-Cookie", authCookieService.clearAccessCookie().toString())
+                .header("Set-Cookie", authCookieService.clearRefreshCookie().toString())
+                .build();
+    }
+
+    @DeleteMapping("/account")
+    public ResponseEntity<Void> deleteAccount(
+            @AuthenticationPrincipal AccessToken accessToken,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse
+    ) {
+        authService.deleteAccount(accessToken);
         csrfTokenRepository.saveToken(null, servletRequest, servletResponse);
         return ResponseEntity.noContent()
                 .header("Cache-Control", "no-store")

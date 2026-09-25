@@ -88,7 +88,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 ### Phase 4: deletion and release evidence
 
-- [ ] Task 18: Deliver account deletion through the LinkService tombstone contract.
+- [x] Task 18: Deliver account deletion through the LinkService tombstone contract.
 - [ ] Task 19: Deliver account-deletion UI and client cleanup.
 - [ ] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
 
@@ -115,7 +115,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - Which exact frontend/API origins and local HTTPS mechanism will be used?
 - Which proxy/network ranges may supply forwarded client-IP headers?
 - Which transactional email provider, sender and credentials will production use?
-- Will link management expose \`LinkService.tombstoneOwnedLinks(userId)\` before Task 18? If not, Task 18 is blocked.
+- Task 18 supplied \`LinkService.tombstoneOwnedLinks(userId)\` and the redirect-cache eviction prerequisite.
 
 ## Parallelization
 

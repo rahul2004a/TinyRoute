@@ -13,4 +13,6 @@ public interface PendingRegistrationRepository {
     PendingRegistration save(PendingRegistration pendingRegistration);
 
     void delete(PendingRegistration pendingRegistration);
+
+    void deleteByEmailNormalized(String emailNormalized);
 }

@@ -13,4 +13,6 @@ public interface AuthIdentityRepository {
     Optional<AuthIdentity> findByUserIdAndProvider(UUID userId, AuthProvider provider);
 
     AuthIdentity save(AuthIdentity authIdentity);
+
+    void deleteAllByUser_Id(UUID userId);
 }

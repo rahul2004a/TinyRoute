@@ -9,6 +9,8 @@ public interface UserRepository {
 
     Optional<User> findById(UUID userId);
 
+    Optional<User> findByIdForUpdate(UUID userId);
+
     Optional<User> findByEmailNormalized(String emailNormalized);
 
     User save(User user);
