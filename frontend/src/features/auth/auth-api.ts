@@ -7,6 +7,8 @@ const pendingRegistrationSchema = z.object({
   status: z.literal("PENDING_VERIFICATION"),
 });
 
+const acceptedSchema = z.object({ status: z.literal("ACCEPTED") });
+
 const sessionSchema = z.object({
   authenticated: z.literal(true),
   user: z.object({
@@ -133,5 +135,23 @@ export function resendRegistrationOtp(csrfToken: string) {
   return apiRequest("/api/auth/register/resend-otp", {
     ...mutationOptions(csrfToken),
     responseSchema: pendingRegistrationSchema,
+  });
+}
+
+export function requestPasswordReset(email: string, csrfToken: string) {
+  return apiRequest("/api/auth/password-reset", {
+    ...mutationOptions(csrfToken, { email }),
+    responseSchema: acceptedSchema,
+  });
+}
+
+export function confirmPasswordReset(
+  token: string,
+  newPassword: string,
+  csrfToken: string,
+) {
+  return apiRequest("/api/auth/password-reset/confirm", {
+    ...mutationOptions(csrfToken, { token, newPassword }),
+    responseSchema: emptyResponseSchema,
   });
 }

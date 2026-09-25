@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -183,6 +184,12 @@ export function LoginForm({
           Sign in
         </button>
       </form>
+      <Link
+        className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
+        href="/password-reset"
+      >
+        Forgot password?
+      </Link>
       <GoogleSignInButton />
     </section>
   );

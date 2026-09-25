@@ -451,15 +451,15 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 **Acceptance criteria:**
 
-- [ ] Request is generic
-- [ ] Completion validates confirmation and failure cases
-- [ ] Raw token stays out of HTTP query, analytics and logs
+- [x] Request is generic
+- [x] Completion validates confirmation and failure cases
+- [x] Raw token stays out of HTTP query, analytics and logs
 
 **Verification:**
 
-- [ ] Tests pass: `pnpm --dir frontend test --run -- password-reset`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `pnpm --dir frontend test --run -- password-reset`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 2, 7, 16.
 

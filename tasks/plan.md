@@ -78,7 +78,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - [ ] Task 14: Deliver Google OIDC start/callback validation and identity creation/sign-in.
 - [x] Task 15: Deliver the Google handoff and callback result UI.
 - [x] Task 16: Deliver password-reset request/completion APIs and mail behavior.
-- [ ] Task 17: Deliver password-reset UI.
+- [x] Task 17: Deliver password-reset UI.
 
 ### Checkpoint: federated and recovery flows
 
