@@ -154,6 +154,18 @@ test("account deletion requires confirmation and keeps the session on failure", 
     page.getByRole("heading", { name: "Confirm account deletion" }),
   ).toBeFocused();
   expect(deleteAttempts).toBe(0);
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: "Confirm deletion" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Delete account" }),
+  ).toBeFocused();
+  expect(deleteAttempts).toBe(0);
+  await page.getByRole("button", { name: "Delete account" }).click();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
   await expect(
     page.getByText("We couldn't confirm deletion. Please try again."),
@@ -166,6 +178,64 @@ test("account deletion requires confirmation and keeps the session on failure", 
     page.getByRole("heading", { name: "Account deleted" }),
   ).toBeVisible();
   expect(deleteAttempts).toBe(2);
+});
+
+test("a persisted refresh session restores settings and expiry denies the protected screen", async ({
+  page,
+}) => {
+  let accessValid = false;
+  let refreshValid = true;
+  let refreshAttempts = 0;
+  await stubAuthApi(page, (path, method, csrf) => {
+    if (path.endsWith("/csrf"))
+      return { status: 200, body: { csrfToken: "browser-csrf" } };
+    if (path.endsWith("/me"))
+      return accessValid
+        ? { status: 200, body: account }
+        : {
+            status: 401,
+            body: failure(
+              "AUTHENTICATION_FAILED",
+              "Authentication is invalid or expired.",
+            ),
+          };
+    if (
+      path.endsWith("/refresh") &&
+      method === "POST" &&
+      csrf === "browser-csrf"
+    ) {
+      refreshAttempts += 1;
+      accessValid = refreshValid;
+      return refreshValid
+        ? { status: 200, body: account }
+        : {
+            status: 401,
+            body: failure(
+              "AUTHENTICATION_FAILED",
+              "Authentication is invalid or expired.",
+            ),
+          };
+    }
+    return {
+      status: 500,
+      body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
+    };
+  });
+
+  await page.goto("/settings");
+  await expect(
+    page.getByRole("heading", { name: "Account settings" }),
+  ).toBeVisible();
+  expect(refreshAttempts).toBe(1);
+
+  accessValid = false;
+  refreshValid = false;
+  await page.reload();
+  await expect(page.getByText("Sign in to manage your account.")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Delete account" }),
+  ).toHaveCount(0);
+  expect(refreshAttempts).toBe(2);
 });
 
 test("registration requires an OTP before displaying a verified session", async ({
@@ -269,6 +339,85 @@ test("password reset uses a fragment and handles a consumed token safely", async
   expect(confirmAttempts).toBe(1);
 });
 
+test("a successful password reset denies a previously signed-in browser", async ({
+  browser,
+  page,
+}) => {
+  let oldSessionValid = true;
+  let resetAttempts = 0;
+  const otherContext = await browser.newContext({
+    baseURL: "https://localhost:3000",
+    ignoreHTTPSErrors: true,
+  });
+  try {
+    const otherPage = await otherContext.newPage();
+    await stubAuthApi(otherPage, (path) => {
+      if (path.endsWith("/csrf"))
+        return { status: 200, body: { csrfToken: "browser-csrf" } };
+      if (path.endsWith("/me"))
+        return oldSessionValid
+          ? { status: 200, body: account }
+          : {
+              status: 401,
+              body: failure("AUTHENTICATION_FAILED", "Session expired"),
+            };
+      if (path.endsWith("/refresh"))
+        return {
+          status: 401,
+          body: failure("AUTHENTICATION_FAILED", "Session expired"),
+        };
+      return {
+        status: 500,
+        body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
+      };
+    });
+    await otherPage.goto("/settings");
+    await expect(
+      otherPage.getByRole("heading", { name: "Account settings" }),
+    ).toBeVisible();
+
+    await stubAuthApi(page, (path, method, csrf) => {
+      if (path.endsWith("/csrf"))
+        return { status: 200, body: { csrfToken: "browser-csrf" } };
+      if (
+        path.endsWith("/password-reset/confirm") &&
+        method === "POST" &&
+        csrf === "browser-csrf"
+      ) {
+        resetAttempts += 1;
+        oldSessionValid = false;
+        return { status: 204 };
+      }
+      return {
+        status: 500,
+        body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
+      };
+    });
+    await page.goto("/password-reset/confirm#token=disposable-browser-token");
+    await page
+      .getByLabel("New password", { exact: true })
+      .fill("new-browser-password-123");
+    await page
+      .getByLabel("Confirm new password")
+      .fill("new-browser-password-123");
+    await page.getByRole("button", { name: "Reset password" }).click();
+    await expect(page.getByRole("status")).toContainText(
+      "Your password has been reset",
+    );
+    expect(resetAttempts).toBe(1);
+
+    await otherPage.reload();
+    await expect(
+      otherPage.getByText("Sign in to manage your account."),
+    ).toBeVisible();
+    await expect(
+      otherPage.getByRole("button", { name: "Delete account" }),
+    ).toHaveCount(0);
+  } finally {
+    await otherContext.close();
+  }
+});
+
 test("Google handoff reports a fixed failure without exposing provider details", async ({
   page,
 }) => {
@@ -305,6 +454,49 @@ test("Google handoff reports a fixed failure without exposing provider details",
   await expect(page).toHaveURL(/\/login\?error=oauth_failed$/);
   await expect(
     page.getByText("Google sign-in could not be completed. Please try again."),
+  ).toBeVisible();
+});
+
+test("Google success handoff displays the authenticated account", async ({
+  page,
+}) => {
+  let signedIn = false;
+  await stubAuthApi(page, (path) => {
+    if (path.endsWith("/me"))
+      return signedIn
+        ? { status: 200, body: account }
+        : {
+            status: 401,
+            body: failure("AUTHENTICATION_FAILED", "Session expired"),
+          };
+    if (path.endsWith("/refresh"))
+      return {
+        status: 401,
+        body: failure("AUTHENTICATION_FAILED", "Session expired"),
+      };
+    if (path.endsWith("/csrf"))
+      return { status: 200, body: { csrfToken: "browser-csrf" } };
+    return {
+      status: 500,
+      body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
+    };
+  });
+  await page.route("https://localhost:8443/api/auth/google/start", (route) => {
+    signedIn = true;
+    return route.fulfill({
+      status: 302,
+      headers: { Location: "https://localhost:3000/settings" },
+    });
+  });
+
+  await page.goto("/login");
+  await page.getByRole("link", { name: "Continue with Google" }).click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(
+    page.getByRole("heading", { name: "Account settings" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Signed in as browser@example.com."),
   ).toBeVisible();
 });
 
