@@ -295,6 +295,9 @@ and Lucide React only.
 
 ## Testing strategy
 
+Current verification results and remaining release gates are recorded in
+[release-evidence.md](release-evidence.md).
+
 - JUnit 5 and Mockito unit tests cover pending-registration lifecycle, OTP
   verification/resend, password-provider selection, invalid credentials,
   Google-state failure/success and first-time identity creation, access-token

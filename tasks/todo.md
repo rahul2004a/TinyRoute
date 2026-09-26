@@ -535,15 +535,15 @@ Browser check used a disposable local HTTPS API stub: a failed `503` kept confir
 
 **Acceptance criteria:**
 
-- [ ] Telemetry records safe auth outcomes and no secrets
+- [x] Telemetry records safe auth outcomes and no secrets
 - [ ] Contract/integration/Playwright cover documented behavior
-- [ ] Evidence covers cited NFRs and review findings
+- [x] Evidence covers cited NFRs and review findings, including remaining gaps
 
 **Verification:**
 
-- [ ] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+- [x] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
+- [x] Build succeeds: Maven packaged the JAR and `next build --webpack` built the frontend; default Turbopack failure is recorded in release evidence.
+- [x] Manual check: local HTTPS CSRF bootstrap returned 200 and a login without CSRF returned 403; the real Spring test covers telemetry on both outcomes.
 
 **Dependencies:** Tasks 8–19, with Task 18 unblocked.
 

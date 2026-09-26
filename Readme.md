@@ -174,6 +174,15 @@ Run the frontend in a second terminal from the repository root:
 pnpm --dir frontend exec next dev --experimental-https --experimental-https-key ../.local-certs/localhost-key.pem --experimental-https-cert ../.local-certs/localhost.pem
 ```
 
+With local HTTPS configured, run the browser journeys with Playwright's
+managed Chromium. The tests use disposable API responses and do not delete a
+real account:
+
+```sh
+pnpm --dir frontend exec playwright install chromium
+pnpm --dir frontend exec playwright test
+```
+
 Open `https://localhost:3000/register`. The frontend calls
 `https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
 its working directory, so the development profile reads `../.local-certs/`.
