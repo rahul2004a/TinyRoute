@@ -277,8 +277,16 @@ test("registration requires an OTP before displaying a verified session", async 
   expect(verificationRequests).toBe(0);
   await page.getByLabel("Verification code").fill("123456");
   await page.getByRole("button", { name: "Verify email" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "Your email is verified",
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(
+    page.getByRole("heading", { name: "Account settings" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Signed in as browser@example.com."),
+  ).toBeVisible();
+  await expect(page.getByLabel("Verification code")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Resend code" })).toHaveCount(
+    0,
   );
   expect(verificationRequests).toBe(1);
 });

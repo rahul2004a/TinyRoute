@@ -20,6 +20,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -63,6 +65,10 @@ class PasswordResetTest {
     @Autowired
     private CapturingPasswordResetMailAdapter passwordResetMailAdapter;
 
+    @Autowired
+    @Qualifier("passwordResetExecutor")
+    private ThreadPoolTaskExecutor passwordResetExecutor;
+
     private final String clientAddress = "198.18."
             + ThreadLocalRandom.current().nextInt(1, 255)
             + "."
@@ -74,7 +80,8 @@ class PasswordResetTest {
     }
 
     @AfterEach
-    void removeCreatedRecords() {
+    void removeCreatedRecords() throws InterruptedException {
+        awaitWorkerIdle();
         jdbcTemplate.update("delete from password_reset_tokens");
         jdbcTemplate.update("delete from auth_identities");
         jdbcTemplate.update("delete from users");
@@ -87,6 +94,7 @@ class PasswordResetTest {
                 .andExpect(jsonPath("$.status").value("ACCEPTED"))
                 .andExpect(jsonPath("$.token").doesNotExist());
 
+        awaitWorkerIdle();
         assertThat(passwordResetMailAdapter.lastResetUrl()).isNull();
         assertThat(jdbcTemplate.queryForObject("select count(*) from password_reset_tokens", Integer.class)).isZero();
     }
@@ -100,7 +108,7 @@ class PasswordResetTest {
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));
 
-        String rawToken = tokenFrom(passwordResetMailAdapter.lastResetUrl());
+        String rawToken = tokenFrom(awaitResetUrl());
         String storedHash = jdbcTemplate.queryForObject("select token_hash from password_reset_tokens", String.class);
         assertThat(rawToken).hasSize(43);
         assertThat(storedHash).isEqualTo(TokenHashing.sha256(rawToken)).isNotEqualTo(rawToken);
@@ -131,7 +139,7 @@ class PasswordResetTest {
     void rejectsAndRemovesAnExpiredResetTokenWithTheGenericInvalidResponse() throws Exception {
         createPasswordUser("expired@example.com");
         requestReset("expired@example.com").andExpect(status().isAccepted());
-        String rawToken = tokenFrom(passwordResetMailAdapter.lastResetUrl());
+        String rawToken = tokenFrom(awaitResetUrl());
         jdbcTemplate.update("update password_reset_tokens set expires_at = now() - interval '1 second'");
 
         confirm(rawToken, NEW_PASSWORD)
@@ -197,6 +205,26 @@ class PasswordResetTest {
         return uri.getFragment().substring("token=".length());
     }
 
+    private String awaitResetUrl() throws InterruptedException {
+        for (int attempt = 0; attempt < 100 && passwordResetMailAdapter.lastResetUrl() == null; attempt++) {
+            Thread.sleep(25);
+        }
+        assertThat(passwordResetMailAdapter.lastResetUrl()).isNotNull();
+        return passwordResetMailAdapter.lastResetUrl();
+    }
+
+    private void awaitWorkerIdle() throws InterruptedException {
+        for (int attempt = 0; attempt < 100; attempt++) {
+            if (passwordResetExecutor.getActiveCount() == 0
+                    && passwordResetExecutor.getThreadPoolExecutor().getQueue().isEmpty()) {
+                return;
+            }
+            Thread.sleep(25);
+        }
+        assertThat(passwordResetExecutor.getActiveCount()).isZero();
+        assertThat(passwordResetExecutor.getThreadPoolExecutor().getQueue()).isEmpty();
+    }
+
     @TestConfiguration(proxyBeanMethods = false)
     static class PasswordResetMailConfiguration {
 
@@ -209,8 +237,8 @@ class PasswordResetTest {
 
     static class CapturingPasswordResetMailAdapter implements PasswordResetMailAdapter {
 
-        private String email;
-        private String resetUrl;
+        private volatile String email;
+        private volatile String resetUrl;
 
         @Override
         public CompletableFuture<Void> sendPasswordReset(String email, String resetUrl) {

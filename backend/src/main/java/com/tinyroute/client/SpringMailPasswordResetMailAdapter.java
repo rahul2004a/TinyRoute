@@ -3,7 +3,6 @@ package com.tinyroute.client;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -24,7 +23,6 @@ public class SpringMailPasswordResetMailAdapter implements PasswordResetMailAdap
     }
 
     @Override
-    @Async("registrationMailExecutor")
     public CompletableFuture<Void> sendPasswordReset(String email, String resetUrl) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(sender);

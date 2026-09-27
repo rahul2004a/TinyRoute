@@ -52,11 +52,11 @@ public class AccountDeletionRetryJob {
             } catch (RuntimeException exception) {
                 cleanup.retryAfterFailure(clock.instant());
                 if (cleanup.attempts() % 10 == 0) {
-                    log.error("Account deletion cleanup needs intervention: kind={}, userId={}, attempts={}",
-                            cleanup.kind(), cleanup.userId(), cleanup.attempts(), exception);
+                    log.error("Account deletion cleanup needs intervention: kind={}, attempts={}",
+                            cleanup.kind(), cleanup.attempts(), exception);
                 } else {
-                    log.warn("Account deletion cleanup will retry: kind={}, userId={}, attempts={}",
-                            cleanup.kind(), cleanup.userId(), cleanup.attempts(), exception);
+                    log.warn("Account deletion cleanup will retry: kind={}, attempts={}",
+                            cleanup.kind(), cleanup.attempts(), exception);
                 }
             }
         }

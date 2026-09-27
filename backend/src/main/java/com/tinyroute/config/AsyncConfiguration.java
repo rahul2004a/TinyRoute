@@ -15,11 +15,20 @@ public class AsyncConfiguration {
 
     @Bean
     TaskExecutor registrationMailExecutor() {
+        return boundedMailExecutor("registration-mail-");
+    }
+
+    @Bean
+    TaskExecutor passwordResetExecutor() {
+        return boundedMailExecutor("password-reset-");
+    }
+
+    private TaskExecutor boundedMailExecutor(String threadNamePrefix) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);
         executor.setMaxPoolSize(RegistrationMailCapacity.MAX_WORKERS);
         executor.setQueueCapacity(RegistrationMailCapacity.QUEUE_CAPACITY);
-        executor.setThreadNamePrefix("registration-mail-");
+        executor.setThreadNamePrefix(threadNamePrefix);
         executor.initialize();
         return executor;
     }

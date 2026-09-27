@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +11,13 @@ import {
   startRegistration,
   verifyRegistration,
 } from "./auth-api";
+import { sessionQueryKey } from "./use-session";
+
+const replaceMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: replaceMock }),
+}));
 
 vi.mock("./auth-api", () => ({
   fetchCsrfToken: vi.fn(),
@@ -23,6 +31,21 @@ const resendRegistrationOtpMock = vi.mocked(resendRegistrationOtp);
 const startRegistrationMock = vi.mocked(startRegistration);
 const verifyRegistrationMock = vi.mocked(verifyRegistration);
 
+function renderRegistrationForm() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return {
+    queryClient,
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <RegistrationForm />
+      </QueryClientProvider>,
+    ),
+  };
+}
+
 describe("RegistrationForm", () => {
   afterEach(() => {
     cleanup();
@@ -34,11 +57,15 @@ describe("RegistrationForm", () => {
     resendRegistrationOtpMock.mockResolvedValue({
       status: "PENDING_VERIFICATION",
     });
+    verifyRegistrationMock.mockResolvedValue({
+      authenticated: true,
+      user: { email: "person@example.com" },
+    });
   });
 
   it("submits accessible email and password fields with a CSRF token and shows the same generic success message", async () => {
     const user = userEvent.setup();
-    render(<RegistrationForm />);
+    renderRegistrationForm();
 
     expect(screen.getByText("TinyRoute")).toBeTruthy();
 
@@ -63,7 +90,7 @@ describe("RegistrationForm", () => {
 
   it("lets a person reveal and re-mask their password without changing it", async () => {
     const user = userEvent.setup();
-    render(<RegistrationForm />);
+    renderRegistrationForm();
 
     const password = screen.getByLabelText("Password");
     await user.type(password, "correct-horse-battery");
@@ -100,7 +127,7 @@ describe("RegistrationForm", () => {
         },
       }),
     );
-    render(<RegistrationForm />);
+    renderRegistrationForm();
 
     await user.type(
       screen.getByLabelText("Email address"),
@@ -130,5 +157,32 @@ describe("RegistrationForm", () => {
     expect(screen.getByRole("status").textContent).toContain(
       "A new verification code is on its way.",
     );
+  });
+
+  it("stores the verified session and leaves the OTP screen", async () => {
+    const user = userEvent.setup();
+    const { queryClient } = renderRegistrationForm();
+
+    await user.type(
+      screen.getByLabelText("Email address"),
+      "person@example.com",
+    );
+    await user.type(screen.getByLabelText("Password"), "correct-horse-battery");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+    await user.type(
+      await screen.findByLabelText("Verification code"),
+      "123456",
+    );
+    await user.click(screen.getByRole("button", { name: "Verify email" }));
+
+    await waitFor(() => {
+      expect(queryClient.getQueryData(sessionQueryKey)).toEqual({
+        authenticated: true,
+        user: { email: "person@example.com" },
+      });
+      expect(replaceMock).toHaveBeenCalledWith("/settings");
+    });
+    expect(screen.queryByLabelText("Verification code")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Resend code" })).toBeNull();
   });
 });

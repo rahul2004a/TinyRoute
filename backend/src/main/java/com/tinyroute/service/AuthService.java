@@ -59,7 +59,6 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private static final Duration OTP_TTL = Duration.ofMinutes(10);
-    private static final Duration PASSWORD_RESET_TTL = Duration.ofMinutes(30);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
@@ -343,8 +342,7 @@ public class AuthService {
                 try {
                     accountDeletionRetryJob.processPending();
                 } catch (RuntimeException exception) {
-                    log.error("Account deletion cleanup dispatch failed for userId={}; scheduled retry remains queued",
-                            user.id(), exception);
+                    log.error("Account deletion cleanup dispatch failed; scheduled retry remains queued", exception);
                 }
             }
         });
@@ -354,23 +352,6 @@ public class AuthService {
     public void requestPasswordReset(String email) {
         String normalizedEmail = normalizeEmail(email);
         String token = randomToken();
-        String tokenHash = TokenHashing.sha256(token);
-        User user = userRepository.findByEmailNormalized(normalizedEmail)
-                .filter(existing -> existing.deletedAt() == null)
-                .orElse(null);
-        if (user == null || authIdentityRepository
-                .findByUserIdAndProvider(user.id(), AuthProvider.PASSWORD).isEmpty()) {
-            return;
-        }
-
-        Instant expiresAt = clock.instant().plus(PASSWORD_RESET_TTL);
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByUserIdForUpdate(user.id())
-                .map(existing -> {
-                    existing.replace(tokenHash, expiresAt);
-                    return existing;
-                })
-                .orElseGet(() -> PasswordResetToken.create(user, tokenHash, expiresAt));
-        passwordResetTokenRepository.save(resetToken);
         eventPublisher.publishEvent(new PasswordResetRequested(normalizedEmail, token));
     }
 

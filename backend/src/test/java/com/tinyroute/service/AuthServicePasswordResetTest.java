@@ -31,7 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AuthServicePasswordResetTest {
@@ -39,28 +41,23 @@ class AuthServicePasswordResetTest {
     private static final Instant NOW = Instant.parse("2026-09-23T00:00:00Z");
 
     @Test
-    void replacesOlderTokenWithAHashAndPublishesOnlyTheFragmentTokenForAnEligiblePasswordIdentity() {
-        User user = user("user@example.com");
-        PasswordResetToken existingToken = PasswordResetToken.create(
-                user, TokenHashing.sha256("older-token"), NOW.plusSeconds(60)
-        );
+    void defersIdenticalPasswordResetRequestsWithoutLookingUpAccountStateOnTheResponsePath() {
         UserRepository users = mock(UserRepository.class);
         AuthIdentityRepository identities = mock(AuthIdentityRepository.class);
         PasswordResetTokenRepository resetTokens = mock(PasswordResetTokenRepository.class);
         ApplicationEventPublisher events = mock(ApplicationEventPublisher.class);
-        when(users.findByEmailNormalized("user@example.com")).thenReturn(Optional.of(user));
-        when(identities.findByUserIdAndProvider(user.id(), AuthProvider.PASSWORD))
-                .thenReturn(Optional.of(AuthIdentity.password(user, user.emailNormalized(), "existing-hash")));
-        when(resetTokens.findByUserIdForUpdate(user.id())).thenReturn(Optional.of(existingToken));
+        AuthService service = service(users, identities, resetTokens, events);
 
-        service(users, identities, resetTokens, events).requestPasswordReset(" USER@example.com ");
+        service.requestPasswordReset(" KNOWN@example.com ");
+        service.requestPasswordReset("unknown@example.com");
 
         org.mockito.ArgumentCaptor<PasswordResetRequested> event = org.mockito.ArgumentCaptor.forClass(PasswordResetRequested.class);
-        verify(events).publishEvent(event.capture());
-        assertThat(existingToken.tokenHash()).isEqualTo(TokenHashing.sha256(event.getValue().token()));
-        assertThat(existingToken.tokenHash()).isNotEqualTo(event.getValue().token());
-        assertThat(existingToken.expiresAt()).isEqualTo(NOW.plusSeconds(30 * 60));
-        verify(resetTokens).save(existingToken);
+        verify(events, times(2)).publishEvent(event.capture());
+        assertThat(event.getAllValues()).extracting(PasswordResetRequested::email)
+                .containsExactly("known@example.com", "unknown@example.com");
+        assertThat(event.getAllValues()).extracting(PasswordResetRequested::token)
+                .allSatisfy(token -> assertThat(token).hasSize(43));
+        verifyNoInteractions(users, identities, resetTokens);
     }
 
     @Test

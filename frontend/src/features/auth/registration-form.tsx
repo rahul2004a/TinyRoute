@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Link2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +15,7 @@ import {
   startRegistration,
   verifyRegistration,
 } from "./auth-api";
+import { sessionQueryKey } from "./use-session";
 
 const registrationSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
@@ -25,7 +28,7 @@ const otpSchema = z.object({
 
 type RegistrationValues = z.infer<typeof registrationSchema>;
 type OtpValues = z.infer<typeof otpSchema>;
-type RegistrationStep = "register" | "verify";
+type RegistrationStep = "register" | "verify" | "complete";
 
 const genericRegistrationMessage =
   "If the address can receive a TinyRoute verification email, a code is on its way.";
@@ -56,7 +59,9 @@ function AuthBrand() {
 
 export function RegistrationForm({
   initialStep = "register",
-}: Readonly<{ initialStep?: RegistrationStep }>) {
+}: Readonly<{ initialStep?: Exclude<RegistrationStep, "complete"> }>) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [step, setStep] = useState<RegistrationStep>(initialStep);
   const [notice, setNotice] = useState(
     initialStep === "verify" ? genericRegistrationMessage : "",
@@ -97,8 +102,11 @@ export function RegistrationForm({
   async function submitOtp(values: OtpValues) {
     await runSubmission(async () => {
       const csrfToken = await fetchCsrfToken();
-      await verifyRegistration(values.otp, csrfToken);
+      const session = await verifyRegistration(values.otp, csrfToken);
+      queryClient.setQueryData(sessionQueryKey, session);
       setNotice("Your email is verified. You are signed in.");
+      setStep("complete");
+      router.replace("/settings");
     });
   }
 
@@ -108,6 +116,29 @@ export function RegistrationForm({
       await resendRegistrationOtp(csrfToken);
       setNotice("A new verification code is on its way.");
     });
+  }
+
+  if (step === "complete") {
+    return (
+      <section
+        aria-labelledby="registration-complete-title"
+        className="w-full max-w-md"
+      >
+        <AuthBrand />
+        <h1
+          className="text-3xl font-semibold tracking-[-0.8px] text-(--auth-ink) sm:text-4xl"
+          id="registration-complete-title"
+        >
+          Email verified
+        </h1>
+        <p
+          className="mt-5 border-l-2 border-(--auth-primary) bg-(--auth-surface-2) px-4 py-3 text-sm leading-6 text-(--auth-ink)"
+          role="status"
+        >
+          {notice}
+        </p>
+      </section>
+    );
   }
 
   if (step === "verify") {
