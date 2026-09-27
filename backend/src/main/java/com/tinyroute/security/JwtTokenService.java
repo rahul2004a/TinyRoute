@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -49,10 +50,11 @@ public final class JwtTokenService {
     public JwtTokenService(JwtProperties properties, Clock clock) {
         this.properties = Objects.requireNonNull(properties);
         this.clock = Objects.requireNonNull(clock);
-        validateProperties();
+        Map<String, String> verificationKeyValues = verificationKeyValues();
+        validateProperties(verificationKeyValues);
 
         RSAPrivateKey signingPrivateKey = decodePrivateKey(properties.getSigningPrivateKeyBase64());
-        Map<String, RSAPublicKey> verificationKeys = properties.getVerificationPublicKeys().entrySet().stream()
+        Map<String, RSAPublicKey> verificationKeys = verificationKeyValues.entrySet().stream()
                 .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> decodePublicKey(entry.getValue())));
         RSAPublicKey signingPublicKey = verificationKeys.get(properties.getActiveKeyId());
 
@@ -166,7 +168,16 @@ public final class JwtTokenService {
                 && number.longValue() <= Integer.MAX_VALUE;
     }
 
-    private void validateProperties() {
+    private Map<String, String> verificationKeyValues() {
+        Map<String, String> keys = new LinkedHashMap<>(properties.getVerificationPublicKeys());
+        if (properties.getActiveVerificationPublicKeyBase64() != null
+                && !properties.getActiveVerificationPublicKeyBase64().isBlank()) {
+            keys.put(properties.getActiveKeyId(), properties.getActiveVerificationPublicKeyBase64());
+        }
+        return keys;
+    }
+
+    private void validateProperties(Map<String, String> verificationKeyValues) {
         requireValue(properties.getIssuer());
         requireValue(properties.getAudience());
         requireValue(properties.getActiveKeyId());
@@ -174,7 +185,7 @@ public final class JwtTokenService {
         if (!ACCESS_TOKEN_TTL.equals(properties.getAccessTokenTtl()) || !CLOCK_SKEW.equals(properties.getClockSkew())) {
             throw new IllegalArgumentException("JWT lifetime or clock skew is invalid");
         }
-        if (!properties.getVerificationPublicKeys().containsKey(properties.getActiveKeyId())) {
+        if (!verificationKeyValues.containsKey(properties.getActiveKeyId())) {
             throw new IllegalArgumentException("JWT active key is unavailable");
         }
     }

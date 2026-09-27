@@ -508,7 +508,7 @@ test("Google success handoff displays the authenticated account", async ({
   ).toBeVisible();
 });
 
-test("auth screens fit the required widths in light and dark mode", async ({
+test("auth screens fit the required widths in system, light, and dark themes", async ({
   page,
 }) => {
   await stubAuthApi(page, (path) => {
@@ -528,8 +528,9 @@ test("auth screens fit the required widths in light and dark mode", async ({
     };
   });
 
-  for (const colorScheme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme });
+  for (const theme of ["system", "light", "dark"] as const) {
+    await page.goto("/login");
+    await page.getByLabel("Theme").selectOption(theme);
     for (const width of [320, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/login");
@@ -540,7 +541,7 @@ test("auth screens fit the required widths in light and dark mode", async ({
         scrollWidth: document.documentElement.scrollWidth,
         clientWidth: document.documentElement.clientWidth,
       }));
-      expect(scrollWidth, `${colorScheme} at ${width}px`).toBeLessThanOrEqual(
+      expect(scrollWidth, `${theme} at ${width}px`).toBeLessThanOrEqual(
         clientWidth,
       );
     }

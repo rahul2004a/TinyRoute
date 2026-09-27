@@ -13,6 +13,7 @@ public class JwtProperties {
     private String audience;
     private String activeKeyId;
     private String signingPrivateKeyBase64;
+    private String activeVerificationPublicKeyBase64;
     private Map<String, String> verificationPublicKeys = new LinkedHashMap<>();
     private Duration accessTokenTtl = Duration.ofMinutes(15);
     private Duration clockSkew = Duration.ofSeconds(60);
@@ -47,6 +48,14 @@ public class JwtProperties {
 
     public void setSigningPrivateKeyBase64(String signingPrivateKeyBase64) {
         this.signingPrivateKeyBase64 = signingPrivateKeyBase64;
+    }
+
+    public String getActiveVerificationPublicKeyBase64() {
+        return activeVerificationPublicKeyBase64;
+    }
+
+    public void setActiveVerificationPublicKeyBase64(String activeVerificationPublicKeyBase64) {
+        this.activeVerificationPublicKeyBase64 = activeVerificationPublicKeyBase64;
     }
 
     public Map<String, String> getVerificationPublicKeys() {

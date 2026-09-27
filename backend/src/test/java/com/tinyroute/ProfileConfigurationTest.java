@@ -32,7 +32,27 @@ class ProfileConfigurationTest {
                 .containsEntry("spring.datasource.username", "${DATABASE_USERNAME}")
                 .containsEntry("spring.datasource.password", "${DATABASE_PASSWORD}")
                 .containsEntry("spring.data.redis.host", "${REDIS_HOST}")
-                .containsEntry("spring.data.redis.port", "${REDIS_PORT}");
+                .containsEntry("spring.data.redis.port", "${REDIS_PORT}")
+                .containsEntry("spring.mail.host", "${MAIL_HOST}")
+                .containsEntry("spring.mail.username", "${MAIL_USERNAME}")
+                .containsEntry("spring.mail.password", "${MAIL_PASSWORD}")
+                .containsEntry("spring.mail.properties[mail.smtp.auth]", "${MAIL_SMTP_AUTH:true}")
+                .containsEntry("spring.mail.properties[mail.smtp.starttls.enable]", "${MAIL_SMTP_STARTTLS:true}")
+                .containsEntry("spring.mail.properties[mail.smtp.starttls.required]", "${MAIL_SMTP_STARTTLS:true}")
+                .containsEntry("tinyroute.security.allowed-origins", "${ALLOWED_FRONTEND_ORIGINS}")
+                .containsEntry("tinyroute.rate-limit.hmac-secret", "${RATE_LIMIT_HMAC_SECRET}")
+                .containsEntry("tinyroute.rate-limit.trusted-proxy-cidrs", "${TRUSTED_PROXY_CIDRS}")
+                .containsEntry("tinyroute.oauth.google.client-id", "${GOOGLE_CLIENT_ID}")
+                .containsEntry("tinyroute.oauth.google.client-secret", "${GOOGLE_CLIENT_SECRET}");
+    }
+
+    @Test
+    void productionUsesPrivateHttpBehindTheTlsTerminatingLoadBalancer() {
+        Properties properties = loadProperties("application-prod.yml");
+
+        assertThat(properties)
+                .containsEntry("server.port", "${SERVER_PORT:8080}")
+                .doesNotContainKeys("server.ssl.certificate", "server.ssl.certificate-private-key");
     }
 
     @Test

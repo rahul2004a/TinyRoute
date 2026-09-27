@@ -53,8 +53,8 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ### Checkpoint: security foundation
 
 - [ ] Backend/frontend build and tests run from a clean checkout.
-- [ ] Flyway and Redis adapters run against Compose services.
-- [ ] A browser can obtain CSRF, while cross-origin or missing-CSRF mutations are rejected.
+- [x] Flyway and Redis adapters run against Compose services.
+- [x] A browser can obtain CSRF, while cross-origin or missing-CSRF mutations are rejected.
 - [ ] Human reviews origin, local HTTPS, trusted-proxy and key-management configuration before credential flows.
 
 ### Phase 2: local account lifecycle
@@ -63,39 +63,39 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - [x] Task 9: Deliver accessible registration/OTP UI.
 - [x] Task 10: Deliver password sign-in and current-session APIs.
 - [x] Task 11: Deliver login UI and session bootstrap.
-- [ ] Task 12: Deliver atomic refresh rotation and sign-out APIs.
-- [ ] Task 13: Deliver browser refresh and sign-out UX.
+- [x] Task 12: Deliver atomic refresh rotation and sign-out APIs.
+- [x] Task 13: Deliver browser refresh and sign-out UX.
 
 ### Checkpoint: local accounts
 
-- [ ] New users can register, verify, sign in, reload, refresh and sign out end-to-end.
-- [ ] Invalid/expired OTP, stale CSRF, wrong password, refresh reuse and rate-limit cases return documented generic errors.
-- [ ] Logs, browser storage, mail tests and snapshots contain no passwords, OTPs, token values or OAuth artifacts.
+- [x] New users can register, verify, sign in, reload, refresh and sign out end-to-end.
+- [x] Invalid/expired OTP, stale CSRF, wrong password, refresh reuse and rate-limit cases return documented generic errors.
+- [x] Logs, browser storage, mail tests and snapshots contain no passwords, OTPs, token values or OAuth artifacts.
 - [ ] Human reviews the completed local-account flow.
 
 ### Phase 3: federated sign-in and recovery
 
-- [ ] Task 14: Deliver Google OIDC start/callback validation and identity creation/sign-in.
+- [x] Task 14: Deliver Google OIDC start/callback validation and identity creation/sign-in.
 - [x] Task 15: Deliver the Google handoff and callback result UI.
 - [x] Task 16: Deliver password-reset request/completion APIs and mail behavior.
 - [x] Task 17: Deliver password-reset UI.
 
 ### Checkpoint: federated and recovery flows
 
-- [ ] OIDC tests prove state, nonce, PKCE, issuer/audience/signature, verified email, collision and callback failure behavior.
-- [ ] Password reset works once and fails safely on expiry/replay without raw-token URL/log disclosure.
+- [x] OIDC tests prove state, nonce, PKCE, issuer/audience/signature, verified email, collision and callback failure behavior.
+- [x] Password reset works once and fails safely on expiry/replay without raw-token URL/log disclosure.
 - [ ] Human reviews Google and email configuration before any non-local environment.
 
 ### Phase 4: deletion and release evidence
 
 - [x] Task 18: Deliver account deletion through the LinkService tombstone contract.
 - [x] Task 19: Deliver account-deletion UI and client cleanup.
-- [ ] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
+- [x] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
 
 ### Checkpoint: implementation review
 
 - [ ] Every task acceptance criterion and the project Definition of Done is complete.
-- [ ] Relevant Maven, frontend lint/typecheck/test, and Playwright checks pass.
+- [x] Relevant Maven, frontend lint/typecheck/test, and Playwright checks pass.
 - [ ] Docs are current. Only then archive completed active task files into \`docs/spec/account-authentication/\`.
 
 ## Risks and mitigations

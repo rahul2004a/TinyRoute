@@ -8,15 +8,10 @@ rate limits, and persistence.
 
 ## Project status
 
-**Work in progress.** The account-authentication feature is the active workstream.
-Its first seven foundation tasks are complete: application bootstrapping, local
-datastores, user and identity persistence, password and JWT primitives, Redis
-session/revocation/rate-limit stores, and the browser security perimeter.
-
-Registration and OTP verification are currently being implemented. End-to-end
-authentication, link creation and management, public redirects, analytics,
-Google sign-in, password reset, account deletion, production infrastructure, and
-CI/CD are not complete yet. Do not treat this repository as deployed software.
+**Work in progress.** The account-authentication feature is the active workstream
+and is implemented through its review gates. Link creation and management,
+public redirects, analytics, production infrastructure, and CI/CD remain future
+work. Do not treat this repository as deployed software.
 
 ## What TinyRoute is intended to deliver
 
@@ -153,8 +148,40 @@ Compose ports on localhost; `application-prod.yml` expects every endpoint and
 secret from the environment.
 
 The committed `.env.example` and `frontend/.env.example` contain placeholders
-only. Never commit JWT signing keys, database credentials, OAuth credentials,
-email credentials, or a populated `.env`/`.env.local` file.
+only. Docker Compose reads root `.env` automatically; Spring Boot does not. For
+local development, replace the security/OAuth/mail placeholders and export the
+file before starting Maven:
+
+```sh
+set -a
+. ./.env
+set +a
+SPRING_PROFILES_ACTIVE=dev mvn -f backend/pom.xml spring-boot:run
+```
+
+Never commit JWT signing keys, database credentials, OAuth credentials, email
+credentials, or a populated `.env`/`.env.local` file.
+
+The backend configuration names are explicit:
+
+| Concern | Development and production environment variables |
+| --- | --- |
+| Profile/process | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating ALB) |
+| PostgreSQL | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` |
+| Redis | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT` |
+| Browser/security | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For` |
+| JWT | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
+| Mail | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI` |
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_SUCCESS_URI`, `GOOGLE_FAILURE_URI` |
+| Local TLS only | `DEV_TLS_CERTIFICATE`, `DEV_TLS_PRIVATE_KEY` |
+
+The active verification key is associated with `TINYROUTE_JWT_ACTIVE_KEY_ID`.
+During rotation, keep retired public keys until every JWT signed by them has
+expired by adding the `tinyroute.jwt.verification-public-keys` map through
+`SPRING_APPLICATION_JSON`, for example
+`{"tinyroute":{"jwt":{"verification-public-keys":{"retired-key-id":"<base64-x509-der>"}}}}`.
+The signing private key and all verification public keys are base64-encoded DER,
+not PEM text.
 
 ### Local HTTPS for registration
 
@@ -165,6 +192,11 @@ applications over HTTPS:
 TRUST_STORES=system mkcert -install
 mkdir -p .local-certs
 mkcert -cert-file .local-certs/localhost.pem -key-file .local-certs/localhost-key.pem localhost 127.0.0.1 ::1
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out .local-certs/jwt-private.pem
+openssl pkcs8 -topk8 -nocrypt -in .local-certs/jwt-private.pem -outform DER -out .local-certs/jwt-private.der
+openssl pkey -in .local-certs/jwt-private.pem -pubout -outform DER -out .local-certs/jwt-public.der
+export TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64="$(openssl base64 -A -in .local-certs/jwt-private.der)"
+export TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64="$(openssl base64 -A -in .local-certs/jwt-public.der)"
 SPRING_PROFILES_ACTIVE=dev mvn -f backend/pom.xml spring-boot:run
 ```
 
@@ -174,13 +206,24 @@ Run the frontend in a second terminal from the repository root:
 pnpm --dir frontend exec next dev --experimental-https --experimental-https-key ../.local-certs/localhost-key.pem --experimental-https-cert ../.local-certs/localhost.pem
 ```
 
-With local HTTPS configured, run the browser journeys with Playwright's
-managed Chromium. The tests use disposable API responses and do not delete a
-real account:
+With local HTTPS configured, run the deterministic browser journeys with
+Playwright's managed Chromium. These tests use disposable contract-shaped API
+responses and do not delete a real account:
 
 ```sh
 pnpm --dir frontend exec playwright install chromium
 pnpm --dir frontend exec playwright test
+```
+
+After the real backend is running on `https://localhost:8443`, run the separate
+live browser/backend contract gate. It starts its own disposable SMTP listener
+on port `1025`, creates a unique test account, captures the OTP and reset email,
+then verifies registration, session reload, logout, password reset, sign-in, and
+account deletion across Next.js, Spring Security, PostgreSQL, and Redis. Keep
+port `1025` free and configure the backend mail settings shown above:
+
+```sh
+pnpm --dir frontend exec playwright test --config playwright.live.config.ts
 ```
 
 Open `https://localhost:3000/register`. The frontend calls
@@ -189,13 +232,21 @@ its working directory, so the development profile reads `../.local-certs/`.
 An IDE with another working directory can set `DEV_TLS_CERTIFICATE` and
 `DEV_TLS_PRIVATE_KEY` to absolute `file:` URLs. Keep `.local-certs/` private.
 The backend also needs its normal local database, Redis, JWT signing, and mail
-configuration. If `frontend/.env.local` already exists, set only
+configuration from the table above. Compose intentionally does not run an SMTP
+server; use a separately managed local listener or configured development SMTP
+account. If `frontend/.env.local` already exists, set only
 `NEXT_PUBLIC_API_BASE_URL=https://localhost:8443` in that file and restart Next.
 
 For a fresh frontend checkout, copy `frontend/.env.example` to
 `frontend/.env.local` before starting Next. Existing `.env.local` settings
-should be preserved. The in-progress authentication feature still needs local
-JWT and email configuration before a complete registration can succeed.
+should be preserved.
+
+For production, use `SPRING_PROFILES_ACTIVE=prod`, private PostgreSQL and Redis
+endpoints, a cryptographically random rate-limit HMAC secret, SMTP authentication
+with STARTTLS enabled, exact `https://app.<zone>` / `https://api.<zone>` origins,
+and environment-managed JWT key material. The AWS load balancer terminates
+public TLS; the private ECS target listens on `SERVER_PORT` and must not be
+publicly reachable.
 
 ## Security model
 
@@ -209,6 +260,8 @@ JWT and email configuration before a complete registration can succeed.
   Mutations require CSRF protection; the CSRF bootstrap response is not cached.
 - Redis-backed authentication rate limits use HMAC-derived client-address keys
   and accept forwarded addresses only from configured trusted proxies.
+  Direct local development leaves `TRUSTED_PROXY_CIDRS` unset; production must
+  provide the ingress proxy CIDRs that append `X-Forwarded-For`.
 - PostgreSQL is the system of record. Redis is disposable operational state, so
   authorization must fail closed if required security state is unavailable.
 

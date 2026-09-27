@@ -5,7 +5,10 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+
+import { ThemeSelector } from "./theme-selector";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -30,8 +33,16 @@ function getQueryClient() {
 
 export function Providers({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <QueryClientProvider client={getQueryClient()}>
-      {children}
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="system"
+      disableTransitionOnChange
+      enableSystem
+    >
+      <QueryClientProvider client={getQueryClient()}>
+        <ThemeSelector />
+        {children}
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

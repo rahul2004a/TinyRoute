@@ -48,6 +48,22 @@ class JwtTokenServiceTest {
     }
 
     @Test
+    void acceptsTheEnvironmentFriendlyActiveVerificationKeyProperty() throws Exception {
+        KeyPair keyPair = rsaKeyPair();
+        JwtProperties properties = new JwtProperties();
+        properties.setIssuer("https://api.tinyroute.test");
+        properties.setAudience("tinyroute-web");
+        properties.setActiveKeyId("current");
+        properties.setSigningPrivateKeyBase64(base64(keyPair.getPrivate().getEncoded()));
+        properties.setActiveVerificationPublicKeyBase64(base64(keyPair.getPublic().getEncoded()));
+
+        JwtTokenService jwtTokenService = new JwtTokenService(properties, Clock.fixed(NOW, ZoneOffset.UTC));
+
+        assertThat(jwtTokenService.verifyAccessToken(jwtTokenService.issueAccessToken(USER_ID, 3)).userId())
+                .isEqualTo(USER_ID);
+    }
+
+    @Test
     void rejectsAnExpiredAccessTokenAfterTheAllowedClockSkew() throws Exception {
         KeyPair keyPair = rsaKeyPair();
         JwtTokenService issuer = tokenService(keyPair, "current", Map.of("current", publicKey(keyPair)), NOW);

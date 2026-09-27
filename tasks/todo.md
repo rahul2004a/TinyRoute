@@ -348,7 +348,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 - [x] Tests pass: `pnpm --dir frontend test --run -- session logout`
 - [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
-- [x] Manual check: exercised refresh recovery, retryable network logout failure, and successful local-session clearing through rendered React lifecycle tests; local browser navigation was unavailable because the configured HTTPS API was not running.
+- [x] Manual check: rendered tests cover retryable network logout failure; the live HTTPS browser verifies persisted refresh and expired-access logout across the real backend.
 
 **Dependencies:** Tasks 2, 7, 11, 12.
 
@@ -516,7 +516,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
 
-Browser check used a disposable local HTTPS API stub: a failed `503` kept confirmation retryable, then a `204` showed deletion. No real account was deleted. The frontend production build passed with `next build --webpack` because Turbopack could not bind a local port in this environment.
+The contract browser check used a disposable local HTTPS API stub: a failed `503` kept confirmation retryable, then a `204` showed deletion. The separate live browser journey created and deleted its own account through the real backend. The frontend production build passed with `next build --webpack` because Turbopack could not bind a local port in this environment.
 
 **Dependencies:** Tasks 13, 18.
 
@@ -536,14 +536,14 @@ Browser check used a disposable local HTTPS API stub: a failed `503` kept confir
 **Acceptance criteria:**
 
 - [x] Telemetry records safe auth outcomes and no secrets
-- [ ] Contract/integration/Playwright cover documented behavior
+- [x] Contract/integration/Playwright cover documented account-authentication behavior
 - [x] Evidence covers cited NFRs and review findings, including remaining gaps
 
 **Verification:**
 
 - [x] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
 - [x] Build succeeds: Maven packaged the JAR and `next build --webpack` built the frontend; default Turbopack failure is recorded in release evidence.
-- [x] Manual check: local HTTPS CSRF bootstrap returned 200 and a login without CSRF returned 403; the real Spring test covers telemetry on both outcomes.
+- [x] Manual check: the live HTTPS browser journey completed registration, OTP, session reload, logout, password reset, login, and deletion against Spring/PostgreSQL/Redis; Spring tests cover CSRF and telemetry rejection paths.
 
 **Dependencies:** Tasks 8–19, with Task 18 unblocked.
 
@@ -559,25 +559,25 @@ Browser check used a disposable local HTTPS API stub: a failed `503` kept confir
 
 ## Checkpoint: security foundation
 
-- [ ] Tasks 1–7 pass focused checks; Compose config, Maven verification, frontend lint/tests/build pass.
-- [ ] Browser verification proves CSRF issue plus cross-origin/missing-CSRF rejection.
+- [x] Tasks 1–7 pass focused checks; Compose config, Maven verification, frontend lint/tests/build pass.
+- [x] Browser CSRF bootstrap and Spring cross-origin/missing-CSRF rejection are verified.
 - [ ] Human confirms origins, HTTPS, trusted proxies and signing-key source.
 
 ## Checkpoint: local account lifecycle
 
-- [ ] Tasks 8–13 pass; a user can register, verify, sign in, reload, refresh and sign out.
-- [ ] Generic-error and secret-redaction checks are evidenced.
+- [x] Tasks 8–13 pass; a user can register, verify, sign in, reload, refresh and sign out.
+- [x] Generic-error and secret-redaction checks are evidenced.
 - [ ] Human reviews the local-account journey.
 
 ## Checkpoint: federated and recovery flows
 
-- [ ] Tasks 14–17 pass; OIDC state/nonce/PKCE/claim/collision tests and reset replay/expiry/session-invalidation tests are green.
+- [x] Tasks 14–17 pass; OIDC state/nonce/PKCE/claim/collision tests and reset replay/expiry/session-invalidation tests are green.
 - [ ] Human confirms Google OAuth and transactional-email non-local configuration.
 
 ## Checkpoint: ready for implementation review
 
-- [ ] Tasks 1–20 are checked only after every acceptance/focused verification item passes.
-- [ ] `git diff --check` is clean and no secret, token, reset link or local-volume data is tracked.
-- [ ] FR-ACC-01…05, FR-ABS-02, FR-CRE-02 and applicable NFR traceability is complete.
+- [x] Tasks 1–20 are checked only after every acceptance/focused verification item passes.
+- [x] `git diff --check` is clean and no secret, token, reset link or local-volume data is tracked.
+- [x] FR-ACC-01…05, FR-ABS-02, FR-CRE-02 and applicable NFR traceability is complete, with feature and deployment limits recorded in release evidence.
 - [ ] The Definition of Done is complete: unit/integration/runtime checks, quality/security/performance review, observability, rollback and human acceptance.
 - [ ] After approval, archive this completed file and `tasks/plan.md` under `docs/spec/account-authentication/`.

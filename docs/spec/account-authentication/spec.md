@@ -319,9 +319,11 @@ Current verification results and remaining release gates are recorded in
   logout or account deletion.
 - Playwright covers password registration and sign-in, Google registration with
   a controlled provider stub, persisted-session refresh, reset invalidation of
-  another session, sign-out, account deletion stopping owned redirects,
+  another session, sign-out, account-deletion confirmation and session cleanup,
   protected-route denial, keyboard flow, and the required responsive/theme
-  matrix from DESIGN.md.
+  matrix from DESIGN.md. PostgreSQL/Redis integration tests cover link
+  tombstoning and cache eviction; the public redirect feature will add the
+  browser check that a deleted account's URLs stop redirecting.
 
 ## Boundaries
 
