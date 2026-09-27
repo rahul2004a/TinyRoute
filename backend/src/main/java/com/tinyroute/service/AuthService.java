@@ -164,10 +164,11 @@ public class AuthService {
         String passwordHash = passwordHasher.hash(password);
         String otpHash = passwordHasher.hash(otp);
 
+        reserveMailDelivery();
         if (userRepository.findByEmailNormalized(normalizedEmail).isPresent()) {
+            registrationMailCapacity.release();
             return Optional.of(pendingToken);
         }
-        reserveMailDelivery();
 
         String pendingTokenHash = TokenHashing.sha256(pendingToken);
         Instant otpExpiresAt = now.plus(OTP_TTL);
@@ -216,6 +217,12 @@ public class AuthService {
             throw new OtpInvalidException();
         }
 
+        String email = pendingRegistration.emailNormalized();
+        acquireEmailCreationLock(email);
+        if (userRepository.findByEmailNormalized(email).isPresent()) {
+            pendingRegistrationRepository.delete(pendingRegistration);
+            throw new OtpInvalidException();
+        }
         User user = userRepository.save(User.create(pendingRegistration.emailNormalized()));
         authIdentityRepository.save(AuthIdentity.password(user, pendingRegistration.emailNormalized(), pendingRegistration.passwordHash()));
         pendingRegistrationRepository.delete(pendingRegistration);
@@ -421,6 +428,9 @@ public class AuthService {
             throw new ServiceUnavailableException(exception);
         }
         GoogleIdentity googleIdentity = googleOAuthClient.exchangeAuthorizationCode(code, transaction);
+        String email = normalizeEmail(googleIdentity.email());
+        acquireEmailCreationLock(email);
+        userRepository.acquireAccountCreationLock("google-subject:" + googleIdentity.subject());
         AuthIdentity existingIdentity = authIdentityRepository
                 .findByProviderAndSubject(AuthProvider.GOOGLE, googleIdentity.subject())
                 .orElse(null);
@@ -431,13 +441,16 @@ public class AuthService {
             return issueSession(existingIdentity.user());
         }
 
-        String email = normalizeEmail(googleIdentity.email());
         if (userRepository.findByEmailNormalized(email).isPresent()) {
             throw new OAuthFailedException();
         }
         User user = userRepository.save(User.create(email));
         authIdentityRepository.save(AuthIdentity.google(user, googleIdentity.subject()));
         return issueSession(user);
+    }
+
+    private void acquireEmailCreationLock(String email) {
+        userRepository.acquireAccountCreationLock("email:" + email);
     }
 
     @Transactional(noRollbackFor = OtpExpiredException.class)

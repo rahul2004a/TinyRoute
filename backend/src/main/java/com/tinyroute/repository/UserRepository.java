@@ -13,5 +13,7 @@ public interface UserRepository {
 
     Optional<User> findByEmailNormalized(String emailNormalized);
 
+    void acquireAccountCreationLock(String creationKey);
+
     User save(User user);
 }

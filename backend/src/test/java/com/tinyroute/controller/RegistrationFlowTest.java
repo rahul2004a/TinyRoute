@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(properties = "tinyroute.rate-limit.trusted-proxy-cidrs=127.0.0.1/32")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
 @Import({TestJwtTokenConfiguration.class, RegistrationFlowTest.RegistrationMailConfiguration.class})
@@ -95,6 +95,27 @@ class RegistrationFlowTest {
                         .content("{\"otp\":\"" + registrationMailAdapter.lastOtp() + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("OTP_INVALID"));
+    }
+
+    @Test
+    void returnsASafeOtpFailureWhenAnotherAccountCreationWinsTheEmailRace() throws Exception {
+        MvcResult registration = startRegistration();
+        userRepository.save(User.create("user@example.com"));
+        MvcResult csrf = csrf();
+
+        mockMvc.perform(post("/api/auth/register/verify")
+                        .cookie(csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .header("X-Forwarded-For", clientAddress)
+                        .cookie(pendingCookie(registration))
+                        .contentType("application/json")
+                        .content("{\"otp\":\"" + registrationMailAdapter.lastOtp() + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("OTP_INVALID"));
+
+        assertThat(jdbcTemplate.queryForObject("select count(*) from users", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("select count(*) from auth_identities", Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
     }
 
     @Test

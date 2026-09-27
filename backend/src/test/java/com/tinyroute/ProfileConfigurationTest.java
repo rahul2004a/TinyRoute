@@ -19,7 +19,8 @@ class ProfileConfigurationTest {
                 .containsEntry("spring.datasource.username", "${POSTGRES_USER:tinyroute}")
                 .containsEntry("spring.datasource.password", "${POSTGRES_PASSWORD:local-dev-password}")
                 .containsEntry("spring.data.redis.host", "localhost")
-                .containsEntry("spring.data.redis.port", "${REDIS_PORT:6379}");
+                .containsEntry("spring.data.redis.port", "${REDIS_PORT:6379}")
+                .doesNotContainKey("tinyroute.rate-limit.trusted-proxy-cidrs");
     }
 
     @Test

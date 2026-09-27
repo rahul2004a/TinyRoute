@@ -17,4 +17,8 @@ public interface JpaUserRepository extends JpaRepository<User, UUID>, UserReposi
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select user from User user where user.id = :userId")
     Optional<User> findByIdForUpdate(@Param("userId") UUID userId);
+
+    @Override
+    @Query(value = "select pg_advisory_xact_lock(hashtextextended(cast(:creationKey as text), 0))", nativeQuery = true)
+    void acquireAccountCreationLock(@Param("creationKey") String creationKey);
 }

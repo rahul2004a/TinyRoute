@@ -109,22 +109,52 @@ export async function refreshSession(): Promise<Session> {
   });
 }
 
+function requestLogout(csrfToken: string) {
+  return apiRequest("/api/auth/logout", {
+    ...mutationOptions(csrfToken),
+    responseSchema: emptyResponseSchema,
+  });
+}
+
 export async function logout(): Promise<void> {
+  const csrfToken = await getCsrfToken();
   try {
-    const csrfToken = await getCsrfToken();
-    await apiRequest("/api/auth/logout", {
-      ...mutationOptions(csrfToken),
-      responseSchema: emptyResponseSchema,
-    });
+    await requestLogout(csrfToken);
   } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
-      clearCsrfToken();
-      return;
+    if (!(error instanceof ApiClientError && error.status === 401)) {
+      if (error instanceof ApiClientError && error.status === 403) {
+        clearCsrfToken();
+      }
+      throw error;
     }
-    if (error instanceof ApiClientError && error.status === 403) {
-      clearCsrfToken();
+
+    try {
+      await refreshSession();
+    } catch (refreshError) {
+      if (
+        refreshError instanceof ApiClientError &&
+        refreshError.status === 401
+      ) {
+        clearCsrfToken();
+        return;
+      }
+      if (
+        refreshError instanceof ApiClientError &&
+        refreshError.status === 403
+      ) {
+        clearCsrfToken();
+      }
+      throw refreshError;
     }
-    throw error;
+
+    try {
+      await requestLogout(await getCsrfToken());
+    } catch (retryError) {
+      if (retryError instanceof ApiClientError && retryError.status === 403) {
+        clearCsrfToken();
+      }
+      throw retryError;
+    }
   }
   clearCsrfToken();
 }

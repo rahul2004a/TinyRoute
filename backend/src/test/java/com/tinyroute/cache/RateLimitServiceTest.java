@@ -45,6 +45,42 @@ class RateLimitServiceTest {
     }
 
     @Test
+    void ignoresSpoofableLeftmostAddressesAddedBeforeTheTrustedProxyAppendsTheClient() {
+        RecordingRateLimitStore store = new RecordingRateLimitStore();
+        RateLimitService service = service(store);
+
+        service.allowClient(
+                RateLimitAction.REGISTER,
+                request("10.12.0.5", "198.51.100.99, 203.0.113.42")
+        );
+        service.allowClient(
+                RateLimitAction.PASSWORD_LOGIN,
+                request("203.0.113.42", null)
+        );
+
+        assertThat(subject(store.keysByAction.get(RateLimitAction.REGISTER)))
+                .isEqualTo(subject(store.keysByAction.get(RateLimitAction.PASSWORD_LOGIN)));
+    }
+
+    @Test
+    void walksRightToLeftPastEveryTrustedProxyInTheForwardedChain() {
+        RecordingRateLimitStore store = new RecordingRateLimitStore();
+        RateLimitService service = service(store);
+
+        service.allowClient(
+                RateLimitAction.REGISTER,
+                request("10.12.0.5", "198.51.100.42, 10.20.0.6, 10.30.0.7")
+        );
+        service.allowClient(
+                RateLimitAction.PASSWORD_LOGIN,
+                request("198.51.100.42", null)
+        );
+
+        assertThat(subject(store.keysByAction.get(RateLimitAction.REGISTER)))
+                .isEqualTo(subject(store.keysByAction.get(RateLimitAction.PASSWORD_LOGIN)));
+    }
+
+    @Test
     void appliesAnIndependentConfiguredLimitToEachAuthAction() {
         RecordingRateLimitStore store = new RecordingRateLimitStore();
         RateLimitService service = service(store);
@@ -84,6 +120,10 @@ class RateLimitServiceTest {
             request.addHeader("X-Forwarded-For", forwardedFor);
         }
         return request;
+    }
+
+    private String subject(String key) {
+        return key.substring(key.lastIndexOf(':') + 1);
     }
 
     private static final class RecordingRateLimitStore implements RateLimitStore {

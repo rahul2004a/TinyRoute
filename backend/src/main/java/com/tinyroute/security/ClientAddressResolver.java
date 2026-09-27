@@ -44,7 +44,16 @@ public final class ClientAddressResolver {
         if (forwardedFor == null || forwardedFor.isBlank()) {
             throw new IllegalArgumentException("Trusted proxy did not provide a client address");
         }
-        return parseAddress(forwardedFor.split(",", 2)[0].trim());
+        String[] addresses = forwardedFor.split(",", -1);
+        InetAddress leftmostAddress = null;
+        for (int index = addresses.length - 1; index >= 0; index--) {
+            InetAddress candidate = parseAddress(addresses[index].trim());
+            leftmostAddress = candidate;
+            if (!isTrusted(candidate)) {
+                return candidate;
+            }
+        }
+        return leftmostAddress;
     }
 
     private InetAddress parseAddress(String address) {

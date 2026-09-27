@@ -97,7 +97,7 @@ describe("session API lifecycle", () => {
     });
   });
 
-  it("sends logout with the in-memory CSRF value and accepts an already-expired access session", async () => {
+  it("refreshes an expired access session and retries logout so the refresh session is revoked", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "csrf-value" }))
@@ -109,7 +109,14 @@ describe("session API lifecycle", () => {
             requestId: "request-3",
           },
         }),
-      );
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          authenticated: true,
+          user: { email: "person@example.com" },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse(204));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(logout()).resolves.toBeUndefined();
@@ -117,9 +124,65 @@ describe("session API lifecycle", () => {
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "https://api.tinyroute.test/api/auth/csrf",
       "https://api.tinyroute.test/api/auth/logout",
+      "https://api.tinyroute.test/api/auth/refresh",
+      "https://api.tinyroute.test/api/auth/logout",
     ]);
     expect(csrfHeader(fetchMock.mock.calls[1][1] as RequestInit)).toBe(
       "csrf-value",
     );
+    expect(csrfHeader(fetchMock.mock.calls[2][1] as RequestInit)).toBe(
+      "csrf-value",
+    );
+    expect(csrfHeader(fetchMock.mock.calls[3][1] as RequestInit)).toBe(
+      "csrf-value",
+    );
+  });
+
+  it("accepts logout after both access and refresh sessions are unavailable", async () => {
+    const authenticationFailure = {
+      error: {
+        code: "AUTHENTICATION_FAILED",
+        message: "Authentication failed",
+        requestId: "request-4",
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "csrf-value" }))
+      .mockResolvedValueOnce(jsonResponse(401, authenticationFailure))
+      .mockResolvedValueOnce(jsonResponse(401, authenticationFailure));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(logout()).resolves.toBeUndefined();
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "https://api.tinyroute.test/api/auth/csrf",
+      "https://api.tinyroute.test/api/auth/logout",
+      "https://api.tinyroute.test/api/auth/refresh",
+    ]);
+  });
+
+  it("does not report success when logout still fails after refreshing access", async () => {
+    const authenticationFailure = {
+      error: {
+        code: "AUTHENTICATION_FAILED",
+        message: "Authentication failed",
+        requestId: "request-5",
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "csrf-value" }))
+      .mockResolvedValueOnce(jsonResponse(401, authenticationFailure))
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          authenticated: true,
+          user: { email: "person@example.com" },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse(401, authenticationFailure));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(logout()).rejects.toMatchObject({ status: 401 });
   });
 });

@@ -25,6 +25,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import jakarta.servlet.http.Cookie;
 import java.net.URI;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -32,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(properties = "tinyroute.rate-limit.trusted-proxy-cidrs=127.0.0.1/32")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
 @Import({TestJwtTokenConfiguration.class, GoogleOidcTest.GoogleOAuthClientConfiguration.class})
@@ -158,6 +164,58 @@ class GoogleOidcTest {
         assertThat(jdbcTemplate.queryForObject("select count(*) from auth_identities", Integer.class)).isZero();
     }
 
+    @Test
+    void serializesConcurrentCallbacksThatClaimTheSameEmailWithoutReturningAServerError() throws Exception {
+        assertConcurrentCallbacksAreSafe("first-subject", "second-subject");
+    }
+
+    @Test
+    void serializesConcurrentCallbacksThatClaimTheSameProviderSubjectWithoutReturningAServerError() throws Exception {
+        assertConcurrentCallbacksAreSafe("shared-subject-first-email", "shared-subject-second-email");
+    }
+
+    private void assertConcurrentCallbacksAreSafe(String firstCode, String secondCode) throws Exception {
+        MvcResult firstAuthorization = startGoogleAuthorization(clientAddress());
+        MvcResult secondAuthorization = startGoogleAuthorization(clientAddress());
+        Cookie firstState = firstAuthorization.getResponse().getCookie("oauth_state");
+        Cookie secondState = secondAuthorization.getResponse().getCookie("oauth_state");
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Future<MvcResult> first = executor.submit(() -> concurrentCallback(firstState, firstCode, ready, start));
+            Future<MvcResult> second = executor.submit(() -> concurrentCallback(secondState, secondCode, ready, start));
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            List<Integer> statuses = List.of(
+                    first.get(10, TimeUnit.SECONDS).getResponse().getStatus(),
+                    second.get(10, TimeUnit.SECONDS).getResponse().getStatus()
+            );
+            assertThat(statuses).containsOnly(303);
+        }
+
+        assertThat(jdbcTemplate.queryForObject("select count(*) from users", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("select count(*) from auth_identities", Integer.class)).isEqualTo(1);
+    }
+
+    private MvcResult concurrentCallback(
+            Cookie stateCookie,
+            String code,
+            CountDownLatch ready,
+            CountDownLatch start
+    ) throws Exception {
+        ready.countDown();
+        if (!start.await(5, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("Concurrent OAuth callbacks did not start");
+        }
+        return mockMvc.perform(get("/api/auth/google/callback")
+                        .cookie(stateCookie)
+                        .param("code", code)
+                        .param("state", stateCookie.getValue()))
+                .andReturn();
+    }
+
     private MvcResult startGoogleAuthorization(String clientAddress) throws Exception {
         return mockMvc.perform(get("/api/auth/google/start").header("X-Forwarded-For", clientAddress))
                 .andExpect(status().isFound())
@@ -190,7 +248,17 @@ class GoogleOidcTest {
                     if ("rejected-provider-code".equals(code)) {
                         throw new OAuthFailedException();
                     }
-                    return new GoogleIdentity("google-subject-123", "google@example.com");
+                    String subject = switch (code) {
+                        case "first-subject", "second-subject" -> code;
+                        case "shared-subject-first-email", "shared-subject-second-email" -> "shared-subject";
+                        default -> "google-subject-123";
+                    };
+                    String email = switch (code) {
+                        case "shared-subject-first-email" -> "first-google@example.com";
+                        case "shared-subject-second-email" -> "second-google@example.com";
+                        default -> "google@example.com";
+                    };
+                    return new GoogleIdentity(subject, email);
                 }
             };
         }

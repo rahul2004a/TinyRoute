@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 
-@SpringBootTest
+@SpringBootTest(properties = "tinyroute.rate-limit.trusted-proxy-cidrs=127.0.0.1/32")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
 @Import(TestJwtTokenConfiguration.class)
