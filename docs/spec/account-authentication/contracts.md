@@ -226,7 +226,8 @@ CSRF header. It returns `204` after the relational transaction succeeds:
 1. Mark the user deleted and increment `tokenVersion`.
 2. Remove password and Google identities, reset records, and pending records.
 3. Tombstone every owned link through `LinkService`.
-4. Queue all owned redirect-cache keys for post-commit eviction.
+4. Queue one cursor-based job for bounded post-commit eviction of owned
+   redirect-cache keys.
 
 The account row remains as an internal tombstone to preserve link foreign keys;
 its email is replaced with a non-reversible, unique tombstone value. The

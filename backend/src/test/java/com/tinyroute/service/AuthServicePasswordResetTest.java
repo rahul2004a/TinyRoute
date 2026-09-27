@@ -117,7 +117,6 @@ class AuthServicePasswordResetTest {
                 resetTokens,
                 mock(LinkService.class),
                 mock(com.tinyroute.repository.AccountDeletionCleanupRepository.class),
-                mock(AccountDeletionRetryJob.class),
                 Clock.fixed(NOW, ZoneOffset.UTC)
         );
     }

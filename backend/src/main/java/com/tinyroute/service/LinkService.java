@@ -31,9 +31,9 @@ public class LinkService {
     @Transactional
     public void tombstoneOwnedLinks(UUID userId) {
         Instant now = clock.instant();
-        for (var link : linkRepository.findAllByOwnerId(userId)) {
-            link.tombstone(now);
-            cleanupRepository.save(AccountDeletionCleanup.redirect(userId, link.code(), now));
+        int tombstonedLinks = linkRepository.tombstoneAllByOwnerId(userId, now);
+        if (tombstonedLinks > 0) {
+            cleanupRepository.save(AccountDeletionCleanup.redirectBatch(userId, now));
         }
     }
 }

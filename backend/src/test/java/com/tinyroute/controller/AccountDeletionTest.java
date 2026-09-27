@@ -6,6 +6,7 @@ import com.tinyroute.model.User;
 import com.tinyroute.repository.AuthIdentityRepository;
 import com.tinyroute.repository.UserRepository;
 import com.tinyroute.security.AuthCookieService;
+import com.tinyroute.service.AccountDeletionRetryJob;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,7 @@ class AccountDeletionTest {
     @Autowired com.tinyroute.security.PasswordHasher passwordHasher;
     @Autowired JdbcTemplate jdbcTemplate;
     @Autowired StringRedisTemplate redisTemplate;
+    @Autowired AccountDeletionRetryJob accountDeletionRetryJob;
 
     @AfterEach
     void cleanup() {
@@ -92,6 +94,7 @@ class AccountDeletionTest {
                 .isEqualTo("DELETED");
         assertThat(jdbcTemplate.queryForObject("select status from links where code = ?", String.class, otherCode))
                 .isEqualTo("ACTIVE");
+        accountDeletionRetryJob.processPending();
         assertThat(redisTemplate.hasKey("redirect:" + ownedCode)).isFalse();
         assertThat(jdbcTemplate.queryForObject("select count(*) from auth_identities where user_id = ?", Integer.class, owner.id()))
                 .isZero();

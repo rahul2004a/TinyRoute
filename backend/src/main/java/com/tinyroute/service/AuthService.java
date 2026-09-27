@@ -35,8 +35,6 @@ import com.tinyroute.security.PasswordHasher;
 import com.tinyroute.security.JwtTokenService;
 import com.tinyroute.security.TokenHashing;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,8 +54,6 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-
     private static final Duration OTP_TTL = Duration.ofMinutes(10);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -75,7 +71,6 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final LinkService linkService;
     private final AccountDeletionCleanupRepository accountDeletionCleanupRepository;
-    private final AccountDeletionRetryJob accountDeletionRetryJob;
     private final String loginFailurePasswordHash;
     private final Clock clock;
 
@@ -94,8 +89,7 @@ public class AuthService {
             RegistrationMailCapacity registrationMailCapacity,
             PasswordResetTokenRepository passwordResetTokenRepository,
             LinkService linkService,
-            AccountDeletionCleanupRepository accountDeletionCleanupRepository,
-            AccountDeletionRetryJob accountDeletionRetryJob
+            AccountDeletionCleanupRepository accountDeletionCleanupRepository
     ) {
         this(
                 userRepository,
@@ -112,7 +106,6 @@ public class AuthService {
                 passwordResetTokenRepository,
                 linkService,
                 accountDeletionCleanupRepository,
-                accountDeletionRetryJob,
                 Clock.systemUTC()
         );
     }
@@ -132,7 +125,6 @@ public class AuthService {
             PasswordResetTokenRepository passwordResetTokenRepository,
             LinkService linkService,
             AccountDeletionCleanupRepository accountDeletionCleanupRepository,
-            AccountDeletionRetryJob accountDeletionRetryJob,
             Clock clock
     ) {
         this.userRepository = Objects.requireNonNull(userRepository);
@@ -149,7 +141,6 @@ public class AuthService {
         this.passwordResetTokenRepository = Objects.requireNonNull(passwordResetTokenRepository);
         this.linkService = Objects.requireNonNull(linkService);
         this.accountDeletionCleanupRepository = Objects.requireNonNull(accountDeletionCleanupRepository);
-        this.accountDeletionRetryJob = Objects.requireNonNull(accountDeletionRetryJob);
         this.loginFailurePasswordHash = passwordHasher.hash(randomToken());
         this.clock = Objects.requireNonNull(clock);
     }
@@ -335,17 +326,6 @@ public class AuthService {
         authIdentityRepository.deleteAllByUser_Id(user.id());
         user.deleteAndAnonymize(now);
         accountDeletionCleanupRepository.save(AccountDeletionCleanup.session(user.id(), now));
-
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    accountDeletionRetryJob.processPending();
-                } catch (RuntimeException exception) {
-                    log.error("Account deletion cleanup dispatch failed; scheduled retry remains queued", exception);
-                }
-            }
-        });
     }
 
     @Transactional
