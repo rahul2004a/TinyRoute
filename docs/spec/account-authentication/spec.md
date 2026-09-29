@@ -347,12 +347,14 @@ Current verification results and remaining release gates are recorded in
   coverage; implement V1/Future API-key, blocklist, safe-browsing, or admin
   features.
 
-## Open questions
+## Resolved local configuration
 
-1. What API-origin and app-origin values will local development use before the
-   production `app.<zone>` and `api.<zone>` hosts are configured?
-2. What local-development mail transport and reset-link base URL will be used
-   before production email configuration exists?
+- The development app origin is `https://localhost:3000` and the API origin is
+  `https://localhost:8443`.
+- Development mail uses an external SMTP listener on `localhost:1025`; Compose
+  does not run a mail service. Password-reset links use
+  `https://localhost:3000/password-reset/confirm`. Non-local values are supplied
+  and reviewed with the deployment environment.
 
 ## Approval gate
 

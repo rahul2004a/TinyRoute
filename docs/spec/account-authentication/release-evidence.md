@@ -63,7 +63,6 @@ JaCoCo emits its CSV/HTML report during `verify`, following the
   eventual tests must verify that an account's tombstoned links do not redirect
   and measure NFR-PER-01 and NFR-PER-03 under the specified load. No redirect
   latency or throughput result is claimed here.
-- Production origin, proxy, email, JWT rotation, TLS ingress, and rollback
-  configuration still require human/deployment review. The human acceptance
-  checkpoints remain unchecked in `tasks/plan.md` and `tasks/todo.md`; the
-  active task files are therefore not archived yet.
+- The human acceptance checkpoints were approved on 2026-09-29. Production
+  origin, proxy, email, JWT rotation, TLS ingress, and rollback values still
+  require review against the actual deployment environment before release.

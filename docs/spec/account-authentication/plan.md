@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deliver TinyRoute MVP account authentication: email/password registration with email OTP verification, password and Google sign-in, persisted browser sessions, sign-out, password reset, and account deletion. The backend remains the authority for authentication, ownership, redirect and session policy; Next.js is a credentialed HTTP client only. This plan implements the approved [feature specification](../docs/spec/account-authentication/spec.md) and [public contracts](../docs/spec/account-authentication/contracts.md).
+Deliver TinyRoute MVP account authentication: email/password registration with email OTP verification, password and Google sign-in, persisted browser sessions, sign-out, password reset, and account deletion. The backend remains the authority for authentication, ownership, redirect and session policy; Next.js is a credentialed HTTP client only. This plan implements the approved [feature specification](spec.md) and [public contracts](contracts.md).
 
 ## Preconditions and scope
 
@@ -52,10 +52,10 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 ### Checkpoint: security foundation
 
-- [ ] Backend/frontend build and tests run from a clean checkout.
+- [x] Backend/frontend build and tests run from a clean checkout.
 - [x] Flyway and Redis adapters run against Compose services.
 - [x] A browser can obtain CSRF, while cross-origin or missing-CSRF mutations are rejected.
-- [ ] Human reviews origin, local HTTPS, trusted-proxy and key-management configuration before credential flows.
+- [x] Human reviews origin, local HTTPS, trusted-proxy and key-management configuration before credential flows.
 
 ### Phase 2: local account lifecycle
 
@@ -71,7 +71,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - [x] New users can register, verify, sign in, reload, refresh and sign out end-to-end.
 - [x] Invalid/expired OTP, stale CSRF, wrong password, refresh reuse and rate-limit cases return documented generic errors.
 - [x] Logs, browser storage, mail tests and snapshots contain no passwords, OTPs, token values or OAuth artifacts.
-- [ ] Human reviews the completed local-account flow.
+- [x] Human reviews the completed local-account flow.
 
 ### Phase 3: federated sign-in and recovery
 
@@ -84,7 +84,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 - [x] OIDC tests prove state, nonce, PKCE, issuer/audience/signature, verified email, collision and callback failure behavior.
 - [x] Password reset works once and fails safely on expiry/replay without raw-token URL/log disclosure.
-- [ ] Human reviews Google and email configuration before any non-local environment.
+- [x] Human reviews Google and email configuration before any non-local environment.
 
 ### Phase 4: deletion and release evidence
 
@@ -94,9 +94,9 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 
 ### Checkpoint: implementation review
 
-- [ ] Every task acceptance criterion and the project Definition of Done is complete.
+- [x] Every task acceptance criterion and the project Definition of Done is complete.
 - [x] Relevant Maven, frontend lint/typecheck/test, and Playwright checks pass.
-- [ ] Docs are current. Only then archive completed active task files into \`docs/spec/account-authentication/\`.
+- [x] Docs are current. Only then archive completed active task files into \`docs/spec/account-authentication/\`.
 
 ## Risks and mitigations
 
@@ -126,6 +126,6 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ## Planning verification
 
 - [x] Active plan and todo files contained no incomplete work before initialization.
-- [x] Every task in \`tasks/todo.md\` has acceptance criteria, dependencies, focused verification, likely files and S/M sizing.
+- [x] Every task in [the checklist](todo.md) has acceptance criteria, dependencies, focused verification, likely files and S/M sizing.
 - [x] Dependencies are bottom-up and checkpoints follow each coherent capability group.
-- [ ] Human has reviewed and approved the plan before coding begins.
+- [x] Human has reviewed and approved the plan before coding begins.

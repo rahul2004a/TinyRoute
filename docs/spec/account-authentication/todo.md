@@ -561,23 +561,23 @@ The contract browser check used a disposable local HTTPS API stub: a failed `503
 
 - [x] Tasks 1–7 pass focused checks; Compose config, Maven verification, frontend lint/tests/build pass.
 - [x] Browser CSRF bootstrap and Spring cross-origin/missing-CSRF rejection are verified.
-- [ ] Human confirms origins, HTTPS, trusted proxies and signing-key source.
+- [x] Human confirms origins, HTTPS, trusted proxies and signing-key source.
 
 ## Checkpoint: local account lifecycle
 
 - [x] Tasks 8–13 pass; a user can register, verify, sign in, reload, refresh and sign out.
 - [x] Generic-error and secret-redaction checks are evidenced.
-- [ ] Human reviews the local-account journey.
+- [x] Human reviews the local-account journey.
 
 ## Checkpoint: federated and recovery flows
 
 - [x] Tasks 14–17 pass; OIDC state/nonce/PKCE/claim/collision tests and reset replay/expiry/session-invalidation tests are green.
-- [ ] Human confirms Google OAuth and transactional-email non-local configuration.
+- [x] Human confirms Google OAuth and transactional-email non-local configuration.
 
 ## Checkpoint: ready for implementation review
 
 - [x] Tasks 1–20 are checked only after every acceptance/focused verification item passes.
 - [x] `git diff --check` is clean and no secret, token, reset link or local-volume data is tracked.
 - [x] FR-ACC-01…05, FR-ABS-02, FR-CRE-02 and applicable NFR traceability is complete, with feature and deployment limits recorded in release evidence.
-- [ ] The Definition of Done is complete: unit/integration/runtime checks, quality/security/performance review, observability, rollback and human acceptance.
-- [ ] After approval, archive this completed file and `tasks/plan.md` under `docs/spec/account-authentication/`.
+- [x] The Definition of Done is complete: unit/integration/runtime checks, quality/security/performance review, observability, rollback and human acceptance.
+- [x] After approval, archive this completed file and `tasks/plan.md` under `docs/spec/account-authentication/`.

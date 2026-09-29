@@ -277,7 +277,7 @@ The exact API and cookie rules for the active authentication feature are in
 | [Architecture](docs/architecture/architecture.md)                                 | System boundaries, configuration, deployment topology, and design rules  |
 | [Account-authentication specification](docs/spec/account-authentication/spec.md)  | Current feature intent, acceptance criteria, and implementation approach |
 | [Account-authentication contracts](docs/spec/account-authentication/contracts.md) | HTTP, cookie, JWT, CSRF, OAuth, and session semantics                    |
-| [Active checklist](tasks/todo.md)                                                 | What is complete and what remains in the current feature                 |
+| [Authentication checklist](docs/spec/account-authentication/todo.md)             | Completed tasks and acceptance checks for authentication                |
 | [Design guide](DESIGN.md)                                                         | Frontend presentation rules only                                         |
 
 ## Contribution rules
