@@ -18,6 +18,14 @@ public record ApiErrorResponse(Error error) {
         ));
     }
 
+    public static ApiErrorResponse refreshConcurrent(String requestId) {
+        return new ApiErrorResponse(new Error(
+                "REFRESH_CONCURRENT",
+                "Another refresh is in progress. Please retry with the current session.",
+                requestId
+        ));
+    }
+
     public static ApiErrorResponse csrfInvalid(String requestId) {
         return new ApiErrorResponse(new Error(
                 "CSRF_INVALID",

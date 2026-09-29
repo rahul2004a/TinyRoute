@@ -101,8 +101,10 @@ public class AuthController {
 
     @PostMapping("/register/resend-otp")
     public ResponseEntity<PendingRegistrationResponse> resendRegistrationOtp(
-            @CookieValue(value = AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME, required = false) String pendingToken) {
+            @CookieValue(value = AuthCookieService.PENDING_REGISTRATION_COOKIE_NAME, required = false) String pendingToken,
+            HttpServletRequest servletRequest) {
         String verifiedPendingToken = requirePendingRegistrationToken(pendingToken);
+        requireAllowed(rateLimitService.allowClient(RateLimitAction.OTP_RESEND_CLIENT, servletRequest));
         requireAllowed(rateLimitService.allow(
                 RateLimitAction.OTP_RESEND_PENDING_REGISTRATION,
                 TokenHashing.sha256(verifiedPendingToken)));

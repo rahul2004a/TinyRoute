@@ -61,6 +61,7 @@ class RegistrationMailSaturationTest {
 
     @Test
     void rejectsRegistrationBeforePersistingStateWhenMailCapacityIsSaturated() throws Exception {
+        String email = "capacity-" + UUID.randomUUID() + "@example.com";
         for (int index = 0; index < RegistrationMailCapacity.MAX_PENDING_DELIVERIES; index++) {
             assertThat(registrationMailCapacity.tryReserve()).isTrue();
             reservedPermits++;
@@ -73,15 +74,17 @@ class RegistrationMailSaturationTest {
                                 .readTree(csrf.getResponse().getContentAsString()).get("csrfToken").asString())
                         .header("X-Forwarded-For", clientAddress)
                         .contentType("application/json")
-                        .content("{\"email\":\"user@example.com\",\"password\":\"valid-password-12\"}"))
+                        .content("{\"email\":\"" + email + "\",\"password\":\"valid-password-12\"}"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"));
 
-        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject(
+                "select count(*) from pending_registrations where email_normalized = ?", Integer.class, email)).isZero();
     }
 
     @Test
     void returnsTheSameUnavailableStatusForKnownAndUnknownEmailsWhenMailCapacityIsSaturated() throws Exception {
+        String unknownEmail = "unknown-" + UUID.randomUUID() + "@example.com";
         knownUserId = userRepository.save(User.create(knownEmail)).id();
         for (int index = 0; index < RegistrationMailCapacity.MAX_PENDING_DELIVERIES; index++) {
             assertThat(registrationMailCapacity.tryReserve()).isTrue();
@@ -89,8 +92,10 @@ class RegistrationMailSaturationTest {
         }
 
         assertThat(register(knownEmail).getResponse().getStatus()).isEqualTo(503);
-        assertThat(register("unknown@example.com").getResponse().getStatus()).isEqualTo(503);
-        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
+        assertThat(register(unknownEmail).getResponse().getStatus()).isEqualTo(503);
+        assertThat(jdbcTemplate.queryForObject(
+                "select count(*) from pending_registrations where email_normalized in (?, ?)",
+                Integer.class, knownEmail, unknownEmail)).isZero();
     }
 
     private MvcResult register(String email) throws Exception {

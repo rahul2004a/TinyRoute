@@ -16,7 +16,7 @@ public interface RefreshSessionStore {
 
     RefreshSessionRotation rotate(String currentTokenHash, String replacementTokenHash, UUID replacementAccessTokenId);
 
-    void deleteCurrent(String tokenHash, UUID userId, UUID accessTokenId);
+    boolean deleteCurrent(String tokenHash, UUID userId, UUID accessTokenId);
 
     void deleteAllByUserId(UUID userId);
 }

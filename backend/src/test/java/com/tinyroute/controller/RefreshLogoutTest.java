@@ -7,6 +7,7 @@ import com.tinyroute.repository.AuthIdentityRepository;
 import com.tinyroute.repository.UserRepository;
 import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.security.PasswordHasher;
+import com.tinyroute.security.TokenHashing;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +17,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -54,6 +57,9 @@ class RefreshLogoutTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
     private final String clientAddress = "198.18."
             + ThreadLocalRandom.current().nextInt(1, 255)
             + "."
@@ -83,6 +89,13 @@ class RefreshLogoutTest {
 
         Cookie replacementRefresh = refreshed.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
         assertThat(replacementRefresh.getValue()).isNotEqualTo(originalRefresh.getValue());
+
+        refresh(originalRefresh)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("REFRESH_CONCURRENT"));
+
+        redisTemplate.opsForHash().put("refresh-used:" + TokenHashing.sha256(originalRefresh.getValue()),
+                "rotatedAt", Long.toString(Instant.now().minusSeconds(6).toEpochMilli()));
 
         refresh(originalRefresh)
                 .andExpect(status().isUnauthorized())
@@ -146,10 +159,53 @@ class RefreshLogoutTest {
         logout(
                 firstLogin.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME),
                 secondLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME)
-        ).andExpect(status().isNoContent());
+        ).andExpect(status().isUnauthorized());
 
         refresh(secondLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void logoutWithOldAccessAndNewRefreshCookieDeletesRotatedCurrentSession() throws Exception {
+        createPasswordUser("rotated-logout@example.com");
+        MvcResult login = successfulLogin("rotated-logout@example.com");
+        Cookie oldAccess = login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME);
+        Cookie oldRefresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie newRefresh = refresh(oldRefresh).andExpect(status().isOk())
+                .andReturn().getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+
+        logout(oldAccess, newRefresh).andExpect(status().isNoContent());
+        refresh(newRefresh).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutWithOldAccessAndOldRefreshCookieFollowsRotation() throws Exception {
+        createPasswordUser("stale-cookie-logout@example.com");
+        MvcResult login = successfulLogin("stale-cookie-logout@example.com");
+        Cookie oldAccess = login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME);
+        Cookie oldRefresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie newRefresh = refresh(oldRefresh).andExpect(status().isOk())
+                .andReturn().getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+
+        logout(oldAccess, oldRefresh).andExpect(status().isNoContent());
+        refresh(newRefresh).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutWithoutRefreshCookieStillRevokesTheAccessBoundSession() throws Exception {
+        createPasswordUser("missing-cookie-logout@example.com");
+        MvcResult login = successfulLogin("missing-cookie-logout@example.com");
+        Cookie access = login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME);
+        Cookie refresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        MvcResult csrf = csrf();
+
+        mockMvc.perform(post("/api/auth/logout")
+                        .cookie(access, csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/auth/me").cookie(access)).andExpect(status().isUnauthorized());
+        refresh(refresh).andExpect(status().isUnauthorized());
     }
 
     @Test

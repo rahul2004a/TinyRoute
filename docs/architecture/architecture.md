@@ -286,7 +286,7 @@ SameSite cookie. Claims: `sub` (user UUID), `jti`, `iat`, `exp`, `typ=ACCESS`,
 60-second clock skew, and selects an environment-managed public key by `kid`;
 retiring public keys remain available through the last possible token expiry.
 No email, password data, or OAuth tokens are claims (NFR-PRV-01). On logout,
-`jti` is written to `revoked-access:{jti}` until `exp`.
+`jti` is written to `revoked-access:{jti}` until `exp` plus the accepted clock skew.
 
 **RedirectLookup** — `{status, destination?, expiresAt?}`. RedirectService only redirects a known ACTIVE, unexpired lookup; malformed or incomplete cache entries are misses, never redirects. A cached entry expires no later than the link's `expiresAt`.
 
@@ -321,7 +321,7 @@ Out of the class model: destination blocklist, public API keys, admin console, s
 | `redirect:{code}`            | RedirectLookup           | `min(5 s, remaining expiry)`; evict after commit of create/status/destination/delete |
 | `refresh:{tokenHash}`        | `{userId, lastAccessAt}` | sliding 30 days; delete on logout; delete-all on reset/delete |
 | `refresh-user:{userId}`      | set of token hashes      | supports delete-all on password reset or account deletion; expires with its last session |
-| `revoked-access:{jti}`       | marker                   | remaining access-token lifetime; checked by JwtAuthenticationFilter |
+| `revoked-access:{jti}`       | marker                   | remaining access-token lifetime plus clock skew; checked by JwtAuthenticationFilter |
 | `rl:auth:{clientHash}`       | counter                  | auth cap (FR-ABS-02)                                          |
 | `rl:create:{userId}`         | counter                  | create cap (FR-ABS-01)                                        |
 | `rl:redirect:{clientHash}`   | counter                  | redirect throttle (FR-ABS-03 Should)                          |

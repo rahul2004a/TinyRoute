@@ -1,6 +1,7 @@
 package com.tinyroute.cache.redis;
 
 import com.tinyroute.cache.JwtRevocationStore;
+import com.tinyroute.config.JwtProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +14,16 @@ import java.util.UUID;
 public class RedisJwtRevocationStore implements JwtRevocationStore {
 
     private final StringRedisTemplate redisTemplate;
+    private final Duration clockSkew;
 
-    public RedisJwtRevocationStore(StringRedisTemplate redisTemplate) {
+    public RedisJwtRevocationStore(StringRedisTemplate redisTemplate, JwtProperties jwtProperties) {
         this.redisTemplate = Objects.requireNonNull(redisTemplate);
+        this.clockSkew = Objects.requireNonNull(jwtProperties).getClockSkew();
     }
 
     @Override
     public void revoke(UUID tokenId, Instant expiresAt) {
-        Duration remainingLifetime = Duration.between(Instant.now(), expiresAt);
+        Duration remainingLifetime = Duration.between(Instant.now(), expiresAt.plus(clockSkew));
         if (!remainingLifetime.isPositive()) {
             return;
         }

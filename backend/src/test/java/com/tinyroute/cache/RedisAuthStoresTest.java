@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,6 +41,7 @@ class RedisAuthStoresTest {
 
     private final UUID userId = UUID.randomUUID();
     private final UUID tokenId = UUID.randomUUID();
+    private final UUID replacementTokenId = UUID.randomUUID();
     private final String firstTokenHash = "refresh-hash-" + UUID.randomUUID();
     private final String secondTokenHash = "refresh-hash-" + UUID.randomUUID();
     private final String thirdTokenHash = "refresh-hash-" + UUID.randomUUID();
@@ -52,6 +54,8 @@ class RedisAuthStoresTest {
                         "refresh-used:" + firstTokenHash,
                         "refresh-used:" + secondTokenHash,
                         "refresh-used:" + thirdTokenHash,
+                        "refresh-access:" + tokenId,
+                        "refresh-access:" + replacementTokenId,
                         "revoked-access:" + tokenId,
                         rateLimitKey
                 )
@@ -62,14 +66,67 @@ class RedisAuthStoresTest {
     void atomicallyRotatesARefreshSessionAndInvalidatesItsFamilyOnReuse() {
         refreshSessionStore.create(firstTokenHash, userId, 0, tokenId);
 
-        RefreshSessionRotation rotation = refreshSessionStore.rotate(firstTokenHash, secondTokenHash, UUID.randomUUID());
+        RefreshSessionRotation rotation = refreshSessionStore.rotate(firstTokenHash, secondTokenHash, replacementTokenId);
 
         assertThat(rotation.status()).isEqualTo(RefreshSessionRotation.Status.ROTATED);
         assertThat(rotation.session()).hasValueSatisfying(session -> assertThat(session.userId()).isEqualTo(userId));
         assertThat(refreshSessionStore.rotate(firstTokenHash, thirdTokenHash, UUID.randomUUID()).status())
+                .isEqualTo(RefreshSessionRotation.Status.CONCURRENT);
+        assertThat(refreshSessionStore.find(secondTokenHash)).isPresent();
+        redisTemplate.opsForHash().put("refresh-used:" + firstTokenHash, "rotatedAt",
+                Long.toString(Instant.now().minusSeconds(6).toEpochMilli()));
+        assertThat(refreshSessionStore.rotate(firstTokenHash, thirdTokenHash, UUID.randomUUID()).status())
                 .isEqualTo(RefreshSessionRotation.Status.REUSED);
         assertThat(refreshSessionStore.rotate(secondTokenHash, thirdTokenHash, UUID.randomUUID()).status())
                 .isEqualTo(RefreshSessionRotation.Status.MISSING);
+    }
+
+    @Test
+    void simultaneousRefreshAttemptsLeaveOneUsableSessionWithoutIssuingTwoTokens() throws Exception {
+        refreshSessionStore.create(firstTokenHash, userId, 0, tokenId);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Callable<RefreshSessionRotation.Status> first = () -> rotateAfterBarrier(
+                    ready, start, secondTokenHash, replacementTokenId);
+            Callable<RefreshSessionRotation.Status> second = () -> rotateAfterBarrier(
+                    ready, start, thirdTokenHash, UUID.randomUUID());
+            Future<RefreshSessionRotation.Status> firstResult = executor.submit(first);
+            Future<RefreshSessionRotation.Status> secondResult = executor.submit(second);
+            ready.await();
+            start.countDown();
+            assertThat(java.util.Set.of(firstResult.get(), secondResult.get()))
+                    .containsExactlyInAnyOrder(RefreshSessionRotation.Status.ROTATED,
+                            RefreshSessionRotation.Status.CONCURRENT);
+        }
+        assertThat(Stream.of(secondTokenHash, thirdTokenHash)
+                .filter(hash -> refreshSessionStore.find(hash).isPresent()).count()).isEqualTo(1);
+    }
+
+    @Test
+    void logoutFollowsRotationButRejectsAnAccessTokenFromAnotherDevice() {
+        refreshSessionStore.create(firstTokenHash, userId, 0, tokenId);
+        UUID otherDeviceAccessId = UUID.randomUUID();
+        String otherDeviceHash = "refresh-hash-" + UUID.randomUUID();
+        refreshSessionStore.create(otherDeviceHash, userId, 0, otherDeviceAccessId);
+        try {
+            refreshSessionStore.rotate(firstTokenHash, secondTokenHash, replacementTokenId);
+            assertThat(refreshSessionStore.deleteCurrent(secondTokenHash, userId, otherDeviceAccessId)).isFalse();
+            assertThat(refreshSessionStore.find(secondTokenHash)).isPresent();
+            assertThat(refreshSessionStore.deleteCurrent(firstTokenHash, userId, tokenId)).isTrue();
+            assertThat(refreshSessionStore.find(secondTokenHash)).isEmpty();
+            assertThat(refreshSessionStore.find(otherDeviceHash)).isPresent();
+        } finally {
+            refreshSessionStore.deleteAllByUserId(userId);
+            redisTemplate.delete("refresh-access:" + otherDeviceAccessId);
+        }
+    }
+
+    private RefreshSessionRotation.Status rotateAfterBarrier(CountDownLatch ready, CountDownLatch start,
+                                                              String replacementHash, UUID accessId) throws Exception {
+        ready.countDown();
+        start.await();
+        return refreshSessionStore.rotate(firstTokenHash, replacementHash, accessId).status();
     }
 
     @Test
@@ -79,7 +136,17 @@ class RedisAuthStoresTest {
         jwtRevocationStore.revoke(tokenId, expiresAt);
 
         assertThat(jwtRevocationStore.isRevoked(tokenId)).isTrue();
-        assertThat(redisTemplate.getExpire("revoked-access:" + tokenId)).isBetween(1L, 60L);
+        assertThat(redisTemplate.getExpire("revoked-access:" + tokenId)).isBetween(60L, 120L);
+    }
+
+    @Test
+    void keepsRevocationThroughTheAcceptedJwtClockSkew() {
+        Instant nominalExpiry = Instant.now().minusSeconds(30);
+
+        jwtRevocationStore.revoke(tokenId, nominalExpiry);
+
+        assertThat(jwtRevocationStore.isRevoked(tokenId)).isTrue();
+        assertThat(redisTemplate.getExpire("revoked-access:" + tokenId)).isBetween(1L, 30L);
     }
 
     @Test

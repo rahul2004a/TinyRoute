@@ -27,6 +27,11 @@ export type RegistrationInput = {
 export type LoginInput = RegistrationInput;
 
 const emptyResponseSchema = z.undefined();
+const refreshLockName = "tinyroute-auth-refresh";
+const concurrentRefreshRetryDelaysMs = [
+  100, 200, 400, 800, 1000, 1000, 1000, 1000,
+];
+let refreshInFlight: Promise<Session> | undefined;
 
 function mutationOptions(csrfToken: string, body?: object) {
   return {
@@ -70,43 +75,101 @@ export async function login(
   clearCsrfToken();
 }
 
+function fetchAuthenticatedSession(): Promise<Session> {
+  return apiRequest("/api/auth/me", {
+    method: "GET",
+    responseSchema: sessionSchema,
+  });
+}
+
 export async function getCurrentSession(): Promise<Session> {
   try {
-    return await apiRequest("/api/auth/me", {
-      method: "GET",
-      responseSchema: sessionSchema,
-    });
+    return await fetchAuthenticatedSession();
   } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
-      try {
-        return await refreshSession();
-      } catch (refreshError) {
-        if (
-          refreshError instanceof ApiClientError &&
-          refreshError.status === 401
-        ) {
-          clearCsrfToken();
-          return { authenticated: false };
-        }
-        if (
-          refreshError instanceof ApiClientError &&
-          refreshError.status === 403
-        ) {
-          clearCsrfToken();
-        }
-        throw refreshError;
-      }
+    if (!(error instanceof ApiClientError && error.status === 401)) {
+      throw error;
     }
-    throw error;
+    try {
+      return await refreshSession();
+    } catch (refreshError) {
+      if (
+        refreshError instanceof ApiClientError &&
+        refreshError.status === 401
+      ) {
+        clearCsrfToken();
+        return { authenticated: false };
+      }
+      if (
+        refreshError instanceof ApiClientError &&
+        refreshError.status === 403
+      ) {
+        clearCsrfToken();
+      }
+      throw refreshError;
+    }
   }
 }
 
 export async function refreshSession(): Promise<Session> {
+  if (!refreshInFlight) {
+    const attempt = refreshWithCoordination();
+    refreshInFlight = attempt;
+    const clearAttempt = () => {
+      if (refreshInFlight === attempt) {
+        refreshInFlight = undefined;
+      }
+    };
+    void attempt.then(clearAttempt, clearAttempt);
+  }
+  return refreshInFlight;
+}
+
+async function refreshWithCoordination(): Promise<Session> {
+  if (typeof navigator !== "undefined" && navigator.locks) {
+    return navigator.locks.request(refreshLockName, async () => {
+      try {
+        return await fetchAuthenticatedSession();
+      } catch (error) {
+        if (!(error instanceof ApiClientError && error.status === 401)) {
+          throw error;
+        }
+      }
+      return requestRefresh();
+    });
+  }
+  return requestRefresh();
+}
+
+async function requestRefresh(): Promise<Session> {
   const csrfToken = await getCsrfToken();
-  return apiRequest("/api/auth/refresh", {
-    ...mutationOptions(csrfToken),
-    responseSchema: sessionSchema,
-  });
+  try {
+    return await apiRequest("/api/auth/refresh", {
+      ...mutationOptions(csrfToken),
+      responseSchema: sessionSchema,
+    });
+  } catch (error) {
+    if (!(
+      error instanceof ApiClientError &&
+      error.status === 409 &&
+      error.apiError?.error.code === "REFRESH_CONCURRENT"
+    )) {
+      throw error;
+    }
+    // A concurrent tab may still be receiving the rotated cookies.
+    for (const delayMs of concurrentRefreshRetryDelaysMs) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      try {
+        return await fetchAuthenticatedSession();
+      } catch (sessionError) {
+        if (!(
+          sessionError instanceof ApiClientError && sessionError.status === 401
+        )) {
+          throw sessionError;
+        }
+      }
+    }
+    throw error;
+  }
 }
 
 function requestLogout(csrfToken: string) {

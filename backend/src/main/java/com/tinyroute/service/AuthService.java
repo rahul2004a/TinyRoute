@@ -9,7 +9,7 @@ import com.tinyroute.client.RegistrationMailCapacity;
 import com.tinyroute.exception.ResetTokenInvalidException;
 import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.exception.AuthenticationFailedException;
-import com.tinyroute.exception.OtpExpiredException;
+import com.tinyroute.exception.RefreshConcurrentException;
 import com.tinyroute.exception.OtpInvalidException;
 import com.tinyroute.model.AuthIdentity;
 import com.tinyroute.model.AccessToken;
@@ -189,15 +189,20 @@ public class AuthService {
         });
     }
 
-    @Transactional(noRollbackFor = {OtpInvalidException.class, OtpExpiredException.class})
+    @Transactional(noRollbackFor = OtpInvalidException.class)
     public AuthenticatedSession verifyRegistration(String pendingToken, String otp) {
         PendingRegistration pendingRegistration = pendingRegistrationRepository
                 .findByTokenHashForUpdate(TokenHashing.sha256(pendingToken))
-                .orElseThrow(OtpInvalidException::new);
+                .orElse(null);
+        if (pendingRegistration == null) {
+            passwordHasher.matches(otp, loginFailurePasswordHash);
+            throw new OtpInvalidException();
+        }
         Instant now = clock.instant();
         if (!now.isBefore(pendingRegistration.otpExpiresAt())) {
             pendingRegistrationRepository.delete(pendingRegistration);
-            throw new OtpExpiredException();
+            passwordHasher.matches(otp, loginFailurePasswordHash);
+            throw new OtpInvalidException();
         }
         if (!passwordHasher.matches(otp, pendingRegistration.otpHash())) {
             pendingRegistration.recordFailedAttempt();
@@ -274,7 +279,12 @@ public class AuthService {
         String currentTokenHash = TokenHashing.sha256(refreshToken);
         RefreshSession refreshSession = refreshSessionStore.find(currentTokenHash).orElse(null);
         if (refreshSession == null) {
-            refreshSessionStore.rotate(currentTokenHash, TokenHashing.sha256(randomToken()), java.util.UUID.randomUUID());
+            RefreshSessionRotation rotation = refreshSessionStore.rotate(
+                    currentTokenHash, TokenHashing.sha256(randomToken()), java.util.UUID.randomUUID()
+            );
+            if (rotation.status() == RefreshSessionRotation.Status.CONCURRENT) {
+                throw new RefreshConcurrentException();
+            }
             throw new AuthenticationFailedException();
         }
         User user = userRepository.findById(refreshSession.userId())
@@ -294,6 +304,9 @@ public class AuthService {
                 TokenHashing.sha256(replacementRefreshToken),
                 replacementAccessTokenClaims.tokenId()
         );
+        if (rotation.status() == RefreshSessionRotation.Status.CONCURRENT) {
+            throw new RefreshConcurrentException();
+        }
         if (rotation.status() != RefreshSessionRotation.Status.ROTATED
                 || rotation.session().filter(session -> session.userId().equals(user.id())
                 && session.tokenVersion() == user.tokenVersion()).isEmpty()) {
@@ -304,10 +317,11 @@ public class AuthService {
 
     public void logout(AccessToken accessToken, String refreshToken) {
         jwtRevocationStore.revoke(accessToken.tokenId(), accessToken.expiresAt());
-        if (refreshToken != null && !refreshToken.isBlank()) {
-            refreshSessionStore.deleteCurrent(
-                    TokenHashing.sha256(refreshToken), accessToken.userId(), accessToken.tokenId()
-            );
+        String tokenHash = refreshToken == null || refreshToken.isBlank() ? null : TokenHashing.sha256(refreshToken);
+        if (!refreshSessionStore.deleteCurrent(
+                tokenHash, accessToken.userId(), accessToken.tokenId()
+        )) {
+            throw new AuthenticationFailedException();
         }
     }
 
@@ -414,15 +428,20 @@ public class AuthService {
         userRepository.acquireAccountCreationLock("email:" + email);
     }
 
-    @Transactional(noRollbackFor = OtpExpiredException.class)
+    @Transactional
     public void resendRegistrationOtp(String pendingToken) {
         PendingRegistration pendingRegistration = pendingRegistrationRepository
                 .findByTokenHashForUpdate(TokenHashing.sha256(pendingToken))
-                .orElseThrow(OtpInvalidException::new);
+                .orElse(null);
         Instant now = clock.instant();
+        if (pendingRegistration == null) {
+            passwordHasher.hash(randomOtp());
+            return;
+        }
         if (!now.isBefore(pendingRegistration.otpExpiresAt())) {
             pendingRegistrationRepository.delete(pendingRegistration);
-            throw new OtpExpiredException();
+            passwordHasher.hash(randomOtp());
+            return;
         }
 
         String otp = randomOtp();

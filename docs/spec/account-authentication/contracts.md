@@ -122,10 +122,14 @@ minutes, allow five failed attempts, and are atomically consumed on success.
 On success, the server creates exactly one `User` and
 `AuthIdentity(PASSWORD)`, clears the pending cookie, issues auth cookies, and
 returns `201` with `SessionResponse`. Expired or exhausted records are removed.
+An invalid, unknown, or expired pending registration returns the same
+`OTP_INVALID` error so account existence cannot be inferred from the cookie.
 
 `POST /api/auth/register/resend-otp` has no body and returns `202` with
 `PendingRegistrationResponse`. It invalidates the preceding OTP before sending
-a new one. A pending registration permits at most three resends per hour.
+a new one. Unknown and expired pending tokens return the same `202` response
+without sending email or creating a record. A pending registration permits at
+most three resends per hour.
 
 ### Password sign-in and session inspection
 
@@ -176,14 +180,21 @@ by the request. No provider token is retained after the callback completes.
 CSRF header. The server verifies the stored token hash, current user state, and
 token version, then rotates the refresh token atomically: the presented hash is
 removed and a replacement hash/session is created before returning a new access
-and refresh cookie. A refresh session has a 30-day sliding idle TTL; concurrent
-use of a consumed refresh token is rejected as `401 AUTHENTICATION_FAILED` and
-invalidates that session family.
+and refresh cookie. A refresh session has a 30-day sliding idle TTL. A second
+request using the just-consumed token within five seconds receives
+`409 REFRESH_CONCURRENT` without new cookies or session-family revocation;
+the client rechecks the shared browser session. Reuse after that window
+receives `401 AUTHENTICATION_FAILED` and invalidates that session family.
 
 `POST /api/auth/logout` has no body and requires a valid access cookie and
-CSRF header. It deletes only the refresh session whose user and current access
-`jti` match the authenticated access token, revokes that `jti` through its `exp`, clears
-both auth cookies, and returns `204`. The client may clear its local session
+CSRF header. A short-lived Redis association binds each access `jti` to its
+refresh-session family. Logout revokes that `jti` through its `exp` plus the
+accepted JWT clock skew, then
+atomically deletes the bound family, including when rotation replaced the
+presented refresh cookie or the refresh cookie is absent. A refresh cookie
+from another device is rejected with `401 AUTHENTICATION_FAILED` and its
+family remains active. Successful logout clears both auth cookies and returns
+`204`. The client may clear its local session
 view after a `204` or `401`, but it must not treat a network failure as a
 successful logout.
 
@@ -257,7 +268,7 @@ another's budget.
 | --- | --- |
 | register, password login, Google start, password-reset request | 5 per 15 minutes per client |
 | OTP verify | 5 per pending registration and 10 per 15 minutes per client |
-| OTP resend | 3 per pending registration per hour |
+| OTP resend | 3 per pending registration per hour and 10 per 15 minutes per client |
 | refresh | 30 per 15 minutes per session family |
 | reset confirmation | 5 per reset token and 10 per 15 minutes per client |
 

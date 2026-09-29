@@ -9,6 +9,7 @@ public enum RateLimitAction {
     PASSWORD_RESET_REQUEST("password-reset-request", 5, Duration.ofMinutes(15)),
     OTP_VERIFY_CLIENT("otp-verify-client", 10, Duration.ofMinutes(15)),
     OTP_VERIFY_PENDING_REGISTRATION("otp-verify-pending-registration", 5, Duration.ofMinutes(15)),
+    OTP_RESEND_CLIENT("otp-resend-client", 10, Duration.ofMinutes(15)),
     OTP_RESEND_PENDING_REGISTRATION("otp-resend-pending-registration", 3, Duration.ofHours(1)),
     REFRESH_SESSION_FAMILY("refresh-session-family", 30, Duration.ofMinutes(15)),
     RESET_CONFIRM_CLIENT("reset-confirm-client", 10, Duration.ofMinutes(15)),

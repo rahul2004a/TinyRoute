@@ -7,6 +7,7 @@ public record RefreshSessionRotation(Status status, Optional<RefreshSession> ses
     public enum Status {
         ROTATED,
         MISSING,
+        CONCURRENT,
         REUSED
     }
 
@@ -20,5 +21,9 @@ public record RefreshSessionRotation(Status status, Optional<RefreshSession> ses
 
     public static RefreshSessionRotation reused() {
         return new RefreshSessionRotation(Status.REUSED, Optional.empty());
+    }
+
+    public static RefreshSessionRotation concurrent() {
+        return new RefreshSessionRotation(Status.CONCURRENT, Optional.empty());
     }
 }

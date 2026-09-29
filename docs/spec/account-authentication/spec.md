@@ -195,9 +195,14 @@ appear in an error payload or log.
   `refresh:{tokenHash} -> {userId, lastAccessAt}` and maintains a sliding
   30-day idle TTL. `refresh-user:{userId}` indexes hashes for future reset or
   account-deletion flows.
-- Logout removes only the current refresh-token hash, then records
-  `revoked-access:{jti}` until the access JWT expires. It must not revoke other
-  device/browser sessions.
+- Logout binds the authenticated access `jti` to its refresh-session family,
+  revokes that `jti` through expiry plus the accepted clock skew, and removes that family's current refresh
+  hash atomically even if rotation replaced the presented cookie. An absent
+  refresh cookie can be resolved through the short-lived access association;
+  a cookie from another device cannot revoke that device's session.
+- A consumed refresh token used again within five seconds receives a conflict
+  without new tokens or family revocation, so concurrent browser requests can
+  recover through the current cookie. Later reuse revokes the family.
 - Password reset and account deletion increment `tokenVersion` and remove all
   `refresh:{tokenHash}` records listed in `refresh-user:{userId}`. The filter
   rejects existing access JWTs whose token version no longer matches.

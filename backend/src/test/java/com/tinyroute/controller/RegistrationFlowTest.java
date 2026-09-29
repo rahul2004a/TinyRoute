@@ -153,7 +153,7 @@ class RegistrationFlowTest {
                         .contentType("application/json")
                         .content("{\"otp\":\"" + registrationMailAdapter.lastOtp() + "\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("OTP_EXPIRED"));
+                .andExpect(jsonPath("$.error.code").value("OTP_INVALID"));
 
         assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
     }
@@ -203,6 +203,87 @@ class RegistrationFlowTest {
                 .andExpect(cookie().secure("pending_registration", true));
 
         assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
+    }
+
+    @Test
+    void knownAndNewEmailHaveTheSameRegistrationAndResendResponses() throws Exception {
+        userRepository.save(User.create("known@example.com"));
+        MvcResult knownRegistration = register("known@example.com");
+        MvcResult newRegistration = register("new@example.com");
+
+        assertThat(knownRegistration.getResponse().getStatus()).isEqualTo(newRegistration.getResponse().getStatus());
+        assertThat(knownRegistration.getResponse().getContentAsString())
+                .isEqualTo(newRegistration.getResponse().getContentAsString());
+        assertThat(knownRegistration.getResponse().getCookie("pending_registration").isHttpOnly()).isTrue();
+        assertThat(newRegistration.getResponse().getCookie("pending_registration").isHttpOnly()).isTrue();
+        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isEqualTo(1);
+
+        MvcResult knownResend = resend(knownRegistration);
+        MvcResult newResend = resend(newRegistration);
+        assertThat(knownResend.getResponse().getStatus()).isEqualTo(202);
+        assertThat(knownResend.getResponse().getStatus()).isEqualTo(newResend.getResponse().getStatus());
+        assertThat(knownResend.getResponse().getContentAsString())
+                .isEqualTo(newResend.getResponse().getContentAsString());
+        assertThat(knownResend.getResponse().getHeader(HttpHeaders.SET_COOKIE)).isNull();
+        assertThat(newResend.getResponse().getHeader(HttpHeaders.SET_COOKIE)).isNull();
+        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isEqualTo(1);
+
+        MvcResult knownVerify = verifyInvalidOtp(knownRegistration);
+        MvcResult newVerify = verifyInvalidOtp(newRegistration);
+        assertThat(knownVerify.getResponse().getStatus()).isEqualTo(400);
+        assertThat(jsonValue(knownVerify, "error", "code"))
+                .isEqualTo(jsonValue(newVerify, "error", "code"))
+                .isEqualTo("OTP_INVALID");
+    }
+
+    @Test
+    void knownAndExpiredNewRegistrationCookiesHaveTheSameResendAndVerifyResponses() throws Exception {
+        userRepository.save(User.create("known@example.com"));
+        MvcResult knownRegistration = register("known@example.com");
+        MvcResult newRegistration = register("new@example.com");
+        jdbcTemplate.update("update pending_registrations set otp_expires_at = now() - interval '1 second'");
+
+        MvcResult knownResend = resend(knownRegistration);
+        MvcResult expiredResend = resend(newRegistration);
+        assertThat(knownResend.getResponse().getStatus()).isEqualTo(202);
+        assertThat(knownResend.getResponse().getStatus()).isEqualTo(expiredResend.getResponse().getStatus());
+        assertThat(knownResend.getResponse().getContentAsString())
+                .isEqualTo(expiredResend.getResponse().getContentAsString());
+        assertThat(jdbcTemplate.queryForObject("select count(*) from pending_registrations", Integer.class)).isZero();
+
+        MvcResult knownVerify = verifyInvalidOtp(knownRegistration);
+        MvcResult expiredVerify = verifyInvalidOtp(newRegistration);
+        assertThat(knownVerify.getResponse().getStatus()).isEqualTo(400);
+        assertThat(jsonValue(knownVerify, "error", "code"))
+                .isEqualTo(jsonValue(expiredVerify, "error", "code"))
+                .isEqualTo("OTP_INVALID");
+    }
+
+    @Test
+    void limitsResendsByClientEvenWhenThePendingCookieChanges() throws Exception {
+        String uniqueClientAddress = "198."
+                + ThreadLocalRandom.current().nextInt(1, 255) + "."
+                + ThreadLocalRandom.current().nextInt(1, 255) + "."
+                + ThreadLocalRandom.current().nextInt(1, 255);
+        String uniquePendingPrefix = java.util.UUID.randomUUID().toString();
+        for (int attempt = 0; attempt < 10; attempt++) {
+            MvcResult csrf = csrf();
+            mockMvc.perform(post("/api/auth/register/resend-otp")
+                            .cookie(csrfCookie(csrf))
+                            .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                            .with(request -> { request.setRemoteAddr(uniqueClientAddress); return request; })
+                            .cookie(new Cookie("pending_registration", uniquePendingPrefix + "-" + attempt)))
+                    .andExpect(status().isAccepted());
+        }
+
+        MvcResult csrf = csrf();
+        mockMvc.perform(post("/api/auth/register/resend-otp")
+                        .cookie(csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .with(request -> { request.setRemoteAddr(uniqueClientAddress); return request; })
+                        .cookie(new Cookie("pending_registration", uniquePendingPrefix + "-extra")))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.error.code").value("RATE_LIMITED"));
     }
 
     @Test
@@ -265,6 +346,41 @@ class RegistrationFlowTest {
                 .andReturn();
     }
 
+    private MvcResult register(String email) throws Exception {
+        MvcResult csrf = csrf();
+        return mockMvc.perform(post("/api/auth/register")
+                        .cookie(csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .header("X-Forwarded-For", clientAddress)
+                        .contentType("application/json")
+                        .content("{\"email\":\"" + email + "\",\"password\":\"valid-password-12\"}"))
+                .andExpect(status().isAccepted())
+                .andReturn();
+    }
+
+    private MvcResult resend(MvcResult registration) throws Exception {
+        MvcResult csrf = csrf();
+        return mockMvc.perform(post("/api/auth/register/resend-otp")
+                        .cookie(csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .header("X-Forwarded-For", clientAddress)
+                        .cookie(pendingCookie(registration)))
+                .andReturn();
+    }
+
+    private MvcResult verifyInvalidOtp(MvcResult registration) throws Exception {
+        MvcResult csrf = csrf();
+        String invalidOtp = "000000".equals(registrationMailAdapter.lastOtp()) ? "000001" : "000000";
+        return mockMvc.perform(post("/api/auth/register/verify")
+                        .cookie(csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", jsonValue(csrf, "csrfToken"))
+                        .header("X-Forwarded-For", clientAddress)
+                        .cookie(pendingCookie(registration))
+                        .contentType("application/json")
+                        .content("{\"otp\":\"" + invalidOtp + "\"}"))
+                .andReturn();
+    }
+
     private MvcResult csrf() throws Exception {
         return mockMvc.perform(get("/api/auth/csrf")).andReturn();
     }
@@ -283,6 +399,11 @@ class RegistrationFlowTest {
         return new tools.jackson.databind.json.JsonMapper().readTree(result.getResponse().getContentAsString())
                 .get(field)
                 .asString();
+    }
+
+    private String jsonValue(MvcResult result, String parent, String field) throws Exception {
+        return new tools.jackson.databind.json.JsonMapper().readTree(result.getResponse().getContentAsString())
+                .get(parent).get(field).asString();
     }
 
     @TestConfiguration(proxyBeanMethods = false)

@@ -24,6 +24,13 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.authenticationFailed(UUID.randomUUID().toString()));
     }
 
+    @ExceptionHandler(RefreshConcurrentException.class)
+    public ResponseEntity<ApiErrorResponse> handleRefreshConcurrent() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(ApiErrorResponse.refreshConcurrent(UUID.randomUUID().toString()));
+    }
+
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ApiErrorResponse> handleRateLimitExceeded(RateLimitExceededException exception) {
         long retryAfterSeconds = Math.max(1, exception.retryAfter().toSeconds());

@@ -10,6 +10,7 @@ const errorCodeSchema = z.enum([
   "RESET_TOKEN_INVALID",
   "RATE_LIMITED",
   "SESSION_UNAVAILABLE",
+  "REFRESH_CONCURRENT",
   "SERVICE_UNAVAILABLE",
 ]);
 
