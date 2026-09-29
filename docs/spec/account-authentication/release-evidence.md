@@ -1,10 +1,11 @@
 # Account authentication release evidence
 
-Task 20 evidence updated on 2026-09-29. Backend integration tests ran against
+Task 20 evidence revalidated on 2026-09-29. Backend integration tests ran against
 the local Compose PostgreSQL and Redis services. The contract browser suite used
 disposable API responses; a separate HTTPS browser test exercised the real
 frontend, backend, database, Redis, and a disposable SMTP listener. That test
-created and deleted its own account.
+created and deleted its own account. Its backend process used local test-only
+SMTP overrides; the existing private mail configuration was not changed.
 
 ## Checks run
 
@@ -47,7 +48,7 @@ the authentication flows have no separate latency target in the MVP requirements
 | NFR-PRV-02 | Rate-limit tests cover HMAC-derived keys and bounded expiry. Direct local traffic does not trust forwarded headers; production ingress CIDRs require human review. |
 | NFR-PRV-04 | Account deletion tests cover immediate anonymization and retry scheduling. A production 24-hour completion measurement is not available. |
 | NFR-OBS-01 | `AuthObservabilityFilter` records bounded method/path/status/duration labels and metrics. Its tests check that query, authorization, cookie, and password fixtures do not enter logs or meter IDs. |
-| NFR-MNT-01, NFR-TST-02 | Local lint, format, tests, and builds pass; backend JaCoCo line coverage is 88.6%. Frontend coverage and every-push CI enforcement are not measured here. |
+| NFR-MNT-01, NFR-TST-02 | Local lint, format, tests, and builds pass; backend JaCoCo line coverage is 88.7%. Frontend coverage and every-push CI enforcement are not measured here. |
 | NFR-DEP-02 | `mvn clean verify` validated all five Flyway migrations against local PostgreSQL. |
 | DESIGN.md runtime matrix | Playwright checks 320, 768, 1024, and 1440 pixels in system, light, and dark themes without horizontal overflow. |
 
