@@ -17,14 +17,13 @@ SMTP overrides; the existing private mail configuration was not changed.
 | `pnpm --dir frontend exec playwright test` | 9 passed | Chromium, HTTPS Next.js, disposable contract-shaped API responses |
 | `pnpm --dir frontend exec playwright test --config playwright.live.config.ts` | 1 passed | Real registration, OTP email, access-cookie loss with refresh on reload, expired-access logout recovery, reset email, new-password login, and account deletion |
 | Frontend lint, format check, typecheck | Passed | Source quality gates |
-| `pnpm --dir frontend exec next build --webpack` | Passed | Production frontend routes, including `/settings` |
+| `pnpm --dir frontend build` | Passed | Webpack production frontend routes, including `/settings` |
 | `pnpm --dir frontend audit --audit-level high` | No known vulnerabilities found | Committed frontend dependency lockfile |
 | `docker compose config --quiet` | Passed | Development infrastructure configuration |
 
-The default `pnpm --dir frontend build` did not complete in this local
-environment. Turbopack could not fetch Google Fonts in the sandbox and then
-could not bind a local process port. The Webpack production build completed;
-the default build remains a deployment/CI check, not a claimed pass here.
+Next.js Turbopack could not bind its CSS worker port in this local environment.
+The package build script selects the supported Webpack path, which completed
+the production build as the repository's standard build command.
 
 The final performance review found bounded Redis work for refresh/logout and
 100-session batches for delete-all. It did not establish production p95 latency;

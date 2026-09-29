@@ -542,7 +542,7 @@ The contract browser check used a disposable local HTTPS API stub: a failed `503
 **Verification:**
 
 - [x] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
-- [x] Build succeeds: Maven packaged the JAR and `next build --webpack` built the frontend; default Turbopack failure is recorded in release evidence.
+- [x] Build succeeds: Maven packaged the JAR and `pnpm --dir frontend build` built the frontend with Webpack.
 - [x] Manual check: the live HTTPS browser journey completed registration, OTP, session reload, logout, password reset, login, and deletion against Spring/PostgreSQL/Redis; Spring tests cover CSRF and telemetry rejection paths.
 
 **Dependencies:** Tasks 8–19, with Task 18 unblocked.
