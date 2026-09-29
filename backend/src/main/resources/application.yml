@@ -1,3 +1,20 @@
 spring:
   application:
     name: tinyroute
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  data:
+    redis:
+      repositories:
+        enabled: false
+  jpa:
+    open-in-view: false
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+management:
+  health:
+    mail:
+      enabled: false

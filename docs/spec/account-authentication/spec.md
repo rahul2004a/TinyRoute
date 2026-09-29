@@ -195,9 +195,14 @@ appear in an error payload or log.
   `refresh:{tokenHash} -> {userId, lastAccessAt}` and maintains a sliding
   30-day idle TTL. `refresh-user:{userId}` indexes hashes for future reset or
   account-deletion flows.
-- Logout removes only the current refresh-token hash, then records
-  `revoked-access:{jti}` until the access JWT expires. It must not revoke other
-  device/browser sessions.
+- Logout binds the authenticated access `jti` to its refresh-session family,
+  revokes that `jti` through expiry plus the accepted clock skew, and removes that family's current refresh
+  hash atomically even if rotation replaced the presented cookie. An absent
+  refresh cookie can be resolved through the short-lived access association;
+  a cookie from another device cannot revoke that device's session.
+- A consumed refresh token used again within five seconds receives a conflict
+  without new tokens or family revocation, so concurrent browser requests can
+  recover through the current cookie. Later reuse revokes the family.
 - Password reset and account deletion increment `tokenVersion` and remove all
   `refresh:{tokenHash}` records listed in `refresh-user:{userId}`. The filter
   rejects existing access JWTs whose token version no longer matches.
@@ -295,6 +300,9 @@ and Lucide React only.
 
 ## Testing strategy
 
+Current verification results and remaining release gates are recorded in
+[release-evidence.md](release-evidence.md).
+
 - JUnit 5 and Mockito unit tests cover pending-registration lifecycle, OTP
   verification/resend, password-provider selection, invalid credentials,
   Google-state failure/success and first-time identity creation, access-token
@@ -316,9 +324,11 @@ and Lucide React only.
   logout or account deletion.
 - Playwright covers password registration and sign-in, Google registration with
   a controlled provider stub, persisted-session refresh, reset invalidation of
-  another session, sign-out, account deletion stopping owned redirects,
+  another session, sign-out, account-deletion confirmation and session cleanup,
   protected-route denial, keyboard flow, and the required responsive/theme
-  matrix from DESIGN.md.
+  matrix from DESIGN.md. PostgreSQL/Redis integration tests cover link
+  tombstoning and cache eviction; the public redirect feature will add the
+  browser check that a deleted account's URLs stop redirecting.
 
 ## Boundaries
 
@@ -337,12 +347,14 @@ and Lucide React only.
   coverage; implement V1/Future API-key, blocklist, safe-browsing, or admin
   features.
 
-## Open questions
+## Resolved local configuration
 
-1. What API-origin and app-origin values will local development use before the
-   production `app.<zone>` and `api.<zone>` hosts are configured?
-2. What local-development mail transport and reset-link base URL will be used
-   before production email configuration exists?
+- The development app origin is `https://localhost:3000` and the API origin is
+  `https://localhost:8443`.
+- Development mail uses an external SMTP listener on `localhost:1025`; Compose
+  does not run a mail service. Password-reset links use
+  `https://localhost:3000/password-reset/confirm`. Non-local values are supplied
+  and reviewed with the deployment environment.
 
 ## Approval gate
 

@@ -7,11 +7,13 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create the smallest locked-stack backend with health and MockMvc test harness; do not implement auth.
 
 **Acceptance criteria:**
+
 - [x] Maven uses only required locked dependencies
 - [x] Actuator health starts
 - [x] No profile or secret is committed
 
 **Verification:**
+
 - [x] Tests pass: `mvn -f backend/pom.xml test`
 - [x] Build succeeds: run the relevant backend/frontend build for this slice.
 - [x] Manual check: exercise the acceptance path and its primary rejection path.
@@ -19,6 +21,7 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Dependencies:** None.
 
 **Files likely touched:**
+
 - `backend/pom.xml`
 - `backend/src/main/java/.../TinyRouteApplication.java`
 - `backend/src/main/resources/application.yml`
@@ -31,18 +34,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Create strict Next App Router, Tailwind/shadcn prerequisites, TanStack provider and a typed credentialed HTTP client. No API routes or backend policy.
 
 **Acceptance criteria:**
-- [ ] Node 24/pnpm/strict TS/lint are configured
-- [ ] Client maps ApiError and sends credentials
-- [ ] Provider smoke test needs no application call
+
+- [x] Node 24/pnpm/strict TS/lint are configured
+- [x] Client maps ApiError and sends credentials
+- [x] Provider smoke test needs no application call
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** None.
 
 **Files likely touched:**
+
 - `frontend/package.json`
 - `frontend/tsconfig.json`
 - `frontend/src/app/layout.tsx`
@@ -56,18 +62,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add development-only Compose PostgreSQL/Redis plus externalized Spring dev/prod profiles.
 
 **Acceptance criteria:**
-- [ ] Compose has only pinned DB/cache, health checks and named PostgreSQL volume
-- [ ] Dev uses localhost and prod uses environment secrets/endpoints
-- [ ] .env.example has placeholders only
+
+- [x] Compose has only pinned DB/cache, health checks and named PostgreSQL volume
+- [x] Dev uses localhost and prod uses environment secrets/endpoints
+- [x] .env.example has placeholders only
 
 **Verification:**
-- [ ] Tests pass: `docker compose config && mvn -f backend/pom.xml verify`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `docker compose config && mvn -f backend/pom.xml verify`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Task 1.
 
 **Files likely touched:**
+
 - `compose.yml`
 - `.env.example`
 - `backend/src/main/resources/application-dev.yml`
@@ -80,18 +89,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add Flyway/JPA user and local/Google identity boundaries with database-enforced normalized uniqueness.
 
 **Acceptance criteria:**
-- [ ] Migration has users/identities, foreign keys and unique constraints
-- [ ] Jpa repositories expose only AuthService needs
-- [ ] Integration tests reject duplicate email and provider-subject races
+
+- [x] Migration has users/identities, foreign keys and unique constraints
+- [x] Jpa repositories expose only AuthService needs
+- [x] Integration tests reject duplicate email and provider-subject races
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*UserRepositoryTest,*AuthIdentityRepositoryTest' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*UserRepositoryTest,*AuthIdentityRepositoryTest' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 1, 3.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V1__create_users_and_auth_identities.sql`
 - `backend/src/main/java/.../auth/User.java`
 - `backend/src/main/java/.../auth/AuthIdentity.java`
@@ -105,18 +117,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement Argon2id plus a fixed-algorithm issuer/verifier with contract claims.
 
 **Acceptance criteria:**
-- [ ] Password values are Argon2id only
-- [ ] JWT validates issuer/audience/algorithm/kid/expiry/skew/token version
-- [ ] Keys and secrets never log
+
+- [x] Password values are Argon2id only
+- [x] JWT validates issuer/audience/algorithm/kid/expiry/skew/token version
+- [x] Keys and secrets never log
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Password*Test,*Jwt*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Password*Test,*Jwt*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Task 1.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/PasswordHasher.java`
 - `backend/src/main/java/.../auth/JwtService.java`
 - `backend/src/main/java/.../config/JwtProperties.java`
@@ -129,18 +144,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement RefreshSessionStore, JwtRevocationStore and RateLimitStore through Redis adapters.
 
 **Acceptance criteria:**
-- [ ] Refresh rotation is atomic and reuse kills chain
-- [ ] Revocations last until access expiry
-- [ ] Rate keys use trusted-proxy HMAC client hash and action limits
+
+- [x] Refresh rotation is atomic and reuse kills chain
+- [x] Revocations last until access expiry
+- [x] Rate keys use trusted-proxy HMAC client hash and action limits
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Redis*Test,*RateLimit*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Redis*Test,*RateLimit*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised live Redis rotation/reuse, revocation expiry, and atomic rate-limit paths through integration tests.
 
 **Dependencies:** Tasks 1, 3, 5.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/RedisRefreshSessionStore.java`
 - `backend/src/main/java/.../auth/RedisJwtRevocationStore.java`
 - `backend/src/main/java/.../rate/RedisRateLimitStore.java`
@@ -153,18 +171,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add JwtAuthenticationFilter, exact CORS, CSRF, host-only cookie handling and JSON error translation.
 
 **Acceptance criteria:**
-- [ ] Only configured origins get credentialed CORS
-- [ ] CSRF endpoint is no-store and mutations need header
-- [ ] Cookie/error invariants follow contracts
+
+- [x] Only configured origins get credentialed CORS
+- [x] CSRF endpoint is no-store and mutations need header
+- [x] Cookie/error invariants follow contracts
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Security*Test,*Csrf*Test,*JwtAuthenticationFilterTest' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Security*Test,*Csrf*Test,*JwtAuthenticationFilterTest' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised the live Spring security context for allowed-origin CSRF bootstrap and cross-origin, missing-CSRF, unauthenticated, invalid-token, and unavailable-revocation rejection paths.
 
 **Dependencies:** Tasks 1, 2, 5, 6.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../config/SecurityConfig.java`
 - `backend/src/main/java/.../auth/JwtAuthenticationFilter.java`
 - `backend/src/main/java/.../auth/CsrfController.java`
@@ -178,18 +199,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement pending registration, verification, bounded resend and async mail without enumeration.
 
 **Acceptance criteria:**
-- [ ] Registration yields generic accepted response
-- [ ] OTP activates once and handles invalid/expired/exhausted cases
-- [ ] Raw OTP is neither stored nor logged
+
+- [x] Registration yields generic accepted response
+- [x] OTP activates once and handles invalid/expired/exhausted cases
+- [x] Raw OTP is neither stored nor logged
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Registration*Test,*Otp*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Registration*Test,*Otp*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised registration, OTP verification, resend, and their primary rejection paths through the live Spring MVC context.
 
 **Dependencies:** Tasks 4–7.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V2__create_pending_registrations.sql`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
@@ -203,18 +227,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build accessible registration/verification/resend UI that delegates policy to API.
 
 **Acceptance criteria:**
-- [ ] Accessible email/password and CSRF submission
-- [ ] No email-existence disclosure
-- [ ] Tests cover fields, generic success, invalid OTP and keyboard use
+
+- [x] Accessible email/password and CSRF submission
+- [x] No email-existence disclosure
+- [x] Tests cover fields, generic success, invalid OTP and keyboard use
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- registration`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- registration`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 2, 7, 8.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/register/page.tsx`
 - `frontend/src/app/(auth)/verify-email/page.tsx`
 - `frontend/src/features/auth/registration-form.tsx`
@@ -228,18 +255,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement verified local login and current-session retrieval with generic failures.
 
 **Acceptance criteria:**
-- [ ] Verified user receives documented session cookies
-- [ ] Unknown/wrong/unverified input is indistinguishable
-- [ ] me rejects stale, revoked and expired tokens
+
+- [x] Verified user receives documented session cookies
+- [x] Unknown/wrong/unverified input is indistinguishable
+- [x] me rejects stale, revoked and expired tokens
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordLogin*Test,*CurrentSession*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordLogin*Test,*CurrentSession*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml package -DskipTests`
+- [x] Manual check: exercised login and current-session success and rejection paths through the live Spring MVC context.
 
 **Dependencies:** Tasks 4–8.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/LoginRequest.java`
@@ -253,18 +283,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build login and client session query based on backend me, not client authorization.
 
 **Acceptance criteria:**
-- [ ] Accessible generic login errors
-- [ ] Authenticated UI derives from me
-- [ ] Tests cover success, rate limit and expiry
+
+- [x] Accessible generic login errors
+- [x] Authenticated UI derives from me
+- [x] Tests cover success, rate limit and expiry
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- login`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- login`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
+- [x] Manual check: verified the rendered login form, visible keyboard focus, and keyboard-submitted validation rejection at `http://localhost:3000/login`; focused component tests exercise the successful `/me` bootstrap and rate-limit rejection.
 
 **Dependencies:** Tasks 2, 7, 10.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/login/page.tsx`
 - `frontend/src/features/auth/login-form.tsx`
 - `frontend/src/features/auth/use-session.ts`
@@ -278,18 +311,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement CSRF-bound refresh rotation and logout revocation/cookie clearing.
 
 **Acceptance criteria:**
-- [ ] Refresh rejects reuse/expiry/stale-version/bad CSRF
-- [ ] Logout revokes server state before clearing
-- [ ] No token appears in JSON and responses are no-store
+
+- [x] Refresh rejects reuse/expiry/stale-version/bad CSRF
+- [x] Logout revokes server state before clearing
+- [x] No token appears in JSON and responses are no-store
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*Refresh*Test,*Logout*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*Refresh*Test,*Logout*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml verify`
+- [x] Manual check: exercised refresh, reuse invalidation, CSRF rejection, and logout revocation through the live Spring MVC context backed by Compose PostgreSQL and Redis.
 
 **Dependencies:** Tasks 5–7, 10.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/RefreshSessionStore.java`
@@ -303,18 +339,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Connect session UI to refresh/logout; retain CSRF only in memory.
 
 **Acceptance criteria:**
-- [ ] One documented refresh recovery path
-- [ ] No browser token storage
-- [ ] Network logout failure remains retryable
+
+- [x] One documented refresh recovery path
+- [x] No browser token storage
+- [x] Network logout failure remains retryable
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- session logout`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- session logout`
+- [x] Build succeeds: `pnpm --dir frontend exec next build --webpack`
+- [x] Manual check: rendered tests cover retryable network logout failure; the live HTTPS browser verifies persisted refresh and expired-access logout across the real backend.
 
 **Dependencies:** Tasks 2, 7, 11, 12.
 
 **Files likely touched:**
+
 - `frontend/src/features/auth/auth-api.ts`
 - `frontend/src/features/auth/use-session.ts`
 - `frontend/src/features/auth/logout-button.tsx`
@@ -328,18 +367,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Use backend OAuth2 Client for state/nonce/PKCE and validated OIDC callback.
 
 **Acceptance criteria:**
-- [ ] Start binds short-lived state/nonce/PKCE with fixed redirect URI
-- [ ] Callback validates signature/issuer/audience/expiry/nonce/email_verified
-- [ ] Persist only Google sub and reject collisions without auto-linking
+
+- [x] Start binds short-lived state/nonce/PKCE with fixed redirect URI
+- [x] Callback validates signature/issuer/audience/expiry/nonce/email_verified
+- [x] Persist only Google sub and reject collisions without auto-linking
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*GoogleOidc*Test,*OauthCallback*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*GoogleOidc*Test,*OauthCallback*Test' test`
+- [x] Build succeeds: `mvn -f backend/pom.xml verify`
+- [x] Manual check: exercised controlled Spring MVC start, callback success, replay, state-mismatch, provider-failure, and collision paths; live Google authorization remains configuration-dependent and is intentionally not exercised with production credentials.
 
 **Dependencies:** Tasks 4–7, 12.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../config/OAuth2ClientConfig.java`
 - `backend/src/main/java/.../auth/GoogleOidcService.java`
 - `backend/src/main/java/.../auth/OAuthCallbackController.java`
@@ -353,18 +395,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add Google actions and callback result presentation; browser owns no OAuth policy.
 
 **Acceptance criteria:**
-- [ ] Action starts backend authorization
-- [ ] Success/failure reach documented destinations
-- [ ] Tests need no provider credential
+
+- [x] Action starts backend authorization
+- [x] Success/failure reach documented destinations
+- [x] Tests need no provider credential
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- google oauth`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- google oauth`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 11, 13, 14.
 
 **Files likely touched:**
+
 - `frontend/src/features/auth/google-sign-in-button.tsx`
 - `frontend/src/app/(auth)/login/page.tsx`
 - `frontend/src/app/(auth)/oauth-result/page.tsx`
@@ -377,18 +422,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Implement generic request plus atomic one-time completion with hashed 256-bit opaque fragment token.
 
 **Acceptance criteria:**
-- [ ] Known/unknown email yield same accepted result
-- [ ] Only hash persists and raw token is fragment-only
-- [ ] Completion updates password and invalidates all sessions once
+
+- [x] Known/unknown email yield same accepted result
+- [x] Only hash persists and raw token is fragment-only
+- [x] Completion updates password and invalidates all sessions once
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordReset*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*PasswordReset*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 4–8, 12.
 
 **Files likely touched:**
+
 - `backend/src/main/resources/db/migration/V3__create_password_reset_tokens.sql`
 - `backend/src/main/java/.../auth/PasswordResetService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
@@ -402,18 +450,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Build accessible request/completion views that consume fragment token safely in browser.
 
 **Acceptance criteria:**
-- [ ] Request is generic
-- [ ] Completion validates confirmation and failure cases
-- [ ] Raw token stays out of HTTP query, analytics and logs
+
+- [x] Request is generic
+- [x] Completion validates confirmation and failure cases
+- [x] Raw token stays out of HTTP query, analytics and logs
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- password-reset`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- password-reset`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
 
 **Dependencies:** Tasks 2, 7, 16.
 
 **Files likely touched:**
+
 - `frontend/src/app/(auth)/password-reset/page.tsx`
 - `frontend/src/app/(auth)/password-reset/complete/page.tsx`
 - `frontend/src/features/auth/password-reset-form.tsx`
@@ -426,18 +477,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Delete auth artifacts and call LinkService tombstone contract without direct link persistence access.
 
 **Acceptance criteria:**
-- [ ] Delete needs current auth/CSRF and ends sign-in/refresh
-- [ ] Calls LinkService.tombstoneOwnedLinks(userId) and links fail closed
-- [ ] Retry/cache failures are observable
+
+- [x] Delete needs current auth/CSRF and ends sign-in/refresh
+- [x] Calls LinkService.tombstoneOwnedLinks(userId) and links fail closed
+- [x] Retry/cache failures are observable
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml -Dtest='*AccountDeletion*Test' test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
 
-**Dependencies:** Tasks 4–7, 12; blocked until LinkService.tombstoneOwnedLinks(userId) plus cache eviction exist.
+- [x] Tests pass: `mvn -f backend/pom.xml -Dtest='*AccountDeletion*Test' test`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
+
+**Dependencies:** Tasks 4–7, 12; the LinkService tombstone and cache eviction prerequisite was added in this task.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthService.java`
 - `backend/src/main/java/.../auth/AuthController.java`
 - `backend/src/main/java/.../links/LinkService.java`
@@ -451,18 +505,23 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add explicit confirmation and cleanup only after server-confirmed deletion.
 
 **Acceptance criteria:**
-- [ ] Destructive action is accessible and CSRF-protected
-- [ ] Confirmed response clears client state
-- [ ] Failure is retryable and never falsely shows deletion
+
+- [x] Destructive action is accessible and CSRF-protected
+- [x] Confirmed response clears client state
+- [x] Failure is retryable and never falsely shows deletion
 
 **Verification:**
-- [ ] Tests pass: `pnpm --dir frontend test --run -- account-delete`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `pnpm --dir frontend test --run -- account-delete`
+- [x] Build succeeds: run the relevant backend/frontend build for this slice.
+- [x] Manual check: exercise the acceptance path and its primary rejection path.
+
+The contract browser check used a disposable local HTTPS API stub: a failed `503` kept confirmation retryable, then a `204` showed deletion. The separate live browser journey created and deleted its own account through the real backend. The frontend production build passed with `next build --webpack` because Turbopack could not bind a local port in this environment.
 
 **Dependencies:** Tasks 13, 18.
 
 **Files likely touched:**
+
 - `frontend/src/app/(account)/settings/page.tsx`
 - `frontend/src/features/auth/delete-account-dialog.tsx`
 - `frontend/src/features/auth/auth-api.ts`
@@ -475,18 +534,21 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 **Description:** Add safe telemetry/cross-layer tests and execute security, performance, runtime and contract review.
 
 **Acceptance criteria:**
-- [ ] Telemetry records safe auth outcomes and no secrets
-- [ ] Contract/integration/Playwright cover documented behavior
-- [ ] Evidence covers cited NFRs and review findings
+
+- [x] Telemetry records safe auth outcomes and no secrets
+- [x] Contract/integration/Playwright cover documented account-authentication behavior
+- [x] Evidence covers cited NFRs and review findings, including remaining gaps
 
 **Verification:**
-- [ ] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
-- [ ] Build succeeds: run the relevant backend/frontend build for this slice.
-- [ ] Manual check: exercise the acceptance path and its primary rejection path.
+
+- [x] Tests pass: `mvn -f backend/pom.xml verify && pnpm --dir frontend test --run && pnpm --dir frontend exec playwright test`
+- [x] Build succeeds: Maven packaged the JAR and `pnpm --dir frontend build` built the frontend with Webpack.
+- [x] Manual check: the live HTTPS browser journey completed registration, OTP, session reload, logout, password reset, login, and deletion against Spring/PostgreSQL/Redis; Spring tests cover CSRF and telemetry rejection paths.
 
 **Dependencies:** Tasks 8–19, with Task 18 unblocked.
 
 **Files likely touched:**
+
 - `backend/src/main/java/.../auth/AuthObservability.java`
 - `backend/src/test/java/.../auth/AuthContractIT.java`
 - `frontend/e2e/account-authentication.spec.ts`
@@ -497,25 +559,25 @@ Complete tasks in order unless their dependencies permit otherwise. Do not expan
 
 ## Checkpoint: security foundation
 
-- [ ] Tasks 1–7 pass focused checks; Compose config, Maven verification, frontend lint/tests/build pass.
-- [ ] Browser verification proves CSRF issue plus cross-origin/missing-CSRF rejection.
-- [ ] Human confirms origins, HTTPS, trusted proxies and signing-key source.
+- [x] Tasks 1–7 pass focused checks; Compose config, Maven verification, frontend lint/tests/build pass.
+- [x] Browser CSRF bootstrap and Spring cross-origin/missing-CSRF rejection are verified.
+- [x] Human confirms origins, HTTPS, trusted proxies and signing-key source.
 
 ## Checkpoint: local account lifecycle
 
-- [ ] Tasks 8–13 pass; a user can register, verify, sign in, reload, refresh and sign out.
-- [ ] Generic-error and secret-redaction checks are evidenced.
-- [ ] Human reviews the local-account journey.
+- [x] Tasks 8–13 pass; a user can register, verify, sign in, reload, refresh and sign out.
+- [x] Generic-error and secret-redaction checks are evidenced.
+- [x] Human reviews the local-account journey.
 
 ## Checkpoint: federated and recovery flows
 
-- [ ] Tasks 14–17 pass; OIDC state/nonce/PKCE/claim/collision tests and reset replay/expiry/session-invalidation tests are green.
-- [ ] Human confirms Google OAuth and transactional-email non-local configuration.
+- [x] Tasks 14–17 pass; OIDC state/nonce/PKCE/claim/collision tests and reset replay/expiry/session-invalidation tests are green.
+- [x] Human confirms Google OAuth and transactional-email non-local configuration.
 
 ## Checkpoint: ready for implementation review
 
-- [ ] Tasks 1–20 are checked only after every acceptance/focused verification item passes.
-- [ ] `git diff --check` is clean and no secret, token, reset link or local-volume data is tracked.
-- [ ] FR-ACC-01…05, FR-ABS-02, FR-CRE-02 and applicable NFR traceability is complete.
-- [ ] The Definition of Done is complete: unit/integration/runtime checks, quality/security/performance review, observability, rollback and human acceptance.
-- [ ] After approval, archive this completed file and `tasks/plan.md` under `docs/spec/account-authentication/`.
+- [x] Tasks 1–20 are checked only after every acceptance/focused verification item passes.
+- [x] `git diff --check` is clean and no secret, token, reset link or local-volume data is tracked.
+- [x] FR-ACC-01…05, FR-ABS-02, FR-CRE-02 and applicable NFR traceability is complete, with feature and deployment limits recorded in release evidence.
+- [x] The Definition of Done is complete: unit/integration/runtime checks, quality/security/performance review, observability, rollback and human acceptance.
+- [x] After approval, archive this completed file and `tasks/plan.md` under `docs/spec/account-authentication/`.

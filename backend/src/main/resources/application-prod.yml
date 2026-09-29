@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:true}
+      "[mail.smtp.starttls.enable]": ${MAIL_SMTP_STARTTLS:true}
+      "[mail.smtp.starttls.required]": ${MAIL_SMTP_STARTTLS:true}
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+tinyroute:
+  security:
+    allowed-origins: ${ALLOWED_FRONTEND_ORIGINS}
+  rate-limit:
+    hmac-secret: ${RATE_LIMIT_HMAC_SECRET}
+    trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS}
+  mail:
+    registration-from: ${REGISTRATION_MAIL_FROM}
+    password-reset-confirmation-uri: ${PASSWORD_RESET_CONFIRMATION_URI}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID}
+      client-secret: ${GOOGLE_CLIENT_SECRET}
+      redirect-uri: ${GOOGLE_REDIRECT_URI}
+      success-uri: ${GOOGLE_SUCCESS_URI}
+      failure-uri: ${GOOGLE_FAILURE_URI}

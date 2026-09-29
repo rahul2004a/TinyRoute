@@ -1,18 +1,16 @@
 ---
 version: beta
 name: TinyRoute
-description: "A restrained developer-tool interface with quiet neutral surfaces, one route-teal accent, compact data presentation, accessible dual themes, and purposeful motion."
+description: "A restrained developer-tool interface with charcoal surfaces, warm-paper contrast, compact data presentation, accessible dual themes, and purposeful motion."
 designVariance: 5
 motionIntensity: 3
 visualDensity: 6
 interactionTier: L1 Refined Static
 colors:
-  primary: "#0f766e"
-  primary-dark: "#2dd4bf"
-  canvas: "#f6f9f8"
-  canvas-dark: "#070a0a"
-  ink: "#0b1311"
-  ink-dark: "#f2f7f5"
+  canvas: "#1E201E"
+  surface: "#3C3D37"
+  muted: "#697565"
+  paper: "#ECDFCC"
 typography:
   page-title:
     fontFamily: "Geist Sans"
@@ -71,86 +69,74 @@ workflows; this file records only TinyRoute-specific presentation decisions.
 **Design read:** A portfolio-grade developer tool for technical users, with a
 calm, precise, trust-first visual language.
 
-| Dial | Value | Effect |
-| --- | ---: | --- |
-| Design variance | 5 | Offset marketing composition; predictable product grids |
-| Motion intensity | 3 | Static by default; short feedback and entrance motion |
-| Visual density | 6 | Compact link and analytics data without crowding forms |
+| Dial             | Value | Effect                                                  |
+| ---------------- | ----- | ------------------------------------------------------- |
+| Design variance  | 5     | Offset marketing composition; predictable product grids |
+| Motion intensity | 3     | Static by default; short feedback and entrance motion   |
+| Visual density   | 6     | Compact link and analytics data without crowding forms  |
 
-Use restrained neutral surfaces, crisp typography, sparse borders, and route
-teal as the only accent. Marketing may use an asymmetric split hero with a real
+Use restrained charcoal surfaces, warm-paper contrast, crisp typography, and
+sparse olive-grey borders. Marketing may use an asymmetric split hero with a real
 TinyRoute UI or screenshot. Product screens prioritize scanning and task
 completion. Use next-themes with `data-theme` for light, dark, and system
 preference without switching theme families between sections.
 
 ## 2. Color palette and roles
 
-~~~css
+Use the following four-color palette across the product. Paper is the primary
+action and high-emphasis foreground in dark mode; charcoal is the equivalent
+high-emphasis foreground in light mode. Olive-grey supplies structure, never a
+second accent. Components reference semantic variables, not raw hex values.
+Pair status colors with text or an icon. Do not use teal, decorative gradients,
+neon glow, or a second accent. Verify WCAG AA contrast in both themes.
+
+```css
 :root {
   color-scheme: light;
-  --canvas: #f6f9f8;
-  --surface-1: #ffffff;
-  --surface-2: #edf3f1;
-  --surface-3: #e3ece9;
-  --border: #cfddd8;
-  --border-strong: #9fb3ad;
-  --ink: #0b1311;
-  --ink-muted: #52615d;
-  --ink-subtle: #65746f;
-  --primary: #0f766e;
-  --primary-rgb: 15 118 110;
-  --primary-hover: #115e59;
-  --primary-active: #134e4a;
-  --on-primary: #ffffff;
-  --success: #047857;
-  --warning: #a34f08;
-  --danger: #b91c1c;
-  --info: #0369a1;
+  --canvas: #ecdfcc;
+  --surface-1: #ecdfcc;
+  --surface-2: #ecdfcc;
+  --surface-3: #ecdfcc;
+  --border: #697565;
+  --border-strong: #3c3d37;
+  --ink: #1e201e;
+  --ink-muted: #3c3d37;
+  --primary: #1e201e;
+  --primary-hover: #3c3d37;
+  --on-primary: #ecdfcc;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --canvas: #070a0a;
-    --surface-1: #0d1212;
-    --surface-2: #131a1a;
-    --surface-3: #1a2323;
-    --border: #253331;
-    --border-strong: #3a4b47;
-    --ink: #f2f7f5;
-    --ink-muted: #a7b4b0;
-    --ink-subtle: #82908c;
-    --primary: #2dd4bf;
-    --primary-rgb: 45 212 191;
-    --primary-hover: #5eead4;
-    --primary-active: #14b8a6;
-    --on-primary: #03201b;
-    --success: #34d399;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --info: #38bdf8;
+    --canvas: #1e201e;
+    --surface-1: #3c3d37;
+    --surface-2: #3c3d37;
+    --surface-3: #697565;
+    --border: #697565;
+    --border-strong: #ecdfcc;
+    --ink: #ecdfcc;
+    --ink-muted: #ecdfcc;
+    --primary: #ecdfcc;
+    --primary-hover: #ffffff;
+    --on-primary: #1e201e;
   }
 }
-~~~
-
-A forced dark theme uses the same dark tokens at the root. Components reference
-semantic variables. Pair status colors with text or an icon. Do not use pure
-black, decorative gradients, neon glow, or a second accent. Verify WCAG AA
-contrast in both themes.
+```
 
 ## 3. Typography rules
 
 Use Geist Sans and Geist Mono through Next.js next/font with display set to
 swap. Do not use CSS font imports or add a font package.
 
-| Role | Size | Weight | Line height |
-| --- | --- | ---: | ---: |
-| Marketing H1 | clamp(2.75rem, 6vw, 4.5rem) | 600 | 1.05 |
-| Page H1 | clamp(1.75rem, 3vw, 2.25rem) | 600 | 1.15 |
-| Section H2 | clamp(1.375rem, 2vw, 1.875rem) | 600 | 1.2 |
-| Body | 1rem | 400 | 1.5 |
-| Supporting | 0.875rem | 400 | 1.45 |
-| Code and aligned data | 0.8125rem | 450 | 1.45 |
+| Role                  | Size                           | Weight | Line height |
+| --------------------- | ------------------------------ | ------ | ----------- |
+| Marketing H1          | clamp(2.75rem, 6vw, 4.5rem)    | 600    | 1.05        |
+| Page H1               | clamp(1.75rem, 3vw, 2.25rem)   | 600    | 1.15        |
+| Section H2            | clamp(1.375rem, 2vw, 1.875rem) | 600    | 1.2         |
+| Body                  | 1rem                           | 400    | 1.5         |
+| Supporting            | 0.875rem                       | 400    | 1.45        |
+| Code and aligned data | 0.8125rem                      | 450    | 1.45        |
 
 Use one H1 and a logical heading order. Keep hero headlines within two lines,
 support copy within 20 words, and text within 65 characters per line. Use mono
@@ -163,18 +149,18 @@ Implement with Tailwind CSS, locally owned shadcn/ui on Radix UI, and Lucide ico
 Controls use an 8px radius, panels use 12px, and pills are limited to status
 badges and selected filters. Interactive components need default, hover,
 active, focus-visible, disabled, loading, and error states when applicable.
-Focus uses a 2px route-teal ring with a 2px canvas offset.
+Focus uses a 2px paper or charcoal ring with a 2px canvas offset.
 
-| Component | TinyRoute treatment |
-| --- | --- |
-| Primary button | Route-teal fill, high-contrast label, 44px minimum height, one per action group |
-| Secondary button | Surface fill, hairline border, stronger border on hover |
-| Destructive button | Danger color, explicit wording, never the default action |
-| Input | Label above, helper text before failure, inline error below, retained value after recoverable failure |
-| Panel | Surface 1 and one border; use only when grouping or hierarchy requires it |
-| Navigation | 56px top bar, 224px desktop sidebar, Links, Analytics, Account |
-| Badge | Text plus semantic color; no decorative status dots |
-| Dialog | Focus enters and remains inside, Escape closes when safe, focus returns to trigger |
+| Component          | TinyRoute treatment                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| Primary button     | Paper fill in dark mode and charcoal fill in light mode; high-contrast label, 44px minimum height     |
+| Secondary button   | Surface fill, hairline border, stronger border on hover                                               |
+| Destructive button | Danger color, explicit wording, never the default action                                              |
+| Input              | Label above, helper text before failure, inline error below, retained value after recoverable failure |
+| Panel              | Surface 1 and one border; use only when grouping or hierarchy requires it                             |
+| Navigation         | 56px top bar, 224px desktop sidebar, Links, Analytics, Account                                        |
+| Badge              | Text plus semantic color; no decorative status dots                                                   |
+| Dialog             | Focus enters and remains inside, Escape closes when safe, focus returns to trigger                    |
 
 The create form contains destination, optional custom alias, and optional
 expiry. It renders API validation and rate limits. Success shows the complete
@@ -216,12 +202,12 @@ shows a generic service error with no fallback destination
 
 ## 6. Depth and elevation
 
-| Level | Treatment | Use |
-| --- | --- | --- |
-| Flat | Canvas, spacing, no shadow | Default regions and data groups |
-| Bordered | Surface plus 1px border | Inputs, panels, tables |
-| Raised | Small teal-tinted shadow | Menus and popovers |
-| Overlay | Stronger tinted shadow plus scrim | Dialogs only |
+| Level    | Treatment                          | Use                             |
+| -------- | ---------------------------------- | ------------------------------- |
+| Flat     | Canvas, spacing, no shadow         | Default regions and data groups |
+| Bordered | Surface plus 1px border            | Inputs, panels, tables          |
+| Raised   | Small neutral shadow               | Menus and popovers              |
+| Overlay  | Stronger neutral shadow plus scrim | Dialogs only                    |
 
 Use spacing, borders, type, and surface color before elevation. Do not add
 shadows to every card, use pure-black shadows, or blur scrolling surfaces.
@@ -230,23 +216,31 @@ shadows to every card, use pure-black shadows, or blur scrolling surfaces.
 
 **Tier:** L1 Refined Static. CSS only.
 
-~~~css
+```css
 .page-enter {
-  animation: content-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: content-enter 220ms ease-out both;
 }
 @keyframes content-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
-~~~
+```
 
 Animate only transform and opacity for movement. Use entrance motion once per
 page region. Press feedback may move a button by 1px. Copy success changes the
@@ -279,13 +273,13 @@ listeners, cursor replacement, card tilt, confetti, or animated metrics.
 
 ## 9. Responsive behavior
 
-| Width | Behavior |
-| --- | --- |
-| 320-479px | One column, 16px padding, stacked actions, link cards |
-| 480-767px | One column, paired actions when labels fit, compact filters |
-| 768-1023px | Drawer navigation, reduced grids, selective chart scrolling |
-| 1024-1439px | Sidebar, compact link table, two-column analytics |
-| 1440px and above | Centered 1440px shell with controlled line lengths |
+| Width            | Behavior                                                    |
+| ---------------- | ----------------------------------------------------------- |
+| 320-479px        | One column, 16px padding, stacked actions, link cards       |
+| 480-767px        | One column, paired actions when labels fit, compact filters |
+| 768-1023px       | Drawer navigation, reduced grids, selective chart scrolling |
+| 1024-1439px      | Sidebar, compact link table, two-column analytics           |
+| 1440px and above | Centered 1440px shell with controlled line lengths          |
 
 Touch targets are at least 44 by 44px. Below 1024px, replace the sidebar with a
 labeled drawer. Below 768px, collapse columns and replace link tables with

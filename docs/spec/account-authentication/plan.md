@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deliver TinyRoute MVP account authentication: email/password registration with email OTP verification, password and Google sign-in, persisted browser sessions, sign-out, password reset, and account deletion. The backend remains the authority for authentication, ownership, redirect and session policy; Next.js is a credentialed HTTP client only. This plan implements the approved [feature specification](../docs/spec/account-authentication/spec.md) and [public contracts](../docs/spec/account-authentication/contracts.md).
+Deliver TinyRoute MVP account authentication: email/password registration with email OTP verification, password and Google sign-in, persisted browser sessions, sign-out, password reset, and account deletion. The backend remains the authority for authentication, ownership, redirect and session policy; Next.js is a credentialed HTTP client only. This plan implements the approved [feature specification](spec.md) and [public contracts](contracts.md).
 
 ## Preconditions and scope
 
@@ -43,60 +43,60 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ### Phase 1: executable foundation and security boundary
 
 - [x] Task 1: Bootstrap Spring Boot and its focused test harness.
-- [ ] Task 2: Bootstrap strict Next.js and its typed HTTP-client shell.
-- [ ] Task 3: Add Compose-only PostgreSQL/Redis and externalized dev/prod configuration.
-- [ ] Task 4: Add user and authentication-identity persistence.
-- [ ] Task 5: Add Argon2id and fixed JWT primitives.
-- [ ] Task 6: Add Redis refresh-session, JWT-revocation and rate-limit adapters.
-- [ ] Task 7: Wire JWT filtering, exact CORS, CSRF and cookie helpers.
+- [x] Task 2: Bootstrap strict Next.js and its typed HTTP-client shell.
+- [x] Task 3: Add Compose-only PostgreSQL/Redis and externalized dev/prod configuration.
+- [x] Task 4: Add user and authentication-identity persistence.
+- [x] Task 5: Add Argon2id and fixed JWT primitives.
+- [x] Task 6: Add Redis refresh-session, JWT-revocation and rate-limit adapters.
+- [x] Task 7: Wire JWT filtering, exact CORS, CSRF and cookie helpers.
 
 ### Checkpoint: security foundation
 
-- [ ] Backend/frontend build and tests run from a clean checkout.
-- [ ] Flyway and Redis adapters run against Compose services.
-- [ ] A browser can obtain CSRF, while cross-origin or missing-CSRF mutations are rejected.
-- [ ] Human reviews origin, local HTTPS, trusted-proxy and key-management configuration before credential flows.
+- [x] Backend/frontend build and tests run from a clean checkout.
+- [x] Flyway and Redis adapters run against Compose services.
+- [x] A browser can obtain CSRF, while cross-origin or missing-CSRF mutations are rejected.
+- [x] Human reviews origin, local HTTPS, trusted-proxy and key-management configuration before credential flows.
 
 ### Phase 2: local account lifecycle
 
-- [ ] Task 8: Deliver registration, verification OTP and resend APIs.
-- [ ] Task 9: Deliver accessible registration/OTP UI.
-- [ ] Task 10: Deliver password sign-in and current-session APIs.
-- [ ] Task 11: Deliver login UI and session bootstrap.
-- [ ] Task 12: Deliver atomic refresh rotation and sign-out APIs.
-- [ ] Task 13: Deliver browser refresh and sign-out UX.
+- [x] Task 8: Deliver registration, verification OTP and resend APIs.
+- [x] Task 9: Deliver accessible registration/OTP UI.
+- [x] Task 10: Deliver password sign-in and current-session APIs.
+- [x] Task 11: Deliver login UI and session bootstrap.
+- [x] Task 12: Deliver atomic refresh rotation and sign-out APIs.
+- [x] Task 13: Deliver browser refresh and sign-out UX.
 
 ### Checkpoint: local accounts
 
-- [ ] New users can register, verify, sign in, reload, refresh and sign out end-to-end.
-- [ ] Invalid/expired OTP, stale CSRF, wrong password, refresh reuse and rate-limit cases return documented generic errors.
-- [ ] Logs, browser storage, mail tests and snapshots contain no passwords, OTPs, token values or OAuth artifacts.
-- [ ] Human reviews the completed local-account flow.
+- [x] New users can register, verify, sign in, reload, refresh and sign out end-to-end.
+- [x] Invalid/expired OTP, stale CSRF, wrong password, refresh reuse and rate-limit cases return documented generic errors.
+- [x] Logs, browser storage, mail tests and snapshots contain no passwords, OTPs, token values or OAuth artifacts.
+- [x] Human reviews the completed local-account flow.
 
 ### Phase 3: federated sign-in and recovery
 
-- [ ] Task 14: Deliver Google OIDC start/callback validation and identity creation/sign-in.
-- [ ] Task 15: Deliver the Google handoff and callback result UI.
-- [ ] Task 16: Deliver password-reset request/completion APIs and mail behavior.
-- [ ] Task 17: Deliver password-reset UI.
+- [x] Task 14: Deliver Google OIDC start/callback validation and identity creation/sign-in.
+- [x] Task 15: Deliver the Google handoff and callback result UI.
+- [x] Task 16: Deliver password-reset request/completion APIs and mail behavior.
+- [x] Task 17: Deliver password-reset UI.
 
 ### Checkpoint: federated and recovery flows
 
-- [ ] OIDC tests prove state, nonce, PKCE, issuer/audience/signature, verified email, collision and callback failure behavior.
-- [ ] Password reset works once and fails safely on expiry/replay without raw-token URL/log disclosure.
-- [ ] Human reviews Google and email configuration before any non-local environment.
+- [x] OIDC tests prove state, nonce, PKCE, issuer/audience/signature, verified email, collision and callback failure behavior.
+- [x] Password reset works once and fails safely on expiry/replay without raw-token URL/log disclosure.
+- [x] Human reviews Google and email configuration before any non-local environment.
 
 ### Phase 4: deletion and release evidence
 
-- [ ] Task 18: Deliver account deletion through the LinkService tombstone contract.
-- [ ] Task 19: Deliver account-deletion UI and client cleanup.
-- [ ] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
+- [x] Task 18: Deliver account deletion through the LinkService tombstone contract.
+- [x] Task 19: Deliver account-deletion UI and client cleanup.
+- [x] Task 20: Complete observability, contract, security, performance and end-to-end evidence.
 
 ### Checkpoint: implementation review
 
-- [ ] Every task acceptance criterion and the project Definition of Done is complete.
-- [ ] Relevant Maven, frontend lint/typecheck/test, and Playwright checks pass.
-- [ ] Docs are current. Only then archive completed active task files into \`docs/spec/account-authentication/\`.
+- [x] Every task acceptance criterion and the project Definition of Done is complete.
+- [x] Relevant Maven, frontend lint/typecheck/test, and Playwright checks pass.
+- [x] Docs are current. Only then archive completed active task files into \`docs/spec/account-authentication/\`.
 
 ## Risks and mitigations
 
@@ -115,7 +115,7 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 - Which exact frontend/API origins and local HTTPS mechanism will be used?
 - Which proxy/network ranges may supply forwarded client-IP headers?
 - Which transactional email provider, sender and credentials will production use?
-- Will link management expose \`LinkService.tombstoneOwnedLinks(userId)\` before Task 18? If not, Task 18 is blocked.
+- Task 18 supplied \`LinkService.tombstoneOwnedLinks(userId)\` and the redirect-cache eviction prerequisite.
 
 ## Parallelization
 
@@ -126,6 +126,6 @@ frontend bootstrap ─┴─ HTTP-client shell            └─ Security perime
 ## Planning verification
 
 - [x] Active plan and todo files contained no incomplete work before initialization.
-- [x] Every task in \`tasks/todo.md\` has acceptance criteria, dependencies, focused verification, likely files and S/M sizing.
+- [x] Every task in [the checklist](todo.md) has acceptance criteria, dependencies, focused verification, likely files and S/M sizing.
 - [x] Dependencies are bottom-up and checkpoints follow each coherent capability group.
-- [ ] Human has reviewed and approved the plan before coding begins.
+- [x] Human has reviewed and approved the plan before coding begins.

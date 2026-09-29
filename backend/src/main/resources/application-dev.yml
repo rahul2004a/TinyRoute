@@ -1,0 +1,46 @@
+server:
+  port: 8443
+  ssl:
+    certificate: ${DEV_TLS_CERTIFICATE:file:../.local-certs/localhost.pem}
+    certificate-private-key: ${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}
+
+spring:
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": ${MAIL_SMTP_AUTH:false}
+      "[mail.smtp.starttls.enable]": ${MAIL_SMTP_STARTTLS:false}
+      "[mail.smtp.starttls.required]": ${MAIL_SMTP_STARTTLS:false}
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:tinyroute}
+    username: ${POSTGRES_USER:tinyroute}
+    password: ${POSTGRES_PASSWORD:local-dev-password}
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+tinyroute:
+  security:
+    allowed-origins: ${ALLOWED_FRONTEND_ORIGINS:https://localhost:3000}
+  rate-limit:
+    hmac-secret: ${RATE_LIMIT_HMAC_SECRET:local-dev-rate-limit-secret}
+  mail:
+    registration-from: ${REGISTRATION_MAIL_FROM:no-reply@tinyroute.local}
+    password-reset-confirmation-uri: ${PASSWORD_RESET_CONFIRMATION_URI:https://localhost:3000/password-reset/confirm}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:local-dev-google-client-id}
+      client-secret: ${GOOGLE_CLIENT_SECRET:local-dev-google-client-secret}
+      redirect-uri: ${GOOGLE_REDIRECT_URI:https://api.tinyroute.local/api/auth/google/callback}
+      success-uri: ${GOOGLE_SUCCESS_URI:https://localhost:3000/links}
+      failure-uri: ${GOOGLE_FAILURE_URI:https://localhost:3000/login?error=oauth_failed}
