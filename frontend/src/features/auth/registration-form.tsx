@@ -15,6 +15,7 @@ import {
   startRegistration,
   verifyRegistration,
 } from "./auth-api";
+import { GoogleSignInButton } from "./google-sign-in-button";
 import { sessionQueryKey } from "./use-session";
 
 const registrationSchema = z.object({
@@ -331,6 +332,7 @@ export function RegistrationForm({
           Create account
         </button>
       </form>
+      <GoogleSignInButton />
     </section>
   );
 }
