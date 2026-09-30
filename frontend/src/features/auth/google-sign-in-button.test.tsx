@@ -18,13 +18,16 @@ describe("GoogleSignInButton", () => {
   it("navigates directly to the configured backend authorization endpoint", () => {
     process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.tinyroute.test";
 
-    render(<GoogleSignInButton />);
+    const { container } = render(<GoogleSignInButton />);
 
-    expect(
-      screen
-        .getByRole("link", { name: "Continue with Google" })
-        .getAttribute("href"),
-    ).toBe("https://api.tinyroute.test/api/auth/google/start");
+    const link = screen.getByRole("link", { name: "Continue with Google" });
+    expect(link.getAttribute("href")).toBe(
+      "https://api.tinyroute.test/api/auth/google/start",
+    );
+    expect(container.querySelector("img")?.getAttribute("src")).toContain(
+      "google-g.png",
+    );
+    expect(container.querySelector("img")?.getAttribute("alt")).toBe("");
   });
 
   it("does not prevent password sign-in when the public API origin is unavailable", () => {

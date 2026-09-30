@@ -2,13 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Link2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ApiClientError } from "../../lib/api-client";
+import { AuthBrand } from "./auth-brand";
 import {
   fetchCsrfToken,
   resendRegistrationOtp,
@@ -45,17 +47,6 @@ function inputClassName(hasError: boolean, hasTopMargin = true) {
   return `${hasTopMargin ? "mt-2 " : ""}block min-h-11 w-full rounded-lg border bg-(--auth-surface) px-3 py-2 text-base text-(--auth-ink) outline-none transition placeholder:text-(--auth-ink-muted) focus-visible:border-(--auth-primary) focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas) ${
     hasError ? "border-(--auth-danger)" : "border-(--auth-border)"
   }`;
-}
-
-function AuthBrand() {
-  return (
-    <div className="mb-14 flex items-center gap-2.5 text-sm font-semibold tracking-tight text-(--auth-ink)">
-      <span className="grid size-8 place-items-center rounded-md bg-(--auth-ink) text-(--auth-canvas)">
-        <Link2 aria-hidden="true" size={17} strokeWidth={2.25} />
-      </span>
-      TinyRoute
-    </div>
-  );
 }
 
 export function RegistrationForm({
@@ -333,6 +324,15 @@ export function RegistrationForm({
         </button>
       </form>
       <GoogleSignInButton />
+      <p className="mt-6 text-center text-sm text-(--auth-ink-muted)">
+        Already have an account?{" "}
+        <Link
+          className="rounded-sm font-semibold text-(--auth-ink) underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas)"
+          href="/login"
+        >
+          Sign in
+        </Link>
+      </p>
     </section>
   );
 }

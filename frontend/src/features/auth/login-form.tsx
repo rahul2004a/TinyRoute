@@ -2,12 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ApiClientError } from "../../lib/api-client";
+import { AuthBrand } from "./auth-brand";
 import { fetchCsrfToken, login } from "./auth-api";
 import { GoogleSignInButton } from "./google-sign-in-button";
 import { LogoutButton } from "./logout-button";
@@ -32,8 +34,8 @@ function loginErrorMessage(error: unknown): string {
   return "We couldn't sign you in. Check your email and password and try again.";
 }
 
-function inputClassName(hasError: boolean) {
-  return `mt-2 block min-h-11 w-full rounded-lg border bg-(--auth-surface) px-3 py-2 text-base text-(--auth-ink) outline-none transition placeholder:text-(--auth-ink-muted) focus-visible:border-(--auth-primary) focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas) ${
+function inputClassName(hasError: boolean, hasTopMargin = true) {
+  return `${hasTopMargin ? "mt-2 " : ""}block min-h-11 w-full rounded-lg border bg-(--auth-surface) px-3 py-2 text-base text-(--auth-ink) outline-none transition placeholder:text-(--auth-ink-muted) focus-visible:border-(--auth-primary) focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas) ${
     hasError ? "border-(--auth-danger)" : "border-(--auth-border)"
   }`;
 }
@@ -45,6 +47,7 @@ export function LoginForm({
   const session = useSession();
   const [submissionError, setSubmissionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const form = useForm<LoginValues>({
     defaultValues: { email: "", password: "" },
     resolver: zodResolver(loginSchema),
@@ -72,6 +75,7 @@ export function LoginForm({
   if (session.data?.authenticated) {
     return (
       <section aria-labelledby="signed-in-title" className="w-full max-w-md">
+        <AuthBrand />
         <h1
           className="text-3xl font-semibold tracking-[-0.8px] text-(--auth-ink) sm:text-4xl"
           id="signed-in-title"
@@ -97,6 +101,7 @@ export function LoginForm({
 
   return (
     <section aria-labelledby="login-title" className="w-full max-w-md">
+      <AuthBrand />
       <h1
         className="text-3xl font-semibold tracking-[-0.8px] text-(--auth-ink) sm:text-4xl"
         id="login-title"
@@ -162,17 +167,32 @@ export function LoginForm({
           >
             Password
           </label>
-          <input
-            aria-describedby={
-              form.formState.errors.password ? "password-error" : undefined
-            }
-            aria-invalid={Boolean(form.formState.errors.password)}
-            autoComplete="current-password"
-            className={inputClassName(Boolean(form.formState.errors.password))}
-            id="password"
-            type="password"
-            {...form.register("password")}
-          />
+          <div className="relative mt-2">
+            <input
+              aria-describedby={
+                form.formState.errors.password ? "password-error" : undefined
+              }
+              aria-invalid={Boolean(form.formState.errors.password)}
+              autoComplete="current-password"
+              className={`${inputClassName(Boolean(form.formState.errors.password), false)} pr-12`}
+              id="password"
+              type={isPasswordVisible ? "text" : "password"}
+              {...form.register("password")}
+            />
+            <button
+              aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+              aria-pressed={isPasswordVisible}
+              className="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-md text-(--auth-ink-muted) transition hover:text-(--auth-ink) focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas)"
+              onClick={() => setIsPasswordVisible((visible) => !visible)}
+              type="button"
+            >
+              {isPasswordVisible ? (
+                <EyeOff aria-hidden="true" size={18} />
+              ) : (
+                <Eye aria-hidden="true" size={18} />
+              )}
+            </button>
+          </div>
           {form.formState.errors.password ? (
             <p
               className="mt-2 text-sm text-(--auth-danger)"
@@ -197,6 +217,15 @@ export function LoginForm({
         Forgot password?
       </Link>
       <GoogleSignInButton />
+      <p className="mt-6 text-center text-sm text-(--auth-ink-muted)">
+        New to TinyRoute?{" "}
+        <Link
+          className="rounded-sm font-semibold text-(--auth-ink) underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas)"
+          href="/register"
+        >
+          Create an account
+        </Link>
+      </p>
     </section>
   );
 }

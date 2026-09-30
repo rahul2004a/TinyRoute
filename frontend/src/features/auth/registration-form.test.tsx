@@ -80,6 +80,15 @@ describe("RegistrationForm", () => {
     ).toBe("https://api.tinyroute.test/api/auth/google/start");
   });
 
+  it("links existing account holders to sign in", () => {
+    renderRegistrationForm();
+
+    expect(screen.getByText(/Already have an account/)).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Sign in" }).getAttribute("href"),
+    ).toBe("/login");
+  });
+
   it("submits accessible email and password fields with a CSRF token and shows the same generic success message", async () => {
     const user = userEvent.setup();
     renderRegistrationForm();
