@@ -35,9 +35,9 @@ export function Providers({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <ThemeProvider
       attribute="data-theme"
-      defaultTheme="system"
-      disableTransitionOnChange
-      enableSystem
+      defaultTheme="dark"
+      enableSystem={false}
+      storageKey="tinyroute-color-theme"
     >
       <QueryClientProvider client={getQueryClient()}>
         <ThemeSelector />

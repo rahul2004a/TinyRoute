@@ -125,7 +125,7 @@ token as durable application data.
    do not receive API-host authentication cookies. (NFR-SEC-01, NFR-SEC-06;
    ADR 0003)
 11. Authentication UI works with keyboard and screen reader, visibly focuses
-   controls, announces errors and session changes, works in light/dark/system
+   controls, announces errors and session changes, works in light/dark
    themes, and remains usable at 320px through 1440px. (DESIGN.md)
 
 ## Architecture and contracts

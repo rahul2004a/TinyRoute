@@ -48,29 +48,50 @@ describe("Providers", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("offers keyboard-accessible system, light, and dark theme choices", async () => {
+  it("toggles between dark and light with a keyboard-accessible button and persists the choice", async () => {
     const user = userEvent.setup();
 
-    render(
+    const view = render(
       <Providers>
         <QueryClientProbe />
       </Providers>,
     );
 
-    const themeSelect = await screen.findByLabelText("Theme");
-    await waitFor(() => {
-      expect((themeSelect as HTMLSelectElement).disabled).toBe(false);
+    const toggle = await screen.findByRole("button", {
+      name: "Switch to light mode",
     });
+    await waitFor(() => {
+      expect((toggle as HTMLButtonElement).disabled).toBe(false);
+      expect(document.documentElement.dataset.theme).toBe("dark");
+    });
+
+    await user.tab();
+    expect(document.activeElement).toBe(toggle);
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe("light");
+    });
+    expect(localStorage.getItem("tinyroute-color-theme")).toBe("light");
     expect(
-      Array.from((themeSelect as HTMLSelectElement).options).map(
-        ({ value }) => value,
-      ),
-    ).toEqual(["system", "light", "dark"]);
+      screen.getByRole("button", { name: "Switch to dark mode" }),
+    ).toBeTruthy();
 
-    await user.selectOptions(themeSelect, "dark");
-
+    view.unmount();
+    render(
+      <Providers>
+        <QueryClientProbe />
+      </Providers>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Switch to dark mode" }),
+    ).toBeTruthy();
+    await user.click(
+      screen.getByRole("button", { name: "Switch to dark mode" }),
+    );
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe("dark");
     });
+    expect(localStorage.getItem("tinyroute-color-theme")).toBe("dark");
   });
 });
