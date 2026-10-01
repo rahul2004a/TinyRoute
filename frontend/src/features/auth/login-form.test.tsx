@@ -109,7 +109,41 @@ describe("LoginForm", () => {
     renderLoginForm();
 
     expect(await screen.findByRole("button", { name: "Sign in" })).toBeTruthy();
+    expect(screen.getByText("TinyRoute")).toBeTruthy();
     expect(screen.queryByText(/^Signed in as /)).toBeNull();
+  });
+
+  it("reveals and hides the entered password without changing it", async () => {
+    const user = userEvent.setup();
+    renderLoginForm();
+
+    const password = await screen.findByLabelText("Password");
+    await user.type(password, "correct-horse-battery");
+    expect(password.getAttribute("type")).toBe("password");
+
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+    expect(password.getAttribute("type")).toBe("text");
+    expect((password as HTMLInputElement).value).toBe("correct-horse-battery");
+    expect(
+      screen
+        .getByRole("button", { name: "Hide password" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+
+    await user.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(password.getAttribute("type")).toBe("password");
+    expect((password as HTMLInputElement).value).toBe("correct-horse-battery");
+  });
+
+  it("links new visitors to account creation", async () => {
+    renderLoginForm();
+
+    expect(await screen.findByText(/New to TinyRoute/)).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Create an account" })
+        .getAttribute("href"),
+    ).toBe("/register");
   });
 
   it("presents the fixed Google callback failure without provider details", async () => {

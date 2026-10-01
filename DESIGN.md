@@ -78,8 +78,9 @@ calm, precise, trust-first visual language.
 Use restrained charcoal surfaces, warm-paper contrast, crisp typography, and
 sparse olive-grey borders. Marketing may use an asymmetric split hero with a real
 TinyRoute UI or screenshot. Product screens prioritize scanning and task
-completion. Use next-themes with `data-theme` for light, dark, and system
-preference without switching theme families between sections.
+completion. Use next-themes with `data-theme` for light and dark modes, defaulting
+to dark. Persist the choice and use a single sun/moon toggle without changing
+theme families between sections.
 
 ## 2. Color palette and roles
 
@@ -92,6 +93,21 @@ neon glow, or a second accent. Verify WCAG AA contrast in both themes.
 
 ```css
 :root {
+  color-scheme: dark;
+  --canvas: #1e201e;
+  --surface-1: #3c3d37;
+  --surface-2: #3c3d37;
+  --surface-3: #697565;
+  --border: #697565;
+  --border-strong: #ecdfcc;
+  --ink: #ecdfcc;
+  --ink-muted: #ecdfcc;
+  --primary: #ecdfcc;
+  --primary-hover: #ffffff;
+  --on-primary: #1e201e;
+}
+
+:root[data-theme="light"] {
   color-scheme: light;
   --canvas: #ecdfcc;
   --surface-1: #ecdfcc;
@@ -104,23 +120,6 @@ neon glow, or a second accent. Verify WCAG AA contrast in both themes.
   --primary: #1e201e;
   --primary-hover: #3c3d37;
   --on-primary: #ecdfcc;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --canvas: #1e201e;
-    --surface-1: #3c3d37;
-    --surface-2: #3c3d37;
-    --surface-3: #697565;
-    --border: #697565;
-    --border-strong: #ecdfcc;
-    --ink: #ecdfcc;
-    --ink-muted: #ecdfcc;
-    --primary: #ecdfcc;
-    --primary-hover: #ffffff;
-    --on-primary: #1e201e;
-  }
 }
 ```
 
@@ -288,7 +287,7 @@ when labels would wrap. Dialogs stay within the dynamic viewport. Long URLs may
 truncate visually, but copy and reveal controls retain the complete value.
 
 All workflows must be keyboard operable. Announce errors, copy success,
-asynchronous completion, and session changes. Test light, dark, and system
-themes at 320px, 768px, 1024px, and 1440px. Verify focus order, dialog focus,
+asynchronous completion, and session changes. Test light and dark themes at
+320px, 768px, 1024px, and 1440px. Verify focus order, dialog focus,
 screen-reader names and states, contrast, loading and failure states, no
 horizontal overflow, and no console or accessibility errors.

@@ -30,6 +30,7 @@ const fetchCsrfTokenMock = vi.mocked(fetchCsrfToken);
 const resendRegistrationOtpMock = vi.mocked(resendRegistrationOtp);
 const startRegistrationMock = vi.mocked(startRegistration);
 const verifyRegistrationMock = vi.mocked(verifyRegistration);
+const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 function renderRegistrationForm() {
   const queryClient = new QueryClient({
@@ -49,6 +50,11 @@ function renderRegistrationForm() {
 describe("RegistrationForm", () => {
   afterEach(() => {
     cleanup();
+    if (originalApiBaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_API_BASE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_API_BASE_URL = originalApiBaseUrl;
+    }
   });
 
   beforeEach(() => {
@@ -61,6 +67,26 @@ describe("RegistrationForm", () => {
       authenticated: true,
       user: { email: "person@example.com" },
     });
+  });
+
+  it("offers Google account creation through the backend authorization flow", () => {
+    process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.tinyroute.test";
+    renderRegistrationForm();
+
+    expect(
+      screen
+        .getByRole("link", { name: "Continue with Google" })
+        .getAttribute("href"),
+    ).toBe("https://api.tinyroute.test/api/auth/google/start");
+  });
+
+  it("links existing account holders to sign in", () => {
+    renderRegistrationForm();
+
+    expect(screen.getByText(/Already have an account/)).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Sign in" }).getAttribute("href"),
+    ).toBe("/login");
   });
 
   it("submits accessible email and password fields with a CSRF token and shows the same generic success message", async () => {

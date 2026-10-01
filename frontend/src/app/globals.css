@@ -2,25 +2,6 @@
 @import "tw-animate-css";
 
 :root {
-  --canvas: #ecdfcc;
-  --surface-1: #ecdfcc;
-  --surface-2: #ecdfcc;
-  --surface-3: #ecdfcc;
-  --border: #697565;
-  --border-strong: #3c3d37;
-  --ink: #1e201e;
-  --ink-muted: #3c3d37;
-  --primary: #1e201e;
-  --primary-hover: #3c3d37;
-  --on-primary: #ecdfcc;
-  --danger: #b91c1c;
-  --background: var(--canvas);
-  --foreground: var(--ink);
-  --muted-text: var(--ink-muted);
-  --accent: var(--primary);
-}
-
-:root[data-theme="dark"] {
   color-scheme: dark;
   --canvas: #1e201e;
   --surface-1: #3c3d37;
@@ -34,24 +15,26 @@
   --primary-hover: #ffffff;
   --on-primary: #1e201e;
   --danger: #f87171;
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --muted-text: var(--ink-muted);
+  --accent: var(--primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --canvas: #1e201e;
-    --surface-1: #3c3d37;
-    --surface-2: #3c3d37;
-    --surface-3: #697565;
-    --border: #697565;
-    --border-strong: #ecdfcc;
-    --ink: #ecdfcc;
-    --ink-muted: #ecdfcc;
-    --primary: #ecdfcc;
-    --primary-hover: #ffffff;
-    --on-primary: #1e201e;
-    --danger: #f87171;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #ecdfcc;
+  --surface-1: #ecdfcc;
+  --surface-2: #ecdfcc;
+  --surface-3: #ecdfcc;
+  --border: #697565;
+  --border-strong: #3c3d37;
+  --ink: #1e201e;
+  --ink-muted: #3c3d37;
+  --primary: #1e201e;
+  --primary-hover: #3c3d37;
+  --on-primary: #ecdfcc;
+  --danger: #b91c1c;
 }
 
 .auth-shell {

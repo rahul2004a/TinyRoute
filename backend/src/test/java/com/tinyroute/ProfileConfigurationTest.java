@@ -89,6 +89,15 @@ class ProfileConfigurationTest {
                 .containsEntry("server.ssl.certificate-private-key", "${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}");
     }
 
+    @Test
+    void developmentGoogleCallbackDefaultsToLocalHttpsApi() {
+        Properties properties = loadProperties("application-dev.yml");
+
+        assertThat(properties)
+                .containsEntry("tinyroute.oauth.google.redirect-uri",
+                        "${GOOGLE_REDIRECT_URI:https://localhost:8443/api/auth/google/callback}");
+    }
+
     private Properties loadProperties(String fileName) {
         ClassPathResource resource = new ClassPathResource(fileName);
         assertThat(resource.exists()).isTrue();

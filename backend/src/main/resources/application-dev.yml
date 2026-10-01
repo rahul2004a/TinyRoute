@@ -41,6 +41,6 @@ tinyroute:
     google:
       client-id: ${GOOGLE_CLIENT_ID:local-dev-google-client-id}
       client-secret: ${GOOGLE_CLIENT_SECRET:local-dev-google-client-secret}
-      redirect-uri: ${GOOGLE_REDIRECT_URI:https://api.tinyroute.local/api/auth/google/callback}
+      redirect-uri: ${GOOGLE_REDIRECT_URI:https://localhost:8443/api/auth/google/callback}
       success-uri: ${GOOGLE_SUCCESS_URI:https://localhost:3000/links}
       failure-uri: ${GOOGLE_FAILURE_URI:https://localhost:3000/login?error=oauth_failed}

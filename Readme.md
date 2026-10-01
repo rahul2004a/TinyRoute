@@ -188,6 +188,12 @@ not PEM text.
 From the repository root, create and trust a local certificate, then start both
 applications over HTTPS:
 
+For Google sign-in, create a Google OAuth client of type **Web application** and
+add `https://localhost:8443/api/auth/google/callback` to its authorized redirect
+URIs. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the backend's exported
+environment. The redirect URI in Google Cloud must exactly match the backend's
+`GOOGLE_REDIRECT_URI`, including scheme, port, and path.
+
 ```sh
 TRUST_STORES=system mkcert -install
 mkdir -p .local-certs
