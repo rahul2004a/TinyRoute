@@ -16,10 +16,15 @@ provisioning automation. Implementation must add and verify:
   HTTP-to-HTTPS routing, safe forwarded headers, and private operational routes.
 - A restricted release command that accepts an approved backend image digest,
   checks Flyway/startup health, records releases, and supports manual rollback.
-- A bounded health watchdog, independent encrypted Supabase database export job,
+- A bounded health watchdog, automated daily encrypted Supabase-to-S3 backup job,
   log rotation, and documented VPS rebuild/database restore procedures.
 - GitHub Actions checks, registry publishing, protected SSH backend deployment,
   and Vercel CLI frontend delivery, with pinned action versions.
+
+The [backup contract](../../docs/deployment/supabase-s3-backup.md) specifies a
+separate scheduled host job, private S3 storage, seven-day retention, restricted
+credentials, and restore verification. Backup access belongs only to the backup
+service; never add S3 credentials to the Spring backend environment example.
 
 Root `compose.yml` remains the development datastore stack and must not be
 included, extended, or used as the production base. Production services must

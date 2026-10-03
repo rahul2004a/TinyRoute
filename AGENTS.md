@@ -50,7 +50,12 @@ feature.
   Supabase database access is authenticated, TLS-verified, and source-restricted.
 - Keep future VPS configuration and operational scripts under `infra/vps/`.
   The owner manages patching, restricted SSH, runtime secrets, health recovery,
-  log retention, Redis persistence, and independent daily database exports.
+  log retention, Redis persistence, and automated daily encrypted Supabase
+  application-database exports to a private Amazon S3 bucket. S3 is the backup
+  destination; the application continues to run on Hostinger/Supabase/Vercel.
+  Keep backup credentials separate from backend runtime secrets, retain the
+  seven-day baseline, and verify freshness, integrity, and recovery. See
+  [the backup contract](docs/deployment/supabase-s3-backup.md).
   Record Supabase plan/backup capabilities before release; free-plan inactivity
   pausing cannot be assumed to meet the availability target. Docker restart policies
   recover exited containers; unhealthy running containers need a separate,

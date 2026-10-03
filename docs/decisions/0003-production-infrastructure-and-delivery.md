@@ -73,7 +73,7 @@ Spring's client-address resolver trusts only Caddy's actual peer address.
 | Secrets | Protected host files supply runtime environment variables; secrets never enter Git, image layers, workflow output, or artifacts. |
 | Recovery | Docker restart policies recover exited containers; a bounded watchdog detects an unhealthy running backend without restart loops during datastore outages. |
 | Logs | Bounded, rotated backend/Docker and host logs with 14-day retention; Vercel retains frontend logs according to its configured plan. No sensitive request access logs. |
-| Backup | Owner verifies the Supabase backup plan and schedules daily encrypted application-database exports to independent storage. Hostinger snapshots cover VPS state, not the remote database. Keep the 24-hour RPO and 4-hour RTO. |
+| Backup | A scheduled VPS job automatically exports Supabase application schema/data and Flyway history daily, encrypts the archive, and uploads it to private Amazon S3 with seven-day baseline retention. Backup access is separate from application/release credentials. Owner verifies completion, freshness, integrity, Supabase backup coverage, and restore. Hostinger snapshots cover VPS state only. Keep the 24-hour RPO and 4-hour RTO. |
 | Configuration | Future production Compose, Caddy configuration, release/backup/watchdog scripts, and bootstrap instructions belong under `infra/vps/`. |
 
 The backend, Redis, and certificate volumes share the VPS failure domain.
@@ -84,6 +84,12 @@ application data; Redis and certificate state still need persistent volumes.
 The baseline accepts maintenance interruptions and best-effort 99.5% uptime.
 No automatic failover, redundant host, orchestration cluster, or infrastructure
 provisioning framework is needed for MVP.
+
+Amazon S3 is the independent backup destination; this addition does not restore
+the former backend hosting platform. Daily backup automation is independent of
+application releases and does not require manual approval for each scheduled
+run. Its configuration, encryption-key custody, IAM scope, and restore checks
+are defined in the [backup contract](../deployment/supabase-s3-backup.md).
 
 ## CI/CD policy
 

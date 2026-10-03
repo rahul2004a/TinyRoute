@@ -18,3 +18,11 @@
 - [x] Revise environment examples and high-level diagrams; preserve application/local development configuration.
 - [x] Verify references, requirements, configuration checks, diagram layout, and independent review.
 - [x] Update acceptance/evidence and archive completed revision tasks.
+
+## Automated S3 backup documentation
+
+- [x] Review the clean current branch, backup requirements, and official provider guidance.
+- [x] Align AGENTS, README, architecture/HLD, ADR, NFRs, and infrastructure assumptions with daily encrypted S3 backups.
+- [x] Add the dedicated automation contract covering schedule, access, retention, failure/freshness, and recovery.
+- [x] Verify links, diagrams, unchanged application/configuration, NFR IDs/priorities/releases, and independent review.
+- [x] Record the documentation verification boundary and archive completed tasks.

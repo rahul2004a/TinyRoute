@@ -133,8 +133,12 @@ connection pools to the selected plan's database limits and include cross-host
 latency in NFR-PER-01..03 load tests. Select a plan/backup setup that meets the
 unchanged daily backup, 24-hour RPO, and 4-hour RTO targets. Free-plan pauses
 are a demo limitation, not an assumed always-on production capability. Keep
-independent encrypted database exports; Hostinger snapshots cover VPS state,
-not the Supabase database (NFR-BAK-01..05).
+automated daily encrypted application-database exports to private Amazon S3.
+A separate VPS backup job owns scheduling, upload, and freshness checks; the
+Spring application receives no S3 credentials. AWS is used only for backup
+storage. Hostinger snapshots cover VPS state, not the Supabase database
+(NFR-BAK-01..05). See the
+[backup contract](../deployment/supabase-s3-backup.md).
 
 The existing DNS provider supplies `app.<zone>` for Vercel, `api.<zone>` for
 the Spring API, and `go.<zone>` for public redirects. The latter two point to
@@ -163,9 +167,11 @@ flowchart LR
   subgraph VPS[Hostinger VPS - one location]
     Proxy[Caddy - TLS and routing] -->|Private HTTP| Backend[Spring Boot monolith]
     Backend -->|Private data network| Redis[(Redis - security state and cache)]
+    BackupJob[Daily backup job - export and encrypt]
   end
   Backend -->|JDBC over verified TLS; restricted sources| PG[(Supabase PostgreSQL)]
-  PG -->|Encrypted daily export| Backup[Independent backup storage]
+  PG -->|Verified TLS: daily application export| BackupJob
+  BackupJob -->|HTTPS: encrypted archive| Backup[Private Amazon S3 - seven-day baseline]
   CI[GitHub Actions - approved main release] --> Registry[Private GHCR - image digest]
   CI -->|Host-verified SSH release| VPS
   CI -->|Vercel CLI| UI

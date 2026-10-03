@@ -17,7 +17,10 @@ implementation of the future infrastructure and delivery workflows.
   authentication/ownership policy and disable the unused Supabase Data API.
 - Keep Redis separate from the stateless backend on a private VPS network with
   a persistent volume. Record Supabase backup/plan requirements and independent
-  daily database exports; local PostgreSQL remains a development container.
+  daily automated database exports to private Amazon S3; local PostgreSQL
+  remains a development container. The separate VPS backup job owns scheduling,
+  encryption, upload, retention/freshness checks, and recovery verification;
+  the Spring backend receives no AWS credentials.
 - Keep root `compose.yml` for development datastores only. A future independent
   production definition belongs under `infra/vps/`; it must not extend or use
   development configuration or credentials.
@@ -63,3 +66,10 @@ for this documentation-only concern with configuration comments/examples.
 - [x] Backup/restore, free-plan limitations, latency, and VPS-versus-database failure paths are documented without changing NFR priorities.
 - [x] Spring authentication, ownership policy, Flyway migrations, and development Compose remain unchanged; no browser database access is introduced.
 - [x] Updated diagrams, examples, checks, independent review, and archived task records match the final topology.
+
+## Automated S3 backup documentation acceptance criteria
+
+- [x] Sources of truth and diagrams name private Amazon S3 as the independent backup destination; application hosting remains Hostinger/Supabase/Vercel.
+- [x] The daily automation contract defines scheduling/catch-up, consistent application/Flyway exports, verified TLS, encryption, separate backup access, and sanitized status.
+- [x] Upload completeness/checksums, seven-day baseline retention, failure/freshness handling, and recovery gates are explicit; NFR IDs/priorities/releases and RPO/RTO remain unchanged.
+- [x] Links, diagram geometry, scope, and review pass; the docs distinguish the planned job from runtime implementation/installation.

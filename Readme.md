@@ -269,13 +269,16 @@ Production configuration starts from [the VPS environment example](infra/vps/.en
 not the development `.env`.
 
 The [Hostinger VPS deployment guide](docs/deployment/hostinger-vps.md) defines
-DNS, TLS, firewalls, Supabase connections/backup plans, independent daily database
-exports, runtime secrets, logs, recovery,
+DNS, TLS, firewalls, Supabase connections/backup plans, automated daily encrypted
+database exports to Amazon S3, runtime secrets, logs, recovery,
 and the future GitHub Actions release sequence. Images will be published to
 private GitHub Container Registry and deployed by digest over host-verified
 SSH, with GitHub environment approval. Vercel CLI deployment is retained.
 The guide and examples describe the accepted target; production Compose,
 Docker packaging, release scripts, and workflows remain unimplemented.
+The [Supabase-to-S3 backup contract](docs/deployment/supabase-s3-backup.md)
+defines the daily scheduler, restricted backup identity, retention, and restore
+checks. Its runtime installation remains deployment work.
 
 ## Security model
 

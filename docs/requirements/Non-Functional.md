@@ -78,7 +78,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 | ID         | Requirement      | Target                                                                                                        | Priority | Release |
 | ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| NFR-BAK-01 | Automated backup | Supabase PostgreSQL data is backed up automatically at least daily; verify provider plan coverage and keep encrypted application-database exports in independent storage. | Must     | MVP     |
+| NFR-BAK-01 | Automated backup | An automated job exports Supabase application schema/data and Flyway history at least daily, encrypts the backup, and uploads it to a private Amazon S3 bucket independently of provider backups. Verify completion, freshness, integrity, and provider plan coverage. | Must     | MVP     |
 | NFR-BAK-02 | RPO              | At most 24 hours of data loss. Matched to daily backups; anything tighter is not worth the cost here.         | Must     | MVP     |
 | NFR-BAK-03 | RTO              | Service restored within 4 hours of the owner starting recovery, following a written runbook.                  | Must     | MVP     |
 | NFR-BAK-04 | Restore test     | A restore into a clean environment is performed and documented at least once before calling the project done. | Must     | V1      |
@@ -147,7 +147,7 @@ These are sized so the project is interesting to discuss without needing expensi
 3. Monthly hosting budget is small; every target is chosen to fit low-cost tiers.
 4. Real traffic will be minimal. Throughput numbers are validated by load tests, not production traffic.
 5. No formal compliance obligations, since there are no real customers or paid users.
-6. Daily encrypted application-database exports from Supabase are scheduled by the owner and copied to independent storage. The baseline retains exports for 7 days; NFR-BAK-05's acceptance priority remains V1. Verify Supabase backup coverage and recovery; Hostinger snapshots cover VPS state only.
+6. A scheduled VPS backup job automatically exports Supabase application schema/data and Flyway history, encrypts the export, and uploads it to private Amazon S3 at least daily. The baseline retains exports for 7 days; NFR-BAK-05's acceptance priority remains V1. Verify Supabase backup coverage and recovery; Hostinger snapshots cover VPS state only. AWS is used for backup storage only.
 
 ## 14. Open Questions
 

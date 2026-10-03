@@ -35,7 +35,7 @@ its own configuration, networks, volumes, credentials, and runtime verification.
   [Supabase's production checklist](https://supabase.com/docs/guides/deployment/going-into-prod).
 - Retain a custom domain with `app`, `api`, and `go` subdomains under the same
   registered domain. Use the existing DNS provider; no particular DNS host is
-  required. Configure Vercel's app domain and an independent backup destination.
+  required. Configure Vercel's app domain and a private Amazon S3 backup bucket.
 - Prepare operator SSH keys, a restricted deployment account, verified SSH host
   keys, private registry access, production SMTP, Google OAuth registration,
   JWT keys, and exact environment values before first release.
@@ -196,18 +196,22 @@ provide daily backups; free projects need owner-scheduled exports. Provider
 backup access, retention, and restore behavior must be checked for the actual
 project. See [Supabase database backups](https://supabase.com/docs/guides/platform/backups).
 
-Keep a consistent TinyRoute application-database export at least daily, encrypt
-it, and copy it to independent storage outside both the VPS and the Supabase
-project. A controlled export job can run from the VPS using an approved direct
-or session connection; never put production credentials in PR CI. Capture
-application schema/data and Flyway history plus necessary role/grant/rebuild
-information; do not overwrite Supabase-managed schemas or roles during restore.
-Keep connection credentials and encryption-key custody separately protected.
-Check completion, freshness,
-integrity, disk use, and the ability to retrieve the backup. Record retention:
-NFR-BAK-05 targets at least 7 days in V1; ensure expired copies and restored
-personal data follow NFR-PRV-04. The baseline keeps daily exports for 7 days.
-The backup destination and encryption-key custody must be chosen before release.
+Run an automated daily job on the VPS that creates a consistent TinyRoute
+application-database export, encrypts it, and uploads it over HTTPS to a private
+Amazon S3 bucket outside both the VPS and the Supabase project. Use an approved
+direct or session connection with verified TLS. Capture application schema/data
+and Flyway history plus separately maintained role/grant/rebuild information;
+do not overwrite Supabase-managed schemas or roles during restore. Keep backup
+credentials separate from backend/release credentials and PR CI.
+
+The [Supabase-to-S3 backup contract](supabase-s3-backup.md) specifies the daily
+timer, failure/retry behavior, encrypted upload, private bucket/IAM settings,
+and retrieval/restore gates. Keep decryption-key custody outside the VPS and
+bucket. Check completion, freshness, integrity, disk use, and retrieval. The
+baseline retains daily exports for at least 7 days through S3 lifecycle rules;
+NFR-BAK-05's acceptance priority remains V1. Ensure expired copies and restored
+personal data follow NFR-PRV-04. Select and provision the actual bucket, region,
+backup identity, and encryption recipient before installing the job.
 
 Hostinger backups and snapshots are supplemental VPS-recovery aids. They contain
 no Supabase PostgreSQL data. Verify the purchased schedule and retention;
@@ -359,7 +363,7 @@ Before first production release, record evidence for:
   exited-container recovery, and bounded unhealthy-container recovery.
 - Verified database TLS/CA and source restrictions, appropriate connection mode
   and pool bounds, and disabled Supabase Data API with no browser database access.
-- Supabase backup coverage, independent encrypted export retrieval, separate
+- Supabase backup coverage, automated daily encrypted S3 upload and retrieval, separate
   VPS/database restore procedures, protected
   secret custody, sanitized logs, disk bounds, and retention settings.
 - Passing CI checks, production approval/concurrency, immutable delivery,

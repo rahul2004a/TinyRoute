@@ -67,3 +67,15 @@ configuration examples; specification and verification record.
 - [x] Update both high-level diagrams and the production environment example, leaving Spring behavior and class diagrams unchanged.
 - [x] Check relevant links, NFR priorities, environment names, and diagram geometry; run existing profile/Compose checks and independent review.
 - [x] Record results, complete revised acceptance criteria, and archive the extended plan/checklist.
+
+### Task 5: Specify automated daily Supabase-to-S3 backups
+
+**Files:** Deployment sources from Tasks 1-4; create
+`docs/deployment/supabase-s3-backup.md`; update HLD/architecture diagram and
+specification/verification records.
+
+- [x] Select private Amazon S3 as the independent backup destination without changing application hosting.
+- [x] Specify a separate daily VPS scheduler, consistent application/Flyway export, verified TLS, client-side encryption, and isolated backup credentials.
+- [x] Define S3 access, checksum/completion gates, retention, failure/freshness handling, and restore acceptance.
+- [x] Update sources of truth and diagrams; verify links, scope, NFR assignments, and review.
+- [x] Record evidence and archive completed documentation tasks. Runtime script implementation and installation remain separately identified work.
