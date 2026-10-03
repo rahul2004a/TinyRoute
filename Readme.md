@@ -40,14 +40,18 @@ security, reliability, privacy, and delivery targets live in
 Browser (Next.js / Vercel)
   │  credentialed HTTPS + CSRF header
   ▼
-Spring Boot API (AWS ECS Fargate, planned)
+Caddy HTTPS ingress (Hostinger VPS, planned)
+  │  private HTTP; API and public redirect hosts
+  ▼
+Spring Boot API (Docker on the VPS, planned)
   ├── Controllers: HTTP translation only
   ├── Services: policy, transactions, ownership
   ├── JPA repositories: PostgreSQL system of record
   └── Redis adapters: refresh sessions, JWT revocation, rate limits, redirect cache
        │                         │
        ▼                         ▼
-  PostgreSQL                  Redis
+  Supabase PostgreSQL         Redis container
+  (remote JDBC over TLS)      (private VPS network + persistent volume)
 ```
 
 Next.js is an HTTP client only. It does not proxy ordinary API calls, handle the
@@ -67,11 +71,11 @@ are [ADR 0001](docs/decisions/0001-frontend-stack.md),
 | Frontend                          | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui on Radix UI           |
 | Frontend data and testing         | TanStack Query, React Hook Form + Zod, Vitest/RTL, Playwright                        |
 | Backend                           | Java 21, Spring Boot, Spring Web MVC, Spring Security, Spring Data JPA/Hibernate     |
-| Durable data                      | PostgreSQL with Flyway migrations                                                    |
+| Durable data                      | Supabase managed PostgreSQL in production; PostgreSQL with Flyway migrations          |
 | Ephemeral security and cache data | Redis for refresh sessions, JWT revocations, rate limits, and redirect cache         |
 | Security                          | Argon2id, Spring Security JOSE/Nimbus JWT, OAuth2 Client, CSRF, CORS, secure cookies |
 | Local infrastructure              | Docker Compose: PostgreSQL and Redis only                                            |
-| Production target                 | Vercel frontend; Spring Boot on ECS Fargate in `ap-south-1` (planned)                |
+| Production target                 | Vercel frontend; Hostinger VPS for Spring Boot, Redis, and Caddy; Supabase PostgreSQL (planned) |
 
 ## Repository guide
 
@@ -89,10 +93,12 @@ backend/                         Spring Boot API and its tests
     db/migration/                Flyway schema migrations
     application*.yml             shared, dev, and prod configuration
 frontend/                        Next.js application, tests, and UI foundations
+infra/vps/                       planned VPS runtime boundary and environment example
 docs/
   requirements/                  product and quality requirements
   architecture/                  authoritative system design and diagrams
   decisions/                     accepted architecture decisions
+  deployment/                    VPS operations and future CI/CD instructions
   spec/                          feature specifications and contracts
 tasks/                           active plan and checklist for the current feature
 compose.yml                      local PostgreSQL and Redis only
@@ -142,8 +148,8 @@ pnpm --dir frontend build
 ### Runtime configuration
 
 Spring profiles are never hard-coded. Use `SPRING_PROFILES_ACTIVE=dev` for local
-infrastructure and `SPRING_PROFILES_ACTIVE=prod` only with private production
-endpoints and externally supplied secrets. `application-dev.yml` reads the
+infrastructure and `SPRING_PROFILES_ACTIVE=prod` with the production Supabase
+endpoint, private Redis, and externally supplied secrets. `application-dev.yml` reads the
 Compose ports on localhost; `application-prod.yml` expects every endpoint and
 secret from the environment.
 
@@ -166,9 +172,9 @@ The backend configuration names are explicit:
 
 | Concern | Development and production environment variables |
 | --- | --- |
-| Profile/process | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating ALB) |
+| Profile/process | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating Caddy proxy) |
 | PostgreSQL | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` |
-| Redis | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT` |
+| Redis | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT`, and Spring's `SPRING_DATA_REDIS_PASSWORD` for the private Redis service |
 | Browser/security | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For` |
 | JWT | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
 | Mail | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI` |
@@ -247,12 +253,32 @@ For a fresh frontend checkout, copy `frontend/.env.example` to
 `frontend/.env.local` before starting Next. Existing `.env.local` settings
 should be preserved.
 
-For production, use `SPRING_PROFILES_ACTIVE=prod`, private PostgreSQL and Redis
-endpoints, a cryptographically random rate-limit HMAC secret, SMTP authentication
+For production, use `SPRING_PROFILES_ACTIVE=prod`, a Supabase PostgreSQL JDBC
+endpoint with verified TLS and source-IP restrictions, a private VPS Redis
+endpoint, a cryptographically random rate-limit HMAC secret, SMTP authentication
 with STARTTLS enabled, exact `https://app.<zone>` / `https://api.<zone>` origins,
-and environment-managed JWT key material. The AWS load balancer terminates
-public TLS; the private ECS target listens on `SERVER_PORT` and must not be
-publicly reachable.
+and environment-managed JWT key material. Caddy on the Hostinger VPS terminates
+public TLS; the private backend container listens on `SERVER_PORT` and must not
+be publicly reachable. Supabase stores PostgreSQL data outside the VPS; Redis
+uses its own persistent VPS volume, independent of backend releases. Use a
+direct database connection when reachable or the session pooler on port `5432`.
+Mount the Supabase CA certificate for `sslmode=verify-full`; copy the actual
+host/role from the project's Connect panel. Keep Spring authentication, JPA,
+Flyway, and `ddl-auto: validate`; disable the unused Supabase Data API.
+Production configuration starts from [the VPS environment example](infra/vps/.env.example),
+not the development `.env`.
+
+The [Hostinger VPS deployment guide](docs/deployment/hostinger-vps.md) defines
+DNS, TLS, firewalls, Supabase connections/backup plans, automated daily encrypted
+database exports to Amazon S3, runtime secrets, logs, recovery,
+and the future GitHub Actions release sequence. Images will be published to
+private GitHub Container Registry and deployed by digest over host-verified
+SSH, with GitHub environment approval. Vercel CLI deployment is retained.
+The guide and examples describe the accepted target; production Compose,
+Docker packaging, release scripts, and workflows remain unimplemented.
+The [Supabase-to-S3 backup contract](docs/deployment/supabase-s3-backup.md)
+defines the daily scheduler, restricted backup identity, retention, and restore
+checks. Its runtime installation remains deployment work.
 
 ## Security model
 
@@ -281,6 +307,7 @@ The exact API and cookie rules for the active authentication feature are in
 | [Functional requirements](docs/requirements/Functional.md)                        | Product behavior, MVP scope, and requirement IDs                         |
 | [Non-functional requirements](docs/requirements/Non-Functional.md)                | Performance, security, reliability, privacy, and deployability targets   |
 | [Architecture](docs/architecture/architecture.md)                                 | System boundaries, configuration, deployment topology, and design rules  |
+| [Hostinger VPS deployment](docs/deployment/hostinger-vps.md)                       | Production prerequisites, operations, CI/CD, and release checks          |
 | [Account-authentication specification](docs/spec/account-authentication/spec.md)  | Current feature intent, acceptance criteria, and implementation approach |
 | [Account-authentication contracts](docs/spec/account-authentication/contracts.md) | HTTP, cookie, JWT, CSRF, OAuth, and session semantics                    |
 | [Authentication checklist](docs/spec/account-authentication/todo.md)             | Completed tasks and acceptance checks for authentication                |

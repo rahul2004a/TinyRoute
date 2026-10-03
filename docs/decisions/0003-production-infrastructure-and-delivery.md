@@ -1,143 +1,177 @@
 # ADR 0003: Production infrastructure and delivery
 
-- Status: Accepted
+- Status: Accepted; revised for Hostinger VPS and Supabase PostgreSQL
 - Date: 2026-09-14
+- Updated: 2026-10-03
 - Owners: TinyRoute maintainers
-- Implementation status: Future work; this record does not provision resources
-  or add deployment workflows.
+- Implementation status: Planned. The deployment guide and environment example
+  exist; runtime infrastructure, Docker packaging, and deployment workflows do not.
 
 ## Context
 
-TinyRoute needs a production topology and delivery contract before application
-bootstrap. The solution must remain understandable for one developer, keep the
-Spring Boot backend and datastores private, avoid static AWS credentials, and
-satisfy NFR-SEC-01/03/11/12 and NFR-DEP-01/05..09. The frontend hosting decision
-in this record supersedes only the frontend-container detail in ADR 0001.
+TinyRoute needs a small production topology that one developer can afford and
+operate. The hosting plan uses a Hostinger VPS and Supabase managed PostgreSQL.
+Preserve the Spring Boot
+monolith, PostgreSQL/Redis responsibilities, Vercel frontend, host-only cookies,
+and existing APIs. Replace the platform-specific infrastructure and delivery
+contract while retaining NFR-SEC-01/03/11/12 and NFR-DEP-01/05..09.
+
+The frontend hosting decision still supersedes only the frontend-container
+detail in ADR 0001. This revision changes deployment and operations, not the
+application technology choices in ADR 0001/0002 or functional scope.
 
 ## Decision
 
-Host the Next.js frontend on Vercel. A future GitHub Actions workflow will use
-the Vercel CLI for preview deployments from trusted pull requests and production
-deployments from `main`. `VERCEL_TOKEN` is a GitHub secret; Vercel organization
-and project identifiers are non-secret repository variables. Vercel is not
-managed by the AWS Terraform configuration.
+Keep Next.js on Vercel and deploy it through GitHub Actions using the Vercel CLI.
+Production releases come from protected `main` after GitHub environment approval.
+Trusted frontend previews must use isolated configuration and never production
+credentials or a broader production CORS allowlist.
 
-Host the Spring Boot backend on Amazon ECS Fargate in `ap-south-1`. Package it
-as one reproducible Docker image, push immutable commit-addressed images to a
-private Amazon ECR repository, and deploy by image digest. ECS deployment
-failure detection provides automatic rollback. CloudWatch receives backend
-container logs.
+Run the Spring Boot Docker image, Redis, and Caddy on one Hostinger
+Linux VPS in one selected location, with PostgreSQL hosted in a nearby Supabase
+project. Use an independent production Compose
+configuration under `infra/vps/`; root `compose.yml` remains exclusively for
+local development and is never used as a production base. Pin infrastructure
+images and Docker build inputs. Publish the backend image to private GitHub
+Container Registry and release the verified image by digest.
 
-Use an existing Route53 hosted zone with three hostnames:
+Use the existing DNS provider and preserve three hostnames:
 
 - `app.<zone>` points to Vercel.
-- `api.<zone>` points to the AWS Application Load Balancer for Spring APIs.
-- `go.<zone>` points to the same load balancer for public `/{code}` redirects.
+- `api.<zone>` points to the VPS for Spring APIs.
+- `go.<zone>` points to the same VPS for public `/{code}` redirects.
 
-Vercel terminates TLS for `app.<zone>`. ACM and the load balancer terminate TLS
-for `api.<zone>` and `go.<zone>`; HTTP redirects to HTTPS. The browser calls the
-API with credentials from the exact allowed `app.<zone>` origin. Authentication
-cookies are host-only to `api.<zone>` so public redirect requests do not carry
-them. Spring Boot remains authoritative for CORS, CSRF, authentication, and all
-product policy.
+Vercel terminates app TLS. Caddy terminates API/redirect TLS, renews certificates,
+and redirects HTTP to HTTPS. It forwards over a private ingress network to
+Spring Boot. Redis uses a separate private data network; only the backend joins
+both networks. No backend or Redis ports are published. PostgreSQL is reached
+at Supabase's provider-hosted endpoint using JDBC over verified TLS, with
+database source-IP restrictions for the actual VPS egress addresses and approved
+recovery sources. Outbound access supports Supabase, Google OAuth, SMTP,
+certificate renewal, and image pulls.
 
-Provision the AWS platform with Terraform using this structure:
+Use a direct PostgreSQL connection when reachable from the container, or the
+session pooler on port `5432` for IPv4 connectivity. Keep connection pools within
+the selected database plan's limits. Spring authentication, authorization,
+JPA, Flyway, and `ddl-auto: validate` remain authoritative. Supabase is used
+only as managed PostgreSQL; disable its unused Data API. The frontend continues
+to call Spring APIs (NFR-SEC-12, FR-MGT-02).
 
-```text
-infra/terraform/
-├── modules/
-│   ├── network/
-│   ├── edge/
-│   ├── database/
-│   ├── cache/
-│   └── backend-platform/
-└── environments/
-    └── prod/
-```
+Authentication cookies remain host-only to `api.<zone>`. Spring Boot remains
+responsible for exact-origin credentialed CORS, CSRF, authentication, ownership,
+rate limits, and redirects. Caddy replaces untrusted forwarded headers and
+Spring's client-address resolver trusts only Caddy's actual peer address.
 
-The module responsibilities are:
+## Infrastructure and operations contract
 
-| Module | Responsibility |
+| Concern | VPS responsibility |
 | --- | --- |
-| `network` | Two-AZ VPC, public load-balancer subnets, private ECS subnets, isolated data subnets, one NAT Gateway, routing, and an S3 gateway endpoint. |
-| `edge` | ACM validation, HTTPS load balancer, HTTP-to-HTTPS redirect, Route53 records, target group, and restrictive security groups. |
-| `database` | Lean single-AZ encrypted RDS PostgreSQL instance, isolated subnet group, private access from ECS only, daily backups, and managed master credentials. |
-| `cache` | Lean single-node encrypted ElastiCache for Redis OSS deployment in isolated subnets, reachable from ECS only. |
-| `backend-platform` | ECS cluster, backend ECR repository, task/execution IAM roles, and CloudWatch log groups. Application task definitions and services wait for a real backend image. |
+| Host | Owner provisions the VPS, selects location/capacity, patches Linux and Docker, and documents rebuild steps. |
+| Ingress | Caddy exposes TCP 80/443; provider and Docker-aware host firewalls restrict SSH to approved sources. |
+| PostgreSQL | Supabase-managed durable data outside the VPS; verified JDBC TLS, restricted source IPs, existing Flyway migrations, verified provider backup capabilities, and independent daily encrypted exports. |
+| Redis | Private access, runtime authentication, persistent operational state across routine restarts; never the system of record. Lost security state requires safe invalidation before resuming auth. |
+| Secrets | Protected host files supply runtime environment variables; secrets never enter Git, image layers, workflow output, or artifacts. |
+| Recovery | Docker restart policies recover exited containers; a bounded watchdog detects an unhealthy running backend without restart loops during datastore outages. |
+| Logs | Bounded, rotated backend/Docker and host logs with 14-day retention; Vercel retains frontend logs according to its configured plan. No sensitive request access logs. |
+| Backup | A scheduled VPS job automatically exports Supabase application schema/data and Flyway history daily, encrypts the archive, and uploads it to private Amazon S3 with seven-day baseline retention. Backup access is separate from application/release credentials. Owner verifies completion, freshness, integrity, Supabase backup coverage, and restore. Hostinger snapshots cover VPS state only. Keep the 24-hour RPO and 4-hour RTO. |
+| Configuration | Future production Compose, Caddy configuration, release/backup/watchdog scripts, and bootstrap instructions belong under `infra/vps/`. |
 
-The production root consumes existing infrastructure prerequisites: an
-encrypted, versioned S3 state bucket and separate GitHub OIDC roles for planning
-and applying. Enable native S3 state locking with `use_lockfile = true`; do not
-add deprecated DynamoDB locking or bootstrap these account-level resources in
-this repository. Pin Terraform, providers, and GitHub Actions, commit
-`.terraform.lock.hcl`, and never put credentials or secret values in Terraform
-variables, plans, state, logs, or artifacts.
+The backend, Redis, and certificate volumes share the VPS failure domain.
+Supabase PostgreSQL is outside it: a VPS rebuild must reconnect to the existing
+database rather than restore it. Database loss requires a separate Supabase
+restore procedure. Stateless means the backend container has no durable
+application data; Redis and certificate state still need persistent volumes.
+The baseline accepts maintenance interruptions and best-effort 99.5% uptime.
+No automatic failover, redundant host, orchestration cluster, or infrastructure
+provisioning framework is needed for MVP.
 
-GitHub Actions will use this delivery policy when implementation begins:
+Amazon S3 is the independent backup destination; this addition does not restore
+the former backend hosting platform. Daily backup automation is independent of
+application releases and does not require manual approval for each scheduled
+run. Its configuration, encryption-key custody, IAM scope, and restore checks
+are defined in the [backup contract](../deployment/supabase-s3-backup.md).
 
-1. Every pull request runs credential-free formatting, initialization without a
-   backend, validation, and Terraform tests.
-2. A cloud-backed production plan runs only for trusted same-repository pull
-   requests. Fork pull requests never receive AWS or Vercel credentials.
-3. A merge to `main` produces a fresh plan and requires approval through the
-   protected GitHub `production` environment before apply. The apply role is
-   separate from the lower-privilege plan role, and AWS access uses OIDC rather
-   than stored access keys.
-4. When applications exist, separate workflows deploy the backend to ECS and
-   the frontend to Vercel. Database migrations run as a one-off ECS task before
-   the backend service is updated. Production workflows use concurrency guards
-   and do not apply a pull-request plan artifact.
-5. Branch protection and GitHub environments are configured with `gh` after the
-   corresponding checks exist; GitHub repository settings are not added to
-   Terraform state.
+## CI/CD policy
+
+1. Every push/PR runs checks against disposable local services without
+   deployment credentials: Maven verification, frontend lint/format/type/tests,
+   build, and relevant browser checks. Fork code never receives secrets.
+2. After checks pass on `main`, publish the backend image using scoped
+   `GITHUB_TOKEN` package permissions and record its commit and digest.
+3. Gate production jobs through the protected GitHub `production` environment.
+   Serialize releases. Use an environment-scoped SSH key for a restricted
+   deployment account and a separately verified SSH host key.
+4. The VPS pulls only the approved digest with a pull-only registry credential.
+   Keep runtime application secrets on the VPS. Flyway currently runs at backend
+   startup; migration failure prevents a healthy release. Do not invent a
+   standalone migration command before a runner exists.
+5. Verify backend/datastore health and public TLS before recording the release.
+   Keep the prior digest and a documented manual rollback path. Database changes
+   must be compatible with that image; restoring an old image cannot undo schema
+   changes. Automated failed-release rollback and uninterrupted redirects remain
+   V1 work (NFR-DEP-03/04), not features supplied by the VPS.
+6. Use a separate Vercel CLI workflow for preview/production builds. Keep
+   production API origins and frontend build-time configuration explicit.
+   Configure branch protection/environments after checks exist; those repository
+   settings are not runtime infrastructure.
+
+Detailed prerequisites, configuration names, delivery sequence, and release
+verification are in [the deployment guide](../deployment/hostinger-vps.md).
 
 ## Consequences
 
-- Next.js uses Vercel previews and runtime capabilities without adding a second
-  ECS service or frontend image repository.
-- Frontend and backend deployments use different platforms but share GitHub
-  Actions as the policy and audit boundary.
-- Cross-origin API calls require an exact CORS allowlist and credentialed HTTP
-  client, while host-only API cookies avoid exposing authentication cookies to
-  the public redirect hostname.
-- Private ECS tasks can reach Google OAuth and external mail services through
-  the single NAT Gateway. That gateway is a deliberate cost and single-AZ
-  egress tradeoff for the lean 99.5% best-effort target.
-- RDS is durable and backed up; Redis remains operational state rather than the
-  system of record. The lean single-node choices trade high availability for
-  lower portfolio-project cost.
-- Infrastructure and application deployment remain unimplemented until a
-  dedicated feature creates the Terraform, workflows, applications, and
-  runtime verification.
+- Application architecture and functional behavior stay unchanged.
+- A single VPS lowers infrastructure complexity but gives the owner patching,
+  security, Redis, log, and host recovery duties. Supabase operates PostgreSQL;
+  the owner still configures access, backup coverage, and database recovery.
+- Vercel and the VPS remain separate deployment targets under one GitHub Actions
+  approval policy. Moving the frontend to the VPS needs a separate decision.
+- Co-located VPS services compete for resources, and Supabase database calls add
+  cross-host latency; load testing must verify NFR-PER-01..03 across both targets.
+- Supabase plan/backup capabilities and independent exports must meet the
+  existing recovery targets. Free-plan inactivity pausing is suitable only for
+  demos with acknowledged availability limits. Always-on production needs a
+  plan without inactivity pausing; this record does not purchase/select a tier.
+- This revision records the target; operational automation and deployment must
+  pass their own implementation and runtime verification before first release.
 
 ## Alternatives considered
 
-- **Run Next.js on ECS:** consistent with a single AWS runtime, but rejected in
-  favor of Vercel hosting and previews. This supersedes the frontend-container
-  part of ADR 0001 and NFR-DEP-05/06/07.
-- **Vercel native Git deployment:** simpler and avoids a Vercel token in GitHub,
-  but rejected to keep deployment policy in GitHub Actions.
-- **VPC endpoints without internet egress:** rejected because Google OAuth and
-  external email delivery require outbound internet access.
-- **NAT plus interface endpoints:** stronger separation for AWS API traffic but
-  rejected because its fixed cost is excessive for this project.
-- **High-availability RDS and Redis:** deferred until measured availability or
-  load requires the added cost.
-- **Terraform-managed state/OIDC bootstrap or GitHub settings:** rejected in
-  favor of existing account-level prerequisites and `gh`-managed repository
-  controls.
+- **Move Next.js to the VPS:** deferred to retain Vercel hosting and minimize
+  changes to the application delivery model.
+- **PostgreSQL in a VPS container:** superseded by Supabase to reduce database
+  operations and separate durable data from the backend host's failure domain.
+- **Managed Redis:** possible later; the lean baseline keeps Redis private and
+  close to the backend on the VPS.
+- **A provisioning framework or deployment control panel:** deferred; a documented
+  host bootstrap and version-controlled runtime configuration suffice for one VPS.
+- **Provider backups alone:** the selected Supabase plan's coverage must be
+  verified; retain independent encrypted application-database exports. Hostinger
+  snapshots contain no Supabase database data.
+- **Multiple hosts or orchestration:** deferred until measurements justify the
+  operational cost.
 
 ## Requirement drivers
 
-- HTTPS, secrets, and network isolation: NFR-SEC-01, NFR-SEC-03, and
-  NFR-SEC-11/12.
-- Health-based recovery and logs: NFR-AVL-04 and NFR-OBS-05.
-- Repeatable deployment, rollback, immutable backend images, stateless compute,
-  and infrastructure as code: NFR-DEP-01 and NFR-DEP-03..09.
+- HTTPS, secrets, network isolation, and proxy trust: NFR-SEC-01/03/06/10/11/12,
+  FR-ABS-02/03.
+- Recovery, logs, backups, and privacy: NFR-AVL-01/02/04, NFR-OBS-01/05,
+  NFR-BAK-01..05, NFR-PRV-02/03.
+- Repeatable deployment, migrations, immutable images, and persistent-state
+  boundaries: NFR-DEP-01..09, preserving their existing release priorities.
 
 ## References
 
-- [Terraform S3 backend and native lockfiles](https://developer.hashicorp.com/terraform/language/backend/s3)
-- [AWS credentials for GitHub Actions with OIDC](https://github.com/aws-actions/configure-aws-credentials)
-- [Vercel deployments from GitHub Actions](https://vercel.com/docs/git/vercel-for-github)
-- [Amazon ECS task networking best practices](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/security-network.html)
+- [Hostinger VPS dashboard](https://www.hostinger.com/support/5726606-how-to-use-the-vps-dashboard-in-hostinger/)
+- [Hostinger VPS backups and snapshots](https://www.hostinger.com/support/1583232-how-to-back-up-or-restore-a-vps-at-hostinger/)
+- [Caddy automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+- [Caddy forwarded-header behavior](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy)
+- [Docker restart policies](https://docs.docker.com/engine/containers/start-containers-automatically/)
+- [Docker firewall behavior](https://docs.docker.com/engine/network/packet-filtering-firewalls/)
+- [GitHub Actions container publishing](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images)
+- [Vercel deployments from GitHub Actions](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel)
+- [Supabase database connections](https://supabase.com/docs/guides/database/connecting-to-postgres)
+- [Supabase database network restrictions](https://supabase.com/docs/guides/platform/network-restrictions)
+- [Supabase Data API isolation](https://supabase.com/docs/guides/api/securing-your-api)
+- [Supabase backup capabilities](https://supabase.com/docs/guides/platform/backups)
+- [Supabase production availability checklist](https://supabase.com/docs/guides/deployment/going-into-prod)

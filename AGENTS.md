@@ -20,28 +20,51 @@ feature.
   Library, and Playwright. HTTP client only; no ownership or redirect policy in
   the UI. Production frontend hosting is Vercel, deployed through GitHub
   Actions with the Vercel CLI; do not create a production frontend container.
-- PostgreSQL is the system of record. Redis is refresh sessions, JWT
-  revocation, redirect cache, and rate limits.
+- PostgreSQL is the system of record: production uses Supabase managed
+  PostgreSQL through the existing JDBC/JPA and Flyway stack. Spring Boot owns
+  authentication and policy; the frontend calls Spring APIs. Disable the unused
+  Supabase Data API. Redis is refresh sessions, JWT revocation, redirect cache,
+  and rate limits, running in a private container on the VPS.
 - Local development infrastructure is a root-level `compose.yml` containing
   PostgreSQL and Redis only. Pin both image versions, add health checks, and
   persist PostgreSQL data in a named volume; Redis development data may be
   disposable. The Spring Boot application runs separately through Maven or the
-  IDE. Docker Compose is for development infrastructure only and must never be
-  a production dependency.
+  IDE. This file is development-only and must never be used or extended for
+  production. The planned VPS runtime uses an independent production Compose
+  definition under `infra/vps/`, with separate networks, volumes, and secrets.
 - Spring configuration consists of `application.yml`, `application-dev.yml`,
   and `application-prod.yml`. Activate `dev` or `prod` externally with
   `SPRING_PROFILES_ACTIVE`; do not hard-code an active profile. The `dev`
   profile connects to the Compose services exposed on localhost. The `prod`
-  profile receives private external PostgreSQL and Redis endpoints and all
-  secrets from the environment.
+  profile receives the Supabase PostgreSQL endpoint, private VPS Redis endpoint,
+  and all secrets from the environment. PostgreSQL uses direct or session-mode
+  JDBC with verified TLS and restricted source IPs. Local Compose PostgreSQL
+  remains unchanged; production has no PostgreSQL container on the VPS.
 - Never commit real credentials. `.env.example` may contain safe local
   placeholders only.
-- Future production infrastructure uses modular Terraform under
-  `infra/terraform/`, with a single `environments/prod` root and reusable
-  `network`, `edge`, `database`, `cache`, and `backend-platform` modules. It
-  provisions the AWS backend platform in `ap-south-1`; it does not manage the
-  Vercel application. GitHub Actions uses existing AWS OIDC plan/apply roles,
-  never static AWS keys, and production changes require environment approval.
+- Production targets one Hostinger Linux VPS in one selected location for
+  Spring Boot and Redis, plus a nearby Supabase PostgreSQL project; the frontend
+  remains on Vercel. Caddy
+  terminates HTTPS for `api.<zone>` and `go.<zone>`. Only ingress ports are
+  public on the VPS; backend and Redis ports stay on private Docker networks.
+  Supabase database access is authenticated, TLS-verified, and source-restricted.
+- Keep future VPS configuration and operational scripts under `infra/vps/`.
+  The owner manages patching, restricted SSH, runtime secrets, health recovery,
+  log retention, Redis persistence, and automated daily encrypted Supabase
+  application-database exports to a private Amazon S3 bucket. S3 is the backup
+  destination; the application continues to run on Hostinger/Supabase/Vercel.
+  Keep backup credentials separate from backend runtime secrets, retain the
+  seven-day baseline, and verify freshness, integrity, and recovery. See
+  [the backup contract](docs/deployment/supabase-s3-backup.md).
+  Record Supabase plan/backup capabilities before release; free-plan inactivity
+  pausing cannot be assumed to meet the availability target. Docker restart policies
+  recover exited containers; unhealthy running containers need a separate,
+  bounded health watchdog. See [the deployment guide](docs/deployment/hostinger-vps.md).
+- Future GitHub Actions publishes private GitHub Container Registry backend
+  images and deploys by digest over host-verified SSH, behind approval through
+  the GitHub `production` environment. Deployment keys are environment secrets;
+  the VPS uses a pull-only registry credential. Keep Vercel CLI delivery and
+  never expose production credentials to pull-request code.
 - This is the lean MVP backend baseline. Add another dependency or tool only
   when a functional or non-functional requirement clearly needs it.
 
@@ -163,7 +186,7 @@ redirecting).
   sustained
 - Create/list/manage p95 under 500 ms
 - Fail closed: never guess a destination when state is unknown
-- Health check endpoint; single-region AWS backend on modest hardware
+- Health check endpoint; single Hostinger VPS on modest hardware in one location
 
 ## When in doubt
 

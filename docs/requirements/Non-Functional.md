@@ -4,7 +4,7 @@
 
 Quality targets for TinyRoute as a personal portfolio project. They are deliberately modest and, more importantly, **verifiable by one person on a small budget** — every number here can be demonstrated with a load test, a script, or a screenshot.
 
-Backend targets are stated for a single-region AWS deployment on modest hardware; the frontend is hosted on Vercel. They are engineering goals, not commitments to any customer.
+Backend targets are stated for a single Hostinger VPS on modest hardware, nearby Supabase managed PostgreSQL, and a Vercel frontend. They are engineering goals, not commitments to any customer.
 
 **How to read this**
 
@@ -40,10 +40,10 @@ These are sized so the project is interesting to discuss without needing expensi
 
 | ID         | Requirement          | Target                                                                                                                         | Priority | Release |
 | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| NFR-AVL-01 | Uptime               | 99.5% monthly, best-effort (about 3.6 hours of downtime allowed). Honest for a single-region AWS backend and Vercel frontend with no on-call. | Must     | MVP     |
+| NFR-AVL-01 | Uptime               | 99.5% monthly, best-effort (about 3.6 hours of downtime allowed). Honest for a single Hostinger VPS backend, Supabase PostgreSQL, and Vercel frontend with no on-call or VPS failover. Do not assume free-plan database pauses meet this target. | Must     | MVP     |
 | NFR-AVL-02 | Health check         | An endpoint reports whether the service and its datastore are reachable, suitable for uptime monitoring.                       | Must     | MVP     |
 | NFR-AVL-03 | Uptime monitoring    | An external monitor checks the service at least every 5 minutes and alerts the owner by email on failure.                      | Should   | V1      |
-| NFR-AVL-04 | Container recovery   | ECS automatically replaces an unhealthy or stopped Spring Boot task using application health checks.                          | Must     | MVP     |
+| NFR-AVL-04 | Container recovery   | Docker restarts exited Spring Boot containers on the VPS; a separate bounded health watchdog recovers unhealthy running containers. Datastore outages must not cause restart loops.                          | Must     | MVP     |
 | NFR-REL-01 | Redirect correctness | 100% of test codes resolve to their recorded destination. A code never resolves to another link's destination.                 | Must     | MVP     |
 | NFR-REL-02 | Fail closed          | If a link's state cannot be determined, the service shows an error rather than redirecting to a guessed destination.           | Must     | MVP     |
 | NFR-REL-03 | Safe retries         | Repeating a disable, enable, or delete request produces the same end state and never affects another link.                     | Should   | MVP     |
@@ -71,14 +71,14 @@ These are sized so the project is interesting to discuss without needing expensi
 | NFR-SEC-08 | Safe errors         | Error pages and API responses never leak stack traces, queries, or internal paths.                                                  | Must     | MVP     |
 | NFR-SEC-09 | Token revocation    | The current refresh session is revoked on logout. All refresh sessions and issued access tokens for a user are invalidated after password reset or account deletion. A revoked token must not authorize protected requests. | Must     | MVP     |
 | NFR-SEC-10 | JWT signing keys    | JWT signing keys come from environment-managed secrets, are not committed to the repository, and support key rotation through a key identifier (`kid`). | Must     | MVP     |
-| NFR-SEC-11 | AWS secrets and access | Secrets are supplied at runtime from AWS Secrets Manager or Parameter Store using least-privilege IAM roles; they are never stored in images or source control. | Must     | MVP     |
-| NFR-SEC-12 | Network isolation   | Public production ingress is limited to the Vercel frontend and the AWS HTTPS load balancer. ECS tasks, PostgreSQL, and Redis use private networking and restrictive security groups; databases are not publicly accessible. | Must     | MVP     |
+| NFR-SEC-11 | VPS secrets and access | Secrets are supplied through runtime environment variables from protected VPS files with least-privilege operator/deployment access; they are never stored in images or source control. | Must     | MVP     |
+| NFR-SEC-12 | Network isolation   | Public application ingress is limited to Vercel and Caddy HTTPS on the VPS; HTTP only redirects to HTTPS. Backend and Redis ports are private. Supabase PostgreSQL uses authenticated, TLS-verified JDBC and database source-IP restrictions; its unused Data API is disabled. SSH is limited to approved operator/deployment sources. | Must     | MVP     |
 
 ## 7. Data Durability, Backup, and Recovery
 
 | ID         | Requirement      | Target                                                                                                        | Priority | Release |
 | ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| NFR-BAK-01 | Automated backup | The datastore is backed up automatically at least once per day.                                               | Must     | MVP     |
+| NFR-BAK-01 | Automated backup | An automated job exports Supabase application schema/data and Flyway history at least daily, encrypts the backup, and uploads it to a private Amazon S3 bucket independently of provider backups. Verify completion, freshness, integrity, and provider plan coverage. | Must     | MVP     |
 | NFR-BAK-02 | RPO              | At most 24 hours of data loss. Matched to daily backups; anything tighter is not worth the cost here.         | Must     | MVP     |
 | NFR-BAK-03 | RTO              | Service restored within 4 hours of the owner starting recovery, following a written runbook.                  | Must     | MVP     |
 | NFR-BAK-04 | Restore test     | A restore into a clean environment is performed and documented at least once before calling the project done. | Must     | V1      |
@@ -100,7 +100,7 @@ These are sized so the project is interesting to discuss without needing expensi
 | NFR-OBS-02 | Error visibility | Unhandled errors are captured with enough context to reproduce them, and are reviewable without SSH access.               | Should   | V1      |
 | NFR-OBS-03 | Basic metrics    | Request rate, error rate, and latency percentiles are visible for redirects and for management operations separately.     | Should   | V1      |
 | NFR-OBS-04 | Audit trail      | Create, disable, enable, and delete events record who did what and when.                                                  | Should   | V1      |
-| NFR-OBS-05 | Production logs  | Spring Boot container logs are sent to CloudWatch and Vercel retains frontend build/runtime logs, each with a defined retention period and accessible without connecting directly to a runtime. | Must     | MVP     |
+| NFR-OBS-05 | Production logs  | Spring Boot/Docker and VPS host logs are rotated with bounded disk use and 14-day retention, accessible through restricted operator access; Vercel frontend build/runtime retention is documented for the chosen plan. Ingress logs follow NFR-OBS-01 and NFR-PRV-02/03. | Must     | MVP     |
 
 ## 10. Maintainability, Testability, and Deployability
 
@@ -114,13 +114,13 @@ These are sized so the project is interesting to discuss without needing expensi
 | NFR-TST-03 | Load test script     | A committed script reproduces the throughput and latency measurements.                                       | Should   | MVP     |
 | NFR-DEP-01 | Repeatable deploy    | Deployment is a single documented command or an automatic push-to-deploy pipeline.                           | Must     | MVP     |
 | NFR-DEP-02 | Migrations           | Schema changes are applied through versioned migrations, never manual edits.                                 | Must     | MVP     |
-| NFR-DEP-03 | Rollback             | A failed ECS backend deployment automatically rolls back to the previous healthy image within 15 minutes using [ECS deployment failure detection](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-failure-detection.html); a failed frontend release can restore the previous healthy Vercel deployment. | Should   | V1      |
+| NFR-DEP-03 | Rollback             | A failed VPS backend deployment automatically rolls back to the previous healthy image digest within 15 minutes using release-script health checks, subject to backward-compatible database migrations; a failed frontend release can restore the previous healthy Vercel deployment. | Should   | V1      |
 | NFR-DEP-04 | No redirect downtime | Routine backend and frontend deployments do not interrupt working redirects.                                | Should   | V1      |
 | NFR-DEP-05 | Application packaging | Spring Boot is packaged as a reproducible Docker image. Next.js is built and hosted by Vercel without a production frontend container. | Must     | MVP     |
-| NFR-DEP-06 | Production runtime   | Spring Boot runs on Amazon ECS Fargate in one AWS region and Next.js runs on Vercel. Kubernetes and Amazon EKS are excluded. | Must     | MVP     |
-| NFR-DEP-07 | Immutable deployment | CI pushes the Spring Boot image to private Amazon ECR and deploys by immutable tag or image digest; `latest` is not used for production. Frontend deployments are tied to Git commits through the Vercel CLI. | Must     | MVP     |
-| NFR-DEP-08 | Stateless compute    | ECS tasks and Vercel runtimes store no durable data locally. PostgreSQL and Redis remain external services so runtime replacement does not lose persistent data. | Must     | MVP     |
-| NFR-DEP-09 | Infrastructure as code | AWS infrastructure is reproducible from modular Terraform and a documented GitHub Actions workflow; Vercel deployment configuration is version-controlled with the frontend. | Must     | MVP     |
+| NFR-DEP-06 | Production runtime   | Spring Boot runs in Docker on one Hostinger Linux VPS with private Redis; PostgreSQL is managed by Supabase in a nearby selected region. Next.js remains on Vercel. Kubernetes is excluded. | Must     | MVP     |
+| NFR-DEP-07 | Immutable deployment | CI pushes the Spring Boot image to private GitHub Container Registry and deploys the verified image by digest; `latest` is not used for production. Frontend deployments are tied to Git commits through the Vercel CLI. | Must     | MVP     |
+| NFR-DEP-08 | Stateless compute    | Backend containers and Vercel runtimes store no durable application data locally. PostgreSQL data resides in Supabase; Redis uses a persistent VPS volume preserved across backend replacement. VPS rebuild reconnects to the existing database; database loss requires a separate restore. | Must     | MVP     |
+| NFR-DEP-09 | Reproducible infrastructure | VPS bootstrap steps and independent production runtime configuration/scripts are version-controlled under `infra/vps/`, with documented GitHub Actions delivery. Vercel deployment configuration remains version-controlled with the frontend. | Must     | MVP     |
 
 ## 11. Privacy
 
@@ -134,7 +134,7 @@ These are sized so the project is interesting to discuss without needing expensi
 
 ## 12. Non-Functional Requirements Summary
 
-**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with health-based ECS backend task replacement, HTTPS with properly hashed passwords, JWT + refresh-session cookies, token revocation, and enforced ownership checks, privacy-safe anonymous analytics with up to one minute of visible lag, daily backups with a 24-hour RPO and 4-hour RTO, production logs, CI with critical-path tests, a commit-addressed Next.js deployment on Vercel, and an immutable Spring Boot image on ECS Fargate backed by external PostgreSQL and Redis.
+**MVP quality bar** — redirects at p95 under 150 ms holding 100 requests/second, 99.5% best-effort uptime with health-based backend recovery on the VPS, HTTPS with properly hashed passwords, JWT + refresh-session cookies, token revocation, and enforced ownership checks, privacy-safe anonymous analytics with up to one minute of visible lag, daily backups with a 24-hour RPO and 4-hour RTO, production logs, CI with critical-path tests, a commit-addressed Next.js deployment on Vercel, and an immutable Spring Boot image on the Hostinger VPS backed by Supabase PostgreSQL and private persistent Redis, with verified database backups and independent encrypted exports.
 
 **V1 additions** — documented load test results, uptime monitoring and alerting, error tracking and metrics, dependency scanning, a verified restore, an audit trail, automatic failed-deployment rollback, and a privacy notice.
 
@@ -142,12 +142,12 @@ These are sized so the project is interesting to discuss without needing expensi
 
 ## 13. Assumptions
 
-1. The AWS backend is single-region with one small ECS task and managed datastores; the frontend runs on Vercel.
+1. One Hostinger VPS runs the backend and private Redis; Supabase manages PostgreSQL outside the VPS, and Vercel hosts the frontend. The owner manages VPS patching/recovery and database access/backup verification. Database region and plan must support the latency and availability targets.
 2. No on-call. The owner responds when they notice, which is why uptime is 99.5% and best-effort.
 3. Monthly hosting budget is small; every target is chosen to fit low-cost tiers.
 4. Real traffic will be minimal. Throughput numbers are validated by load tests, not production traffic.
 5. No formal compliance obligations, since there are no real customers or paid users.
-6. Backups are provided by the hosting platform or a scheduled job, not custom infrastructure.
+6. A scheduled VPS backup job automatically exports Supabase application schema/data and Flyway history, encrypts the export, and uploads it to private Amazon S3 at least daily. The baseline retains exports for 7 days; NFR-BAK-05's acceptance priority remains V1. Verify Supabase backup coverage and recovery; Hostinger snapshots cover VPS state only. AWS is used for backup storage only.
 
 ## 14. Open Questions
 

@@ -38,10 +38,13 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 | JaCoCo | Backend test coverage reporting. |
 | Maven | Backend build and dependency management. |
 | Docker | Repeatable packaging of the Spring Boot backend as a production image. |
-| Docker Compose | Development-only PostgreSQL and Redis provisioning. |
+| Docker Compose | Local PostgreSQL/Redis; independent planned VPS production stack. |
 | Vercel | Production Next.js hosting; deployment is controlled by GitHub Actions. |
-| Terraform | Modular, reproducible AWS production infrastructure. |
-| GitHub Actions | CI, Terraform plan/apply, and future Vercel/ECS deployments. |
+| Hostinger VPS | One Linux host for backend and private Redis in one selected location. |
+| Supabase | Managed production PostgreSQL, accessed by Spring JDBC/JPA over verified TLS. |
+| Caddy | VPS HTTPS ingress, automatic certificate renewal, and reverse proxy. |
+| GitHub Container Registry | Private, digest-addressed backend images. |
+| GitHub Actions | CI and future approved VPS/Vercel releases. |
 
 The frontend execution model is Server Components for layouts and static
 structure, with narrowly scoped Client Components for forms, TanStack Query,
@@ -66,7 +69,7 @@ Add another dependency or tool only when a functional or non-functional
 requirement clearly needs it; document significant additions as architecture
 decisions. See [ADR 0002](../decisions/0002-backend-stack.md).
 
-Single-region AWS backend on modest hardware, with the frontend on Vercel.
+Single Hostinger VPS on modest hardware for backend/Redis, nearby Supabase PostgreSQL, and the frontend on Vercel.
 HTTPS at each public edge (NFR-SEC-01). Health check reports process + datastore
 (NFR-AVL-02).
 
@@ -85,9 +88,10 @@ Spring configuration is split by responsibility:
 
 - `application.yml` contains shared, non-secret defaults.
 - `application-dev.yml` connects to the Compose ports exposed on localhost.
-- `application-prod.yml` connects to private, externally managed PostgreSQL
-  and Redis services. Production endpoints and secrets are supplied by the
-  environment (NFR-SEC-03, NFR-SEC-11/12).
+- `application-prod.yml` connects to Supabase managed PostgreSQL over verified
+  TLS and private Redis on the VPS. Endpoints and secrets are supplied by the
+  environment (NFR-SEC-03, NFR-SEC-11/12). Use a direct or session-mode JDBC
+  connection, with the actual role/host from the Supabase Connect panel.
 
 The active profile is always selected outside the application with
 `SPRING_PROFILES_ACTIVE`; no profile is hard-coded in configuration or an
@@ -95,41 +99,92 @@ image. Real credentials are never committed. `.env.example` contains safe
 local placeholders only (NFR-SEC-03).
 
 The development Compose file is not a production deployment definition and
-production must not depend on it. Production runs Next.js on Vercel and a
-reproducible Spring Boot image on ECS Fargate, with PostgreSQL and Redis external
-to the stateless backend container (NFR-DEP-05/06/08).
+production must not depend on it. The planned independent production stack
+under `infra/vps/` runs Caddy, a reproducible Spring Boot image, and Redis.
+Only Caddy publishes public ports. Redis has its own persistent VPS volume;
+PostgreSQL data is managed by Supabase outside the VPS (NFR-DEP-05/06/08).
+Next.js continues to run on Vercel. Root development Compose still runs local
+PostgreSQL and Redis; production has no VPS PostgreSQL service or volume.
 
 ## Production infrastructure and delivery
 
-The accepted production target is future work; no cloud resources or workflows
-exist yet. Terraform will provision the AWS backend platform in `ap-south-1`
-from `infra/terraform/environments/prod`, composing `network`, `edge`,
-`database`, `cache`, and `backend-platform` modules. It uses an existing
-encrypted/versioned S3 backend with native lockfile locking and existing GitHub
-OIDC plan/apply roles. Terraform does not manage Vercel or GitHub settings.
+The accepted production target is future work: no VPS runtime or deployment
+workflows are implemented. `infra/vps/` records the configuration boundary and
+a safe environment example; the [deployment guide](../deployment/hostinger-vps.md)
+defines the implementation and release checks. The owner provisions one Linux
+VPS through Hostinger and manages its OS, Docker, firewall, secrets, Redis,
+and host recovery. The owner also configures the Supabase database's region,
+access restrictions, backup plan, and recovery procedure. No infrastructure
+provisioning framework is required for MVP.
 
-The VPC spans two Availability Zones. The ALB uses public subnets; ECS tasks use
-private subnets and one NAT Gateway for required Google OAuth and email egress;
-RDS PostgreSQL and ElastiCache Redis use isolated data subnets. Security groups
-allow database and cache traffic from ECS only. The lean production baseline is
-single-AZ RDS with daily backups and a single Redis node (NFR-BAK-01..03,
-NFR-SEC-12).
+Caddy reaches Spring Boot over a private ingress network. Spring Boot joins a
+separate private network with Redis and connects outbound to Supabase PostgreSQL
+using JDBC with hostname/certificate verification. Configure Supabase source-IP
+restrictions for the VPS's actual IPv4/IPv6 egress addresses and approved
+recovery sources. Its database endpoint is provider-hosted and network-routable,
+not part of a private Docker network. No backend or Redis ports are published
+on the VPS. Provider and Docker-aware host firewalls expose TCP 80/443 and
+restrict SSH to approved operator/deployment sources (NFR-SEC-12).
 
-An existing Route53 zone supplies `app.<zone>` for Vercel, `api.<zone>` for the
-Spring API, and `go.<zone>` for public redirects. ACM protects the two AWS
-hosts; Vercel protects the app host. Auth cookies are host-only to the API host,
-and Spring permits credentialed browser calls only from the exact app origin.
+Supabase supplies only PostgreSQL. Keep Spring authentication/ownership policy,
+JPA, Flyway, and `ddl-auto: validate`; disable the unused Supabase Data API so
+database tables cannot become a browser-facing access path. Bound application
+connection pools to the selected plan's database limits and include cross-host
+latency in NFR-PER-01..03 load tests. Select a plan/backup setup that meets the
+unchanged daily backup, 24-hour RPO, and 4-hour RTO targets. Free-plan pauses
+are a demo limitation, not an assumed always-on production capability. Keep
+automated daily encrypted application-database exports to private Amazon S3.
+A separate VPS backup job owns scheduling, upload, and freshness checks; the
+Spring application receives no S3 credentials. AWS is used only for backup
+storage. Hostinger snapshots cover VPS state, not the Supabase database
+(NFR-BAK-01..05). See the
+[backup contract](../deployment/supabase-s3-backup.md).
 
-Future GitHub Actions run credential-free Terraform checks on every pull
-request, allow cloud plans only for trusted same-repository branches, and gate
-production applies behind GitHub environment approval. AWS authentication uses
-OIDC. Later application workflows deploy digest-addressed backend images to ECS
-and use the Vercel CLI for frontend previews and production releases. See
-[ADR 0003](../decisions/0003-production-infrastructure-and-delivery.md).
+The existing DNS provider supplies `app.<zone>` for Vercel, `api.<zone>` for
+the Spring API, and `go.<zone>` for public redirects. The latter two point to
+the VPS address. Caddy obtains and renews their certificates and redirects
+HTTP to HTTPS; Vercel protects the app host. Auth cookies remain host-only to
+the API host, and Spring permits credentialed browser calls only from the
+exact app origin. Caddy replaces untrusted forwarded headers; the application
+trusts only its configured proxy address (NFR-SEC-01/06, FR-ABS-02/03).
+
+Future GitHub Actions runs credential-free checks on pull requests, publishes
+the verified backend image to private GitHub Container Registry, and gates
+production deployment from `main` behind GitHub `production` environment
+approval. A restricted SSH release command pulls the approved image by digest,
+allows Flyway migrations at startup, and verifies health before recording the
+release. Production secrets remain on the VPS; pull-request jobs receive no
+deployment credentials. Vercel CLI delivery remains separate. Docker restart
+policies recover stopped processes; a bounded watchdog must recover unhealthy
+running backend containers without restarting them during datastore outages.
+See [ADR 0003](../decisions/0003-production-infrastructure-and-delivery.md).
+
+```mermaid
+flowchart LR
+  User[Signed-in user's browser] -->|HTTPS app host| UI[Next.js on Vercel]
+  User -->|API host: credentials + CSRF| Proxy
+  Visitor[Public visitor] -->|HTTPS go host| Proxy
+  subgraph VPS[Hostinger VPS - one location]
+    Proxy[Caddy - TLS and routing] -->|Private HTTP| Backend[Spring Boot monolith]
+    Backend -->|Private data network| Redis[(Redis - security state and cache)]
+    BackupJob[Daily backup job - export and encrypt]
+  end
+  Backend -->|JDBC over verified TLS; restricted sources| PG[(Supabase PostgreSQL)]
+  PG -->|Verified TLS: daily application export| BackupJob
+  BackupJob -->|HTTPS: encrypted archive| Backup[Private Amazon S3 - seven-day baseline]
+  CI[GitHub Actions - approved main release] --> Registry[Private GHCR - image digest]
+  CI -->|Host-verified SSH release| VPS
+  CI -->|Vercel CLI| UI
+  Registry -->|Pull immutable backend image| Backend
+```
+
+[HLD.excalidraw](HLD.excalidraw) reflects this deployment boundary. The
+provider-neutral class design in [LLD.drawio](LLD.drawio) and its
+[LLD.jpg](LLD.jpg) export is unchanged.
 
 ## High-level design
 
-Signed-in users hit Next.js at `app.<zone>` on Vercel, which calls the Spring Boot JSON API at `api.<zone>` with host-only HttpOnly cookies: a short-lived JWT access token and a Redis-backed refresh session (NFR-SEC-06). The browser sends credentials only to the exact allowed API origin, and cookie-based JWT mutations still require CSRF. Visitors hit `go.<zone>/{code}` through the AWS HTTPS load balancer with no account; public redirect requests do not carry API authentication cookies.
+Signed-in users hit Next.js at `app.<zone>` on Vercel; their browser calls the Spring Boot JSON API at `api.<zone>` through Caddy on the VPS with host-only HttpOnly cookies: a short-lived JWT access token and a Redis-backed refresh session (NFR-SEC-06). The browser sends credentials only to the exact allowed API origin, and cookie-based JWT mutations still require CSRF. Visitors hit `go.<zone>/{code}` through the same VPS HTTPS ingress with no account; public redirect requests do not carry API authentication cookies.
 
 Inside the monolith: Auth, URL (create/manage), Redirect, and analytics paths that are **not** on the redirect critical path. Redis is consulted first for redirects; a miss or Redis failure falls through to PostgreSQL. If PostgreSQL cannot determine link state, the service returns an error and **never** guesses a `Location` (NFR-REL-02).
 
