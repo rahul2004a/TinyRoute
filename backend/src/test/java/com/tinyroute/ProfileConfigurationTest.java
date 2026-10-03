@@ -47,7 +47,7 @@ class ProfileConfigurationTest {
     }
 
     @Test
-    void productionUsesPrivateHttpBehindTheTlsTerminatingLoadBalancer() {
+    void productionUsesPrivateHttpBehindTheTlsTerminatingReverseProxy() {
         Properties properties = loadProperties("application-prod.yml");
 
         assertThat(properties)

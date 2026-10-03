@@ -1,3 +1,6 @@
+# Hostinger VPS: private HTTP behind Caddy and private Redis. PostgreSQL is
+# managed by Supabase; supply its TLS-verifying JDBC URL and all secrets from
+# the protected runtime environment. Publish no backend or Redis ports.
 server:
   port: ${SERVER_PORT:8080}
 
