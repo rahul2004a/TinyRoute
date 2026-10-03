@@ -5,7 +5,8 @@
 - Updated: 2026-10-03
 - Owners: TinyRoute maintainers
 - Implementation status: Planned. The deployment guide and environment example
-  exist; runtime infrastructure, Docker packaging, and deployment workflows do not.
+  exist, along with the backend Dockerfile; runtime infrastructure and deployment
+  workflows do not.
 
 ## Context
 

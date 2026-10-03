@@ -145,6 +145,49 @@ pnpm --dir frontend test --run
 pnpm --dir frontend build
 ```
 
+### Backend Docker image
+
+Build from the repository root:
+
+```sh
+docker build -t tinyroute-backend:local backend
+```
+
+[The Dockerfile](backend/Dockerfile) builds the executable Spring Boot JAR with
+Maven and Java 21, then copies it into a Java 21 JRE image running as UID/GID
+`10001`. Both base images are pinned by digest; update those digests deliberately
+when applying base-image updates. Maven dependencies use a BuildKit cache.
+[The build-context allowlist](backend/.dockerignore) includes only `pom.xml` and
+`src/main`, excluding local credentials, certificates, tests, and build output.
+This implements NFR-DEP-05/08 and NFR-SEC-03.
+
+Run `mvn -f backend/pom.xml verify` against local PostgreSQL and Redis before
+releasing an image. Image packaging skips tests because its build has no
+datastore services. For a host with a different CPU architecture, build with
+the matching `--platform` value, for example `--platform linux/amd64`.
+
+Supply the profile, endpoints, JWT keys, OAuth credentials, and mail settings at
+runtime through a protected environment file, using the configuration table
+below. Set `SPRING_PROFILES_ACTIVE=prod` in that file. For example:
+
+```sh
+docker run --rm --name tinyroute-backend \
+  --env-file /absolute/path/backend.env tinyroute-backend:local
+```
+
+Attach the container to the runtime's private network with `--network` when
+connecting to Redis or an ingress proxy on that network. Container `localhost`
+refers to the container itself; the development `.env` and `dev` profile target
+host-local services and are not production container configuration. Mount any
+required external CA certificate read-only at the configured path.
+
+The image declares private HTTP port `8080`; `SERVER_PORT` can override it.
+Its health check calls `/actuator/health` on that port after a 60-second startup
+grace period. Docker health status does not itself restart the container.
+Keep public traffic behind the TLS-terminating ingress proxy. JVM options can
+be supplied through `JAVA_TOOL_OPTIONS`; Java runs directly as PID 1 so it
+receives shutdown signals.
+
 ### Runtime configuration
 
 Spring profiles are never hard-coded. Use `SPRING_PROFILES_ACTIVE=dev` for local
@@ -274,8 +317,9 @@ database exports to Amazon S3, runtime secrets, logs, recovery,
 and the future GitHub Actions release sequence. Images will be published to
 private GitHub Container Registry and deployed by digest over host-verified
 SSH, with GitHub environment approval. Vercel CLI deployment is retained.
-The guide and examples describe the accepted target; production Compose,
-Docker packaging, release scripts, and workflows remain unimplemented.
+The backend Dockerfile is available for image packaging. The guide and examples
+describe the accepted target; production Compose, release scripts, and workflows
+remain unimplemented.
 The [Supabase-to-S3 backup contract](docs/deployment/supabase-s3-backup.md)
 defines the daily scheduler, restricted backup identity, retention, and restore
 checks. Its runtime installation remains deployment work.
