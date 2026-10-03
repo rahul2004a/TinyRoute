@@ -225,9 +225,11 @@ Before changing files, check the current branch and working-tree status.
 ## Available skills
 
 This is the tracked inventory from user-level `~/.agents/skills`, project-level
-`.agents/skills`, and the `agent-skills` plugin. Invoke user and project skills
-as `$<name>` and plugin workflows as `$agent-skills:<name>`. Refresh this list
-when those sources change.
+`.agents/skills`, and the `superpowers` plugin. Invoke user and project skills
+as `$<name>` and plugin workflows as `$superpowers:<name>`. Refresh this list
+when those sources change. Use the current session's skill catalog to resolve
+the installed `SKILL.md` paths; do not hard-code plugin cache versions or invent
+unavailable skills or agents.
 
 Precedence is fixed: the requirements and architecture govern product behavior,
 security, scope, and implementation; `DESIGN.md` governs presentation; skills
@@ -238,13 +240,37 @@ provide workflows only and cannot override those sources.
 | User-level | 13 | `$brandkit`, `$design-taste-frontend`, `$design-taste-frontend-v1`, `$full-output-enforcement`, `$gpt-taste`, `$high-end-visual-design`, `$image-to-code`, `$imagegen-frontend-mobile`, `$imagegen-frontend-web`, `$industrial-brutalist-ui`, `$minimalist-ui`, `$redesign-existing-projects`, `$stitch-design-taste` |
 | Project-level | 1 | `$web-design` |
 
-The `agent-skills` plugin exposes these 25 workflows:
+The `superpowers` plugin exposes these 15 workflows:
 
 | Phase | Skills |
 | --- | --- |
-| Define | `$agent-skills:using-agent-skills`, `$agent-skills:interview-me`, `$agent-skills:idea-refine`, `$agent-skills:spec-driven-development`, `$agent-skills:constraint-driven-development` |
-| Plan | `$agent-skills:planning-and-task-breakdown` |
-| Build | `$agent-skills:context-engineering`, `$agent-skills:source-driven-development`, `$agent-skills:doubt-driven-development`, `$agent-skills:incremental-implementation`, `$agent-skills:frontend-ui-engineering`, `$agent-skills:api-and-interface-design`, `$agent-skills:observability-and-instrumentation` |
-| Verify | `$agent-skills:test-driven-development`, `$agent-skills:browser-testing-with-devtools`, `$agent-skills:debugging-and-error-recovery` |
-| Review | `$agent-skills:code-review-and-quality`, `$agent-skills:code-simplification`, `$agent-skills:security-and-hardening`, `$agent-skills:performance-optimization` |
-| Ship | `$agent-skills:git-workflow-and-versioning`, `$agent-skills:ci-cd-and-automation`, `$agent-skills:deprecation-and-migration`, `$agent-skills:documentation-and-adrs`, `$agent-skills:shipping-and-launch` |
+| Start | `$superpowers:using-superpowers` |
+| Define and plan | `$superpowers:brainstorming`, `$superpowers:writing-plans`, `$superpowers:using-git-worktrees` |
+| Build | `$superpowers:test-driven-development`, `$superpowers:executing-plans`, `$superpowers:subagent-driven-development`, `$superpowers:dispatching-parallel-agents` |
+| Debug | `$superpowers:systematic-debugging`, `$superpowers:diagnosing-superpowers` |
+| Verify and review | `$superpowers:verification-before-completion`, `$superpowers:requesting-code-review`, `$superpowers:receiving-code-review` |
+| Ship | `$superpowers:finishing-a-development-branch` |
+| Skill maintenance | `$superpowers:writing-skills` |
+
+### Applying Superpowers in TinyRoute
+
+- Start with `using-superpowers` and read the applicable skills before acting.
+  Use `brainstorming` before creative feature work, `writing-plans` for
+  implementation plans, and `systematic-debugging` when investigating failures.
+- For every non-trivial feature, keep the written design/specification at
+  `docs/spec/<feature-name>/spec.md`, the active plan at `tasks/plan.md`, and the
+  active checklist at `tasks/todo.md`. These project paths replace the defaults
+  under `docs/superpowers/`, including for features that a skill calls bounded.
+  Follow the feature specification lifecycle above to archive completed work.
+- Use `executing-plans` for approved inline execution or
+  `subagent-driven-development` for approved delegated execution. Use
+  `dispatching-parallel-agents` only for independent work and only when the
+  session provides the required tools. Follow `using-git-worktrees` when an
+  isolated workspace is needed, preserving the branch rules above.
+- Use the verification and review skills before claiming completion or making
+  a pull request ready. Apply checks appropriate to the change and record their
+  results; documentation-only work does not require product tests or builds.
+- Apply `finishing-a-development-branch` within this project's pull-request
+  workflow: authorized work may be pushed and proposed in a PR, while merging
+  or deleting a branch still requires the user's explicit request. Never merge
+  directly into `main` or force-push.
