@@ -4,7 +4,7 @@
 
 This is the accepted deployment contract, revised on 2026-10-03. The repository
 has application code, local development Compose, and production Spring profiles.
-It has **no production Compose definition, backend Dockerfile, release/backup
+It has **no production Compose definition, release/backup
 scripts, or GitHub Actions workflows yet**. The instructions below specify what
 those future components must do; they do not claim the application is deployed.
 The configuration boundary and safe example are under [infra/vps](../../infra/vps/README.md).

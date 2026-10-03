@@ -1,0 +1,19 @@
+# The backend build needs only its Maven descriptor and production sources.
+**
+!pom.xml
+!src/
+!src/main/
+!src/main/**
+
+# Keep locally supplied credentials and certificates out of the build context.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.der
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/application-local.*
+**/application-secrets.*
