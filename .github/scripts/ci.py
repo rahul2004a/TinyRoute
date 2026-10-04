@@ -41,6 +41,36 @@ def gate(needs, application, required, unconditional=()):
     return all(needs.get(job, {}).get("result") == "success" for job in jobs)
 
 
+def sarif_rule(tool, result):
+    reference = result.get("rule", {})
+    rule_id = result.get("ruleId", reference.get("id"))
+    if not rule_id or (reference.get("id") and reference["id"] != rule_id):
+        raise ValueError("Missing or conflicting SARIF rule ID")
+    component = tool.get("driver", {})
+    component_reference = reference.get("toolComponent", {})
+    if component_reference:
+        extensions = tool.get("extensions", [])
+        index = component_reference.get("index")
+        if type(index) is not int or not 0 <= index < len(extensions):
+            raise ValueError("Invalid SARIF tool component reference")
+        component = extensions[index]
+    rules = component.get("rules")
+    if not isinstance(rules, list):
+        raise ValueError("Missing SARIF component rules")
+    index = reference.get("index", result.get("ruleIndex"))
+    if index is not None:
+        if type(index) is not int or not 0 <= index < len(rules):
+            raise ValueError("Invalid SARIF rule index")
+        rule = rules[index]
+        if rule.get("id") != rule_id:
+            raise ValueError("Conflicting SARIF rule index and ID")
+        return rule
+    matches = [rule for rule in rules if rule.get("id") == rule_id]
+    if len(matches) != 1:
+        raise ValueError("Unknown or ambiguous SARIF rule")
+    return matches[0]
+
+
 def sarif_findings(directory):
     files = sorted(directory.glob("*.sarif"))
     if not files:
@@ -51,17 +81,13 @@ def sarif_findings(directory):
         if report.get("version") != "2.1.0" or not report.get("runs"):
             raise ValueError(f"Invalid SARIF report: {file}")
         for run in report["runs"]:
-            driver = run.get("tool", {}).get("driver", {})
-            rules = driver.get("rules")
+            tool = run.get("tool", {})
             results = run.get("results")
-            if not isinstance(rules, list) or not isinstance(results, list):
+            if not isinstance(tool.get("driver", {}).get("rules"), list) or not isinstance(results, list):
                 raise ValueError(f"Missing rules/results in {file}")
-            by_id = {rule["id"]: rule for rule in rules}
             for result in results:
-                rule_id = result.get("ruleId")
-                if not rule_id or rule_id not in by_id:
-                    raise ValueError(f"Unknown SARIF result rule in {file}")
-                rule = by_id[rule_id]
+                rule = sarif_rule(tool, result)
+                rule_id = rule["id"]
                 score = float(rule.get("properties", {}).get("security-severity", 0))
                 if not math.isfinite(score) or not 0 <= score <= 10:
                     raise ValueError(f"Invalid security severity for {rule_id}")

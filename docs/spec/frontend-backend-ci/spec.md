@@ -71,10 +71,16 @@ analysis and Docker validation. CodeQL uses a manual clean compile, retains
 SARIF as an artifact, and explicitly gates SARIF security-severity >= 7.0 or error
 findings. Repository default CodeQL setup remains enabled and owns Security-tab
 publication; this workflow sets `upload: never` to avoid conflicting with it.
+SARIF rule references resolve both driver and extension-component rules.
 Missing/invalid SARIF fails. Docker builds a target of the existing
 Dockerfile that copies the downloaded verified JAR, preserves the existing
 runtime contract, and Trivy scans HIGH/CRITICAL OS/runtime dependency findings.
 No image is pushed. Keep the existing source-building Docker target as default.
+
+Hosted CodeQL flagged the existing auth log filter because its closed allowlist
+returned original request strings. Use canonical constant method/path strings
+for identical bounded log output, removing untrusted-data flow into logs
+(NFR-OBS-01); preserve authentication behavior.
 
 ## Acceptance criteria
 

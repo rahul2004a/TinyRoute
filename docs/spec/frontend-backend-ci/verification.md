@@ -84,3 +84,13 @@ active plan/todo only after these checks pass.
 - Repository CodeQL default setup is already configured. Keep it enabled;
   the new independently gated backend analysis uses `upload: never` and
   artifact SARIF delivery to coexist without repository setting changes.
+- Hosted backend verification and Docker scanning passed on `d813085`.
+  CodeQL produced valid SARIF with rules in `tool.extensions`, exposing a
+  parser assumption. A failing regression test reproduces that format; the
+  helper now resolves the referenced component/index, validates IDs, and
+  preserves threshold and default error-level enforcement.
+- Once parsed, that report correctly blocks `java/log-injection` (6.1,
+  default level `error`) in the auth log filter. Its closed switches already
+  bound outputs but returned input strings. Use canonical constants for
+  allowlisted methods/routes so untrusted strings do not flow into logging.
+  A log-metadata regression test covers line breaks and sensitive unknown paths.

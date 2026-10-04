@@ -106,7 +106,7 @@ come from official release archives checked against release SHA-256 checksums.
 Gitleaks scans all checked-out Git history and redacts the JSON report.
 Download/scan failures fail the job. Reports expire after seven days.
 
-Use read-only contents permissions and `persist-credentials: false`. Only
+Use read-only contents permissions and `persist-credentials: false`.
 CodeQL uses the same read-only permissions; GitHub restricts fork PR tokens.
 There is no `pull_request_target`, deployment environment, or production secret
 reference. Review action, scanner, image and dependency updates in normal PRs.

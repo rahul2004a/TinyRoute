@@ -120,6 +120,30 @@ class SarifTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     ci.sarif_findings(Path(directory))
 
+    def test_codeql_extension_rule_reference_and_default_level(self):
+        with tempfile.TemporaryDirectory() as directory:
+            rule = {"id": "java/log-injection", "properties": {"security-severity": "6.1"},
+                    "defaultConfiguration": {"level": "warning"}}
+            result = {"ruleId": rule["id"],
+                      "rule": {"id": rule["id"], "index": 0, "toolComponent": {"index": 1}}}
+            report = {"version": "2.1.0", "runs": [{"tool": {
+                "driver": {"rules": []}, "extensions": [{"rules": []}, {"rules": [rule]}]},
+                "results": [result]}]}
+            path = Path(directory, "java.sarif")
+            path.write_text(json.dumps(report))
+            self.assertEqual(ci.sarif_findings(Path(directory)), [])
+            rule["properties"]["security-severity"] = "7.0"
+            path.write_text(json.dumps(report))
+            self.assertEqual(ci.sarif_findings(Path(directory)), [rule["id"]])
+            rule["properties"]["security-severity"] = "6.1"
+            rule["defaultConfiguration"]["level"] = "error"
+            path.write_text(json.dumps(report))
+            self.assertEqual(ci.sarif_findings(Path(directory)), [rule["id"]])
+            result["rule"]["index"] = -1
+            path.write_text(json.dumps(report))
+            with self.assertRaises(ValueError):
+                ci.sarif_findings(Path(directory))
+
 
 class ReportCompletenessTest(unittest.TestCase):
     def test_coverage_requires_data_and_meets_threshold(self):
