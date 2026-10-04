@@ -111,6 +111,12 @@ jobs:
     if: needs.precheck.outputs.backend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    permissions:
+      contents: read
+      security-events: read
+    env:
+      # Retain analysis file metadata on PRs; JaCoCo separately gates test coverage.
+      CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

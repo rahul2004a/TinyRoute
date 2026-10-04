@@ -27,6 +27,9 @@ NFR-DEP-05 (backend Docker packaging). Preserve the locked application stack.
 - Read-only token permissions by default; no production/environment secrets,
   no `pull_request_target`, no registry login, and no persistent credentials.
   Pin actions to full release commit SHAs. Superseded runs may be cancelled.
+- Tool archives use reviewed SHA-256 digests pinned per tool/platform in the
+  repository; downloading a matching remote checksum file cannot authorize
+  replaced release assets (NFR-SEC-07).
 - Scan the entire current Git history for secrets on every backend-workflow
   event, even when backend validation is unnecessary. Redact findings.
 - Stable aggregate gates run with `always()`. Successful pre-check plus an
@@ -72,6 +75,8 @@ SARIF as an artifact, and explicitly gates SARIF security-severity >= 7.0 or err
 findings. Repository default CodeQL setup remains enabled and owns Security-tab
 publication; this workflow sets `upload: never` to avoid conflicting with it.
 SARIF rule references resolve both driver and extension-component rules.
+The CodeQL job alone has `security-events: read` for Action feature discovery,
+and explicitly retains PR file coverage metadata. JaCoCo owns test coverage.
 Missing/invalid SARIF fails. Docker builds a target of the existing
 Dockerfile that copies the downloaded verified JAR, preserves the existing
 runtime contract, and Trivy scans HIGH/CRITICAL OS/runtime dependency findings.

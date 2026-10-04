@@ -81,3 +81,22 @@ Completed acceptance criteria and archived plan/checklist accompany
 [PR #13](https://github.com/rahul2004a/TinyRoute/pull/13). Configure `main` to
 require `Frontend CI` and `Backend CI` using [the CI guide](../../development/ci.md).
 Repository rules, deployment, merging, and branch deletion are unchanged.
+
+## Security review follow-up
+
+- Reviewed [the GitHub Advanced Security comment](https://github.com/rahul2004a/TinyRoute/pull/13#discussion_r4175685496):
+  matching archive/checksum downloads from one mutable release do not prevent
+  a replaced binary. Pin all six tool/platform archive digests in the repository
+  using official GitHub release-asset metadata and remove remote checksum reads.
+- A regression test supplied a replacement executable and matching remote
+  checksum for all six combinations. It failed against the old installer, which
+  installed/executed the replacement, and passes with pinned digests, rejecting
+  it before installation/execution. The helper suite now has 12 passing tests.
+- Give only CodeQL `security-events: read` to resolve feature API access and CLI
+  fallback annotations. Retain PR file metadata explicitly with
+  `CODEQL_ACTION_FILE_COVERAGE_ON_PRS=true`; the JaCoCo gate remains unchanged.
+  Verified against the pinned Action's [feature API implementation](https://github.com/github/codeql-action/blob/2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2/src/feature-flags.ts)
+  and [PR metadata option](https://github.com/github/codeql-action/blob/2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2/src/init.ts).
+- Actionlint, installer shell syntax, and whitespace checks pass. The review-fix
+  commit receives hosted validation and annotation inspection before readiness;
+  those final results are recorded in PR #13.

@@ -92,6 +92,9 @@ After verification, two jobs run in parallel:
   setup enabled, which owns Security-tab publication. The backend workflow
   sets `upload: never` and disables database upload so both analyses coexist
   without changing repository security settings.
+  Only this job receives `security-events: read` for the Action's feature API.
+  `CODEQL_ACTION_FILE_COVERAGE_ON_PRS=true` explicitly retains PR analysis
+  file metadata. This metadata is separate from JaCoCo test coverage.
 - Docker downloads the current run's verified JAR, copies it to
   `backend/target/application.jar`, and builds the existing Dockerfile's `ci`
   target. It shares the digest-pinned non-root runtime and health check with
@@ -101,13 +104,18 @@ After verification, two jobs run in parallel:
 ## Security and maintenance
 
 Actions are pinned to full release commits. Gitleaks 8.30.1 and Trivy 0.75.0
-come from official release archives checked against release SHA-256 checksums.
+come from official release archives checked against SHA-256 digests pinned
+in `install-tool.sh` for each supported platform. Runtime installation never
+trusts a checksum file downloaded alongside the archive. Version updates must
+review and update all applicable platform digests together, using official
+release metadata; changed assets fail verification before extraction/execution.
 `install-tool.sh` also supports actionlint 1.7.12 for local workflow validation.
 Gitleaks scans all checked-out Git history and redacts the JSON report.
 Download/scan failures fail the job. Reports expire after seven days.
 
 Use read-only contents permissions and `persist-credentials: false`.
-CodeQL uses the same read-only permissions; GitHub restricts fork PR tokens.
+CodeQL additionally has job-scoped read-only security-event access; GitHub
+restricts fork PR tokens. It never receives security-event write access.
 There is no `pull_request_target`, deployment environment, or production secret
 reference. Review action, scanner, image and dependency updates in normal PRs.
 Fix vulnerabilities or document narrowly scoped, reviewed exceptions before
