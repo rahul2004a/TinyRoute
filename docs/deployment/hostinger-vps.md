@@ -5,7 +5,8 @@
 This is the accepted deployment contract, revised on 2026-10-03. The repository
 has application code, local development Compose, and production Spring profiles.
 It has **no production Compose definition, release/backup
-scripts, or GitHub Actions workflows yet**. The instructions below specify what
+scripts, or deployment workflows yet**. Credential-free frontend/backend
+[CI validation workflows](../development/ci.md) now exist. The instructions below specify what
 those future components must do; they do not claim the application is deployed.
 The configuration boundary and safe example are under [infra/vps](../../infra/vps/README.md).
 
@@ -274,7 +275,8 @@ error tracking, and broader metrics remain V1 scope.
 
 ## CI/CD implementation contract
 
-No workflows currently exist. Future workflows use these jobs and inputs:
+Frontend/backend validation workflows exist; see [CI checks](../development/ci.md).
+Production delivery remains planned. Delivery workflows use these jobs and inputs:
 
 | Stage | Trigger and permissions | Required behavior |
 | --- | --- | --- |

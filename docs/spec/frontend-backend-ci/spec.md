@@ -67,9 +67,11 @@ images; empty scans fail. Reports upload even after failure; the JAR uploads onl
 after successful verification/scanning.
 
 After backend verification, parallel jobs run CodeQL Java security-extended
-analysis and Docker validation. CodeQL uses a manual clean compile, uploads
-SARIF to GitHub, and explicitly gates SARIF security-severity >= 7.0 or error
-findings. Missing/invalid SARIF fails. Docker builds a target of the existing
+analysis and Docker validation. CodeQL uses a manual clean compile, retains
+SARIF as an artifact, and explicitly gates SARIF security-severity >= 7.0 or error
+findings. Repository default CodeQL setup remains enabled and owns Security-tab
+publication; this workflow sets `upload: never` to avoid conflicting with it.
+Missing/invalid SARIF fails. Docker builds a target of the existing
 Dockerfile that copies the downloaded verified JAR, preserves the existing
 runtime contract, and Trivy scans HIGH/CRITICAL OS/runtime dependency findings.
 No image is pushed. Keep the existing source-building Docker target as default.

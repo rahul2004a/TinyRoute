@@ -85,11 +85,13 @@ JaCoCo, SpotBugs and Trivy reports upload even on failure when produced.
 After verification, two jobs run in parallel:
 
 - CodeQL initializes Java security-extended queries, observes a clean Maven
-  compile, analyzes and uploads SARIF. An explicit local SARIF gate blocks
+  compile, analyzes and retains SARIF as a workflow artifact. An explicit SARIF gate blocks
   security-severity >= 7.0 and error-level results. Missing, malformed or
   unrecognized reports/results fail closed. SARIF upload alone is not treated
-  as proof that findings passed. GitHub CodeQL advanced setup must be enabled
-  for this public repository; disable a conflicting default setup if present.
+  as proof that findings passed. This repository already has CodeQL default
+  setup enabled, which owns Security-tab publication. The backend workflow
+  sets `upload: never` and disables database upload so both analyses coexist
+  without changing repository security settings.
 - Docker downloads the current run's verified JAR, copies it to
   `backend/target/application.jar`, and builds the existing Dockerfile's `ci`
   target. It shares the digest-pinned non-root runtime and health check with
@@ -105,7 +107,7 @@ Gitleaks scans all checked-out Git history and redacts the JSON report.
 Download/scan failures fail the job. Reports expire after seven days.
 
 Use read-only contents permissions and `persist-credentials: false`. Only
-CodeQL receives `security-events: write`; GitHub restricts fork PR tokens.
+CodeQL uses the same read-only permissions; GitHub restricts fork PR tokens.
 There is no `pull_request_target`, deployment environment, or production secret
 reference. Review action, scanner, image and dependency updates in normal PRs.
 Fix vulnerabilities or document narrowly scoped, reviewed exceptions before

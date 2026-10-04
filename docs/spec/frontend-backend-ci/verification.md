@@ -76,3 +76,11 @@
 
 Exercise both hosted workflows and CodeQL in the feature PR. Complete the acceptance checklist and archive
 active plan/todo only after these checks pass.
+
+## Hosted compatibility
+
+- [Frontend validation run](https://github.com/rahul2004a/TinyRoute/actions/runs/37167097227):
+  complete, all jobs pass including `Frontend CI`.
+- Repository CodeQL default setup is already configured. Keep it enabled;
+  the new independently gated backend analysis uses `upload: never` and
+  artifact SARIF delivery to coexist without repository setting changes.

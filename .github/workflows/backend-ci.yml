@@ -111,9 +111,6 @@ jobs:
     if: needs.precheck.outputs.backend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    permissions:
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -136,6 +133,10 @@ jobs:
         with:
           output: codeql-results
           category: /language:java-kotlin
+          # Existing repository default setup owns Security-tab publication.
+          # This workflow still independently gates and retains its SARIF.
+          upload: never
+          upload-database: false
       - name: Fail on blocking CodeQL findings
         run: python3 .github/scripts/ci.py sarif codeql-results
       - name: Upload CodeQL report
