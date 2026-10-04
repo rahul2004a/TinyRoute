@@ -96,6 +96,21 @@ class GateTest(unittest.TestCase):
 
 
 class SarifTest(unittest.TestCase):
+    def test_diff_informed_reports_cannot_pass_the_full_backend_gate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_report(directory, results=False)
+            path = Path(directory, "java.sarif")
+            report = json.loads(path.read_text())
+            for mode in ["diff-informed", "overlay,diff-informed"]:
+                with self.subTest(mode=mode):
+                    report["runs"][0]["properties"] = {"incrementalMode": mode}
+                    path.write_text(json.dumps(report))
+                    with self.assertRaisesRegex(ValueError, "full backend"):
+                        ci.sarif_findings(Path(directory))
+            report["runs"][0]["properties"] = {}
+            path.write_text(json.dumps(report))
+            self.assertEqual(ci.sarif_findings(Path(directory)), [])
+
     def write_report(self, directory, score="7.0", level="warning", results=True):
         report = {"version": "2.1.0", "runs": [{
             "tool": {"driver": {"rules": [{"id": "java/test", "properties": {"security-severity": score}}]}},
