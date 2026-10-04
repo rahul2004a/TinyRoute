@@ -34,8 +34,8 @@ NFR-SEC-06, the existing stack, security thresholds, and deployment boundaries.
 - [x] Frontend supports main pushes with valid detection and concurrency.
 - [x] Full CodeQL scope is enforced on PRs and main.
 - [x] Service-level invalid callback regressions and existing OIDC integration tests pass.
-- [ ] CI helper suite, workflow lint, backend verification, and hosted PR checks pass.
-- [ ] Documentation records root causes, repair, and verification evidence.
+- [x] CI helper suite, workflow lint, backend verification, and hosted PR checks pass.
+- [x] Documentation records root causes, repair, and verification evidence.
 
 ## Action reference
 

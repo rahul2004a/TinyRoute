@@ -28,9 +28,9 @@ suppressions. Implement inline within the user's authorized debugging request.
   must reject invalid input and consume its cookie-bound state without opening
   a DB transaction. Observed RED before the boundary repair.
 - [x] Format changed Java and run `./mvnw -B -ntp clean verify` with Docker.
-- [ ] Review the diff, push the fix, open a PR, and confirm unrestricted
+- [x] Review the diff, push the fix, open a PR, and confirm unrestricted
   hosted CodeQL and both aggregate gates pass.
-- [ ] Record evidence and archive completed task files before review readiness.
+- [x] Record evidence and archive completed task files before review readiness.
 
 ## Review focus
 

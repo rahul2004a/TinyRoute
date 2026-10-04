@@ -22,7 +22,7 @@
   `CannotCreateTransactionException` before moving validation outside the
   database transaction. It passes after that boundary repair.
 - Final `./mvnw -B -ntp spotless:check clean verify`: BUILD SUCCESS;
-  unit and integration/security tests pass without failures or skips, including
+  63 unit and 61 integration/security tests pass without failures or skips, including
   all existing Google OIDC integration tests. JaCoCo coverage is 89.26%; the
   explicit coverage guard and blocking SpotBugs/Find Security Bugs checks pass.
 - Formatting followed by immediately compiling once produced inconsistent
@@ -35,4 +35,24 @@
 
 ## Hosted evidence
 
-Pending repair PR validation. Main is intentionally unchanged until user merge.
+Implementation commit `d8cc0f9`, [repair PR #14](https://github.com/rahul2004a/TinyRoute/pull/14):
+
+- [Frontend validation](https://github.com/rahul2004a/TinyRoute/actions/runs/37175247656):
+  all jobs and Frontend CI pass, including frozen install, lint, format, types,
+  unit/component tests, and production build.
+- [Backend validation](https://github.com/rahul2004a/TinyRoute/actions/runs/37175247620):
+  all jobs and Backend CI pass, including full CodeQL, secret scanning,
+  Maven verification, dependency scanning, and Docker validation.
+- Downloaded hosted backend reports independently confirm 63 unit tests,
+  61 integration/security tests, zero failures/errors/skips, and 89.26% coverage.
+- Downloaded CodeQL SARIF contains zero results and no incrementalMode property.
+  Hosted logs explicitly show `CODEQL_ACTION_DIFF_INFORMED_QUERIES=false`,
+  no precomputed diff ranges, and no blocking findings. This proves the repair
+  was checked with the full scan that previously failed on main.
+- Replaying original merge before/after revisions through change detection
+  returns `frontend=true` and `backend=true`.
+
+The final documentation/archive commit receives another complete PR validation
+before marking the PR ready. Main is intentionally unchanged until user merge;
+the new frontend main push trigger is syntax-checked and uses the tested push
+comparison, but cannot receive a main event before that merge.

@@ -6,5 +6,5 @@
 - [x] Repair frontend push events and enforce full CodeQL scope.
 - [x] Move callback validation into AuthService without weakening authentication.
 - [x] Pass helper tests, actionlint, formatting, backend tests/build/coverage.
-- [ ] Complete independent code review and hosted PR validation.
-- [ ] Update verification evidence and archive completed plan/checklist.
+- [x] Complete independent code review and hosted PR validation.
+- [x] Update verification evidence and archive completed plan/checklist.
