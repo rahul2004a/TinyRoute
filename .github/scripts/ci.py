@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def classify(paths):
-    shared_files = {"AGENTS.md", "DESIGN.md", "compose.yml", ".env.example"}
+    shared_files = {"AGENTS.md", "DESIGN.md", "compose.yml", ".env.example", ".gitattributes"}
     shared_prefixes = (".github/", "docs/requirements/", "docs/architecture/", "docs/decisions/")
     shared = any(path in shared_files or path.startswith(shared_prefixes) for path in paths)
     return (shared or any(path.startswith("frontend/") for path in paths),

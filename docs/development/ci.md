@@ -33,7 +33,7 @@ or invalid revisions fail detection. There are no workflow event path filters.
 
 `frontend/**` affects frontend; `backend/**` affects backend. `.github/**`,
 requirements, architecture, decisions, root `AGENTS.md`, `DESIGN.md`,
-`compose.yml`, and root `.env.example` affect both. Ordinary README, deployment
+`compose.yml`, root `.env.example`, and `.gitattributes` affect both. Ordinary README, deployment
 guide, and feature-spec changes skip the expensive application checks.
 
 ## Frontend verification

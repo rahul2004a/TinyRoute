@@ -23,7 +23,7 @@ NFR-DEP-05 (backend Docker packaging). Preserve the locked application stack.
   push base conservatively validates both applications. Detection failures fail.
 - Application directories trigger their own validation. `.github/**`, shared
   requirements/architecture/decisions, `AGENTS.md`, `DESIGN.md`, `compose.yml`,
-  and root `.env.example` trigger both. Ordinary documentation skips costly jobs.
+  root `.env.example`, and `.gitattributes` trigger both. Ordinary documentation skips costly jobs.
 - Read-only token permissions by default; no production/environment secrets,
   no `pull_request_target`, no registry login, and no persistent credentials.
   Pin actions to full release commit SHAs. Superseded runs may be cancelled.

@@ -14,7 +14,7 @@ class ChangesTest(unittest.TestCase):
     def test_application_and_shared_paths(self):
         self.assertEqual(ci.classify(["frontend/src/deleted.ts"]), (True, False))
         self.assertEqual(ci.classify(["backend/pom.xml"]), (False, True))
-        for path in [".github/scripts/ci.py", "AGENTS.md", "DESIGN.md", "compose.yml",
+        for path in [".github/scripts/ci.py", "AGENTS.md", "DESIGN.md", "compose.yml", ".gitattributes",
                      ".env.example", "docs/requirements/Functional.md",
                      "docs/architecture/architecture.md", "docs/decisions/0002-backend-stack.md"]:
             with self.subTest(path=path):

@@ -67,6 +67,8 @@
 - Both Linux amd64 Docker targets build successfully after the patches.
   Trivy image gate: pass; 136 Ubuntu and 132 Java packages identified, zero
   blocking findings. Java/OS inventory guard passes.
+- Image `/app/application.jar` SHA-256 equals the verified local JAR:
+  `9d56d640ab1219986696e99549408fd0eaf7daed0b8622a1269dbf95e203ba23`.
 - Independent targeted re-review: no material gaps remain in the scan and
   coverage fixes. Hosted execution is the remaining validation boundary.
 
