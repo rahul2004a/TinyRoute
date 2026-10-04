@@ -1,5 +1,10 @@
 package com.tinyroute;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.tinyroute.config.TestInfrastructureConfiguration;
 import com.tinyroute.config.TestJwtTokenConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,18 +14,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
-@Import(TestJwtTokenConfiguration.class)
-class HealthControllerTest {
+@Import({TestJwtTokenConfiguration.class, TestInfrastructureConfiguration.class})
+class HealthControllerIT {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
     @Test
     void healthEndpointReportsApplicationIsUp() throws Exception {
@@ -31,7 +31,6 @@ class HealthControllerTest {
 
     @Test
     void nonHealthActuatorEndpointIsNotExposed() throws Exception {
-        mockMvc.perform(get("/actuator/env"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
     }
 }

@@ -3,3 +3,4 @@
 !.env.example
 .local-certs/
 .pnpm-store/
+__pycache__/

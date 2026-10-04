@@ -1,7 +1,14 @@
 package com.tinyroute.controller;
 
-import com.tinyroute.config.TestJwtTokenConfiguration;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.tinyroute.client.PasswordResetMailAdapter;
+import com.tinyroute.config.TestInfrastructureConfiguration;
+import com.tinyroute.config.TestJwtTokenConfiguration;
 import com.tinyroute.model.AuthIdentity;
 import com.tinyroute.model.User;
 import com.tinyroute.repository.AuthIdentityRepository;
@@ -10,69 +17,60 @@ import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.security.PasswordHasher;
 import com.tinyroute.security.TokenHashing;
 import jakarta.servlet.http.Cookie;
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest(properties = "tinyroute.rate-limit.trusted-proxy-cidrs=127.0.0.1/32")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
-@Import({TestJwtTokenConfiguration.class, PasswordResetTest.PasswordResetMailConfiguration.class})
-class PasswordResetTest {
+@Import({
+    TestJwtTokenConfiguration.class,
+    TestInfrastructureConfiguration.class,
+    PasswordResetIT.PasswordResetMailConfiguration.class
+})
+class PasswordResetIT {
 
     private static final String CURRENT_PASSWORD = "valid-password-12";
     private static final String NEW_PASSWORD = "replacement-password-12";
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private AuthIdentityRepository authIdentityRepository;
+    @Autowired private AuthIdentityRepository authIdentityRepository;
 
-    @Autowired
-    private PasswordHasher passwordHasher;
+    @Autowired private PasswordHasher passwordHasher;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private CapturingPasswordResetMailAdapter passwordResetMailAdapter;
+    @Autowired private CapturingPasswordResetMailAdapter passwordResetMailAdapter;
 
     @Autowired
     @Qualifier("passwordResetExecutor")
     private ThreadPoolTaskExecutor passwordResetExecutor;
 
-    private final String clientAddress = "198.18."
-            + ThreadLocalRandom.current().nextInt(1, 255)
-            + "."
-            + ThreadLocalRandom.current().nextInt(1, 255);
+    private final String clientAddress =
+            "198.18."
+                    + ThreadLocalRandom.current().nextInt(1, 255)
+                    + "."
+                    + ThreadLocalRandom.current().nextInt(1, 255);
 
     @BeforeEach
     void clearCapturedMail() {
@@ -96,31 +94,49 @@ class PasswordResetTest {
 
         awaitWorkerIdle();
         assertThat(passwordResetMailAdapter.lastResetUrl()).isNull();
-        assertThat(jdbcTemplate.queryForObject("select count(*) from password_reset_tokens", Integer.class)).isZero();
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "select count(*) from password_reset_tokens", Integer.class))
+                .isZero();
     }
 
     @Test
-    void storesOnlyAHashedFragmentTokenAndConsumesItOnceWhileInvalidatingSessions() throws Exception {
+    void storesOnlyAHashedFragmentTokenAndConsumesItOnceWhileInvalidatingSessions()
+            throws Exception {
         User user = createPasswordUser("user@example.com");
-        MvcResult priorLogin = login("user@example.com", CURRENT_PASSWORD).andExpect(status().isOk()).andReturn();
+        MvcResult priorLogin =
+                login("user@example.com", CURRENT_PASSWORD).andExpect(status().isOk()).andReturn();
 
         requestReset(" USER@example.com ")
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.status").value("ACCEPTED"));
 
         String rawToken = tokenFrom(awaitResetUrl());
-        String storedHash = jdbcTemplate.queryForObject("select token_hash from password_reset_tokens", String.class);
+        String storedHash =
+                jdbcTemplate.queryForObject(
+                        "select token_hash from password_reset_tokens", String.class);
         assertThat(rawToken).hasSize(43);
         assertThat(storedHash).isEqualTo(TokenHashing.sha256(rawToken)).isNotEqualTo(rawToken);
         assertThat(passwordResetMailAdapter.lastEmail()).isEqualTo("user@example.com");
 
         confirm(rawToken, NEW_PASSWORD).andExpect(status().isNoContent());
 
-        assertThat(jdbcTemplate.queryForObject("select token_version from users where id = ?", Integer.class, user.id()))
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "select token_version from users where id = ?",
+                                Integer.class,
+                                user.id()))
                 .isEqualTo(1);
-        assertThat(jdbcTemplate.queryForObject("select count(*) from password_reset_tokens", Integer.class)).isZero();
-        mockMvc.perform(get("/api/auth/me")
-                        .cookie(priorLogin.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME)))
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "select count(*) from password_reset_tokens", Integer.class))
+                .isZero();
+        mockMvc.perform(
+                        get("/api/auth/me")
+                                .cookie(
+                                        priorLogin
+                                                .getResponse()
+                                                .getCookie(AuthCookieService.ACCESS_COOKIE_NAME)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTHENTICATION_FAILED"));
         refresh(priorLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME))
@@ -140,62 +156,84 @@ class PasswordResetTest {
         createPasswordUser("expired@example.com");
         requestReset("expired@example.com").andExpect(status().isAccepted());
         String rawToken = tokenFrom(awaitResetUrl());
-        jdbcTemplate.update("update password_reset_tokens set expires_at = now() - interval '1 second'");
+        jdbcTemplate.update(
+                "update password_reset_tokens set expires_at = now() - interval '1 second'");
 
         confirm(rawToken, NEW_PASSWORD)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("RESET_TOKEN_INVALID"));
 
-        assertThat(jdbcTemplate.queryForObject("select count(*) from password_reset_tokens", Integer.class)).isZero();
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "select count(*) from password_reset_tokens", Integer.class))
+                .isZero();
     }
 
     private String csrfToken(MvcResult csrf) throws Exception {
-        return new tools.jackson.databind.json.JsonMapper().readTree(csrf.getResponse().getContentAsString())
+        return new tools.jackson.databind.json.JsonMapper()
+                .readTree(csrf.getResponse().getContentAsString())
                 .get("csrfToken")
                 .asString();
     }
 
     private User createPasswordUser(String email) {
         User user = userRepository.save(User.create(email));
-        authIdentityRepository.save(AuthIdentity.password(user, email, passwordHasher.hash(CURRENT_PASSWORD)));
+        authIdentityRepository.save(
+                AuthIdentity.password(user, email, passwordHasher.hash(CURRENT_PASSWORD)));
         return user;
     }
 
-    private org.springframework.test.web.servlet.ResultActions requestReset(String email) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions requestReset(String email)
+            throws Exception {
         MvcResult csrf = mockMvc.perform(get("/api/auth/csrf")).andReturn();
-        return mockMvc.perform(post("/api/auth/password-reset")
-                .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
-                .header("X-CSRF-TOKEN", csrfToken(csrf))
-                .header("X-Forwarded-For", clientAddress)
-                .contentType("application/json")
-                .content("{\"email\":\"" + email + "\"}"));
+        return mockMvc.perform(
+                post("/api/auth/password-reset")
+                        .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf))
+                        .header("X-Forwarded-For", clientAddress)
+                        .contentType("application/json")
+                        .content("{\"email\":\"" + email + "\"}"));
     }
 
-    private org.springframework.test.web.servlet.ResultActions confirm(String token, String password) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions confirm(
+            String token, String password) throws Exception {
         MvcResult csrf = mockMvc.perform(get("/api/auth/csrf")).andReturn();
-        return mockMvc.perform(post("/api/auth/password-reset/confirm")
-                .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
-                .header("X-CSRF-TOKEN", csrfToken(csrf))
-                .header("X-Forwarded-For", clientAddress)
-                .contentType("application/json")
-                .content("{\"token\":\"" + token + "\",\"newPassword\":\"" + password + "\"}"));
+        return mockMvc.perform(
+                post("/api/auth/password-reset/confirm")
+                        .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf))
+                        .header("X-Forwarded-For", clientAddress)
+                        .contentType("application/json")
+                        .content(
+                                "{\"token\":\""
+                                        + token
+                                        + "\",\"newPassword\":\""
+                                        + password
+                                        + "\"}"));
     }
 
-    private org.springframework.test.web.servlet.ResultActions login(String email, String password) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions login(String email, String password)
+            throws Exception {
         MvcResult csrf = mockMvc.perform(get("/api/auth/csrf")).andReturn();
-        return mockMvc.perform(post("/api/auth/login")
-                .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
-                .header("X-CSRF-TOKEN", csrfToken(csrf))
-                .header("X-Forwarded-For", clientAddress)
-                .contentType("application/json")
-                .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"));
+        return mockMvc.perform(
+                post("/api/auth/login")
+                        .cookie(csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf))
+                        .header("X-Forwarded-For", clientAddress)
+                        .contentType("application/json")
+                        .content(
+                                "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"));
     }
 
-    private org.springframework.test.web.servlet.ResultActions refresh(Cookie refreshCookie) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions refresh(Cookie refreshCookie)
+            throws Exception {
         MvcResult csrf = mockMvc.perform(get("/api/auth/csrf")).andReturn();
-        return mockMvc.perform(post("/api/auth/refresh")
-                .cookie(refreshCookie, csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
-                .header("X-CSRF-TOKEN", csrfToken(csrf)));
+        return mockMvc.perform(
+                post("/api/auth/refresh")
+                        .cookie(
+                                refreshCookie,
+                                csrf.getResponse().getCookie("__Host-tinyroute_csrf"))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf)));
     }
 
     private String tokenFrom(String resetUrl) {
@@ -206,7 +244,9 @@ class PasswordResetTest {
     }
 
     private String awaitResetUrl() throws InterruptedException {
-        for (int attempt = 0; attempt < 100 && passwordResetMailAdapter.lastResetUrl() == null; attempt++) {
+        for (int attempt = 0;
+                attempt < 100 && passwordResetMailAdapter.lastResetUrl() == null;
+                attempt++) {
             Thread.sleep(25);
         }
         assertThat(passwordResetMailAdapter.lastResetUrl()).isNotNull();

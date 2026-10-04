@@ -1,5 +1,14 @@
 package com.tinyroute.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.tinyroute.config.TestInfrastructureConfiguration;
 import com.tinyroute.config.TestJwtTokenConfiguration;
 import com.tinyroute.model.AuthIdentity;
 import com.tinyroute.model.User;
@@ -9,61 +18,47 @@ import com.tinyroute.security.AuthCookieService;
 import com.tinyroute.security.PasswordHasher;
 import com.tinyroute.security.TokenHashing;
 import jakarta.servlet.http.Cookie;
+import java.time.Instant;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.concurrent.ThreadLocalRandom;
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest(properties = "tinyroute.rate-limit.trusted-proxy-cidrs=127.0.0.1/32")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
-@Import(TestJwtTokenConfiguration.class)
-class RefreshLogoutTest {
+@Import({TestJwtTokenConfiguration.class, TestInfrastructureConfiguration.class})
+class RefreshLogoutIT {
 
     private static final String PASSWORD = "valid-password-12";
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private AuthIdentityRepository authIdentityRepository;
+    @Autowired private AuthIdentityRepository authIdentityRepository;
 
-    @Autowired
-    private PasswordHasher passwordHasher;
+    @Autowired private PasswordHasher passwordHasher;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    @Autowired private StringRedisTemplate redisTemplate;
 
-    private final String clientAddress = "198.18."
-            + ThreadLocalRandom.current().nextInt(1, 255)
-            + "."
-            + ThreadLocalRandom.current().nextInt(1, 255);
+    private final String clientAddress =
+            "198.18."
+                    + ThreadLocalRandom.current().nextInt(1, 255)
+                    + "."
+                    + ThreadLocalRandom.current().nextInt(1, 255);
 
     @AfterEach
     void removeCreatedRecords() {
@@ -74,28 +69,35 @@ class RefreshLogoutTest {
     void rotatesAnActiveRefreshSessionWithoutReturningTokensAndRejectsReuse() throws Exception {
         createPasswordUser("refresh@example.com");
         MvcResult login = successfulLogin("refresh@example.com");
-        Cookie originalRefresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie originalRefresh =
+                login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
 
-        MvcResult refreshed = refresh(originalRefresh)
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
-                .andExpect(jsonPath("$.authenticated").value(true))
-                .andExpect(jsonPath("$.user.email").value("refresh@example.com"))
-                .andExpect(jsonPath("$.accessToken").doesNotExist())
-                .andExpect(jsonPath("$.refreshToken").doesNotExist())
-                .andExpect(cookie().httpOnly(AuthCookieService.ACCESS_COOKIE_NAME, true))
-                .andExpect(cookie().httpOnly(AuthCookieService.REFRESH_COOKIE_NAME, true))
-                .andReturn();
+        MvcResult refreshed =
+                refresh(originalRefresh)
+                        .andExpect(status().isOk())
+                        .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
+                        .andExpect(jsonPath("$.authenticated").value(true))
+                        .andExpect(jsonPath("$.user.email").value("refresh@example.com"))
+                        .andExpect(jsonPath("$.accessToken").doesNotExist())
+                        .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                        .andExpect(cookie().httpOnly(AuthCookieService.ACCESS_COOKIE_NAME, true))
+                        .andExpect(cookie().httpOnly(AuthCookieService.REFRESH_COOKIE_NAME, true))
+                        .andReturn();
 
-        Cookie replacementRefresh = refreshed.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie replacementRefresh =
+                refreshed.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
         assertThat(replacementRefresh.getValue()).isNotEqualTo(originalRefresh.getValue());
 
         refresh(originalRefresh)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("REFRESH_CONCURRENT"));
 
-        redisTemplate.opsForHash().put("refresh-used:" + TokenHashing.sha256(originalRefresh.getValue()),
-                "rotatedAt", Long.toString(Instant.now().minusSeconds(6).toEpochMilli()));
+        redisTemplate
+                .opsForHash()
+                .put(
+                        "refresh-used:" + TokenHashing.sha256(originalRefresh.getValue()),
+                        "rotatedAt",
+                        Long.toString(Instant.now().minusSeconds(6).toEpochMilli()));
 
         refresh(originalRefresh)
                 .andExpect(status().isUnauthorized())
@@ -111,7 +113,8 @@ class RefreshLogoutTest {
         User staleUser = createPasswordUser("stale-refresh@example.com");
         MvcResult login = successfulLogin("stale-refresh@example.com");
         Cookie refreshCookie = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
-        jdbcTemplate.update("update users set token_version = token_version + 1 where id = ?", staleUser.id());
+        jdbcTemplate.update(
+                "update users set token_version = token_version + 1 where id = ?", staleUser.id());
 
         refresh(refreshCookie)
                 .andExpect(status().isUnauthorized())
@@ -132,16 +135,18 @@ class RefreshLogoutTest {
         MvcResult login = successfulLogin("logout@example.com");
 
         logout(
-                login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME),
-                login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME)
-        )
+                        login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME),
+                        login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME))
                 .andExpect(status().isNoContent())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
                 .andExpect(cookie().maxAge(AuthCookieService.ACCESS_COOKIE_NAME, 0))
                 .andExpect(cookie().maxAge(AuthCookieService.REFRESH_COOKIE_NAME, 0));
 
-        mockMvc.perform(get("/api/auth/me")
-                        .cookie(login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME)))
+        mockMvc.perform(
+                        get("/api/auth/me")
+                                .cookie(
+                                        login.getResponse()
+                                                .getCookie(AuthCookieService.ACCESS_COOKIE_NAME)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTHENTICATION_FAILED"));
 
@@ -157,9 +162,9 @@ class RefreshLogoutTest {
         MvcResult secondLogin = successfulLogin("two-sessions@example.com");
 
         logout(
-                firstLogin.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME),
-                secondLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME)
-        ).andExpect(status().isUnauthorized());
+                        firstLogin.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME),
+                        secondLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME))
+                .andExpect(status().isUnauthorized());
 
         refresh(secondLogin.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME))
                 .andExpect(status().isOk());
@@ -171,8 +176,12 @@ class RefreshLogoutTest {
         MvcResult login = successfulLogin("rotated-logout@example.com");
         Cookie oldAccess = login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME);
         Cookie oldRefresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
-        Cookie newRefresh = refresh(oldRefresh).andExpect(status().isOk())
-                .andReturn().getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie newRefresh =
+                refresh(oldRefresh)
+                        .andExpect(status().isOk())
+                        .andReturn()
+                        .getResponse()
+                        .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
 
         logout(oldAccess, newRefresh).andExpect(status().isNoContent());
         refresh(newRefresh).andExpect(status().isUnauthorized());
@@ -184,8 +193,12 @@ class RefreshLogoutTest {
         MvcResult login = successfulLogin("stale-cookie-logout@example.com");
         Cookie oldAccess = login.getResponse().getCookie(AuthCookieService.ACCESS_COOKIE_NAME);
         Cookie oldRefresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
-        Cookie newRefresh = refresh(oldRefresh).andExpect(status().isOk())
-                .andReturn().getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie newRefresh =
+                refresh(oldRefresh)
+                        .andExpect(status().isOk())
+                        .andReturn()
+                        .getResponse()
+                        .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
 
         logout(oldAccess, oldRefresh).andExpect(status().isNoContent());
         refresh(newRefresh).andExpect(status().isUnauthorized());
@@ -199,9 +212,10 @@ class RefreshLogoutTest {
         Cookie refresh = login.getResponse().getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
         MvcResult csrf = csrf();
 
-        mockMvc.perform(post("/api/auth/logout")
-                        .cookie(access, csrfCookie(csrf))
-                        .header("X-CSRF-TOKEN", csrfToken(csrf)))
+        mockMvc.perform(
+                        post("/api/auth/logout")
+                                .cookie(access, csrfCookie(csrf))
+                                .header("X-CSRF-TOKEN", csrfToken(csrf)))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/auth/me").cookie(access)).andExpect(status().isUnauthorized());
@@ -211,16 +225,18 @@ class RefreshLogoutTest {
     @Test
     void rateLimitsRefreshesPerSessionFamily() throws Exception {
         createPasswordUser("rate-limited-refresh@example.com");
-        Cookie refreshCookie = successfulLogin("rate-limited-refresh@example.com")
-                .getResponse()
-                .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+        Cookie refreshCookie =
+                successfulLogin("rate-limited-refresh@example.com")
+                        .getResponse()
+                        .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
 
         for (int attempt = 0; attempt < 30; attempt++) {
-            refreshCookie = refresh(refreshCookie)
-                    .andExpect(status().isOk())
-                    .andReturn()
-                    .getResponse()
-                    .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
+            refreshCookie =
+                    refresh(refreshCookie)
+                            .andExpect(status().isOk())
+                            .andReturn()
+                            .getResponse()
+                            .getCookie(AuthCookieService.REFRESH_COOKIE_NAME);
         }
 
         refresh(refreshCookie)
@@ -230,34 +246,45 @@ class RefreshLogoutTest {
 
     private User createPasswordUser(String email) {
         User user = userRepository.save(User.create(email));
-        authIdentityRepository.save(AuthIdentity.password(user, email, passwordHasher.hash(PASSWORD)));
+        authIdentityRepository.save(
+                AuthIdentity.password(user, email, passwordHasher.hash(PASSWORD)));
         return user;
     }
 
     private MvcResult successfulLogin(String email) throws Exception {
         MvcResult csrf = csrf();
-        return mockMvc.perform(post("/api/auth/login")
-                        .cookie(csrfCookie(csrf))
-                        .header("X-CSRF-TOKEN", csrfToken(csrf))
-                        .header("X-Forwarded-For", clientAddress)
-                        .contentType("application/json")
-                        .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
+        return mockMvc.perform(
+                        post("/api/auth/login")
+                                .cookie(csrfCookie(csrf))
+                                .header("X-CSRF-TOKEN", csrfToken(csrf))
+                                .header("X-Forwarded-For", clientAddress)
+                                .contentType("application/json")
+                                .content(
+                                        "{\"email\":\""
+                                                + email
+                                                + "\",\"password\":\""
+                                                + PASSWORD
+                                                + "\"}"))
                 .andExpect(status().isOk())
                 .andReturn();
     }
 
-    private org.springframework.test.web.servlet.ResultActions refresh(Cookie refreshCookie) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions refresh(Cookie refreshCookie)
+            throws Exception {
         MvcResult csrf = csrf();
-        return mockMvc.perform(post("/api/auth/refresh")
-                .cookie(refreshCookie, csrfCookie(csrf))
-                .header("X-CSRF-TOKEN", csrfToken(csrf)));
+        return mockMvc.perform(
+                post("/api/auth/refresh")
+                        .cookie(refreshCookie, csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf)));
     }
 
-    private org.springframework.test.web.servlet.ResultActions logout(Cookie accessCookie, Cookie refreshCookie) throws Exception {
+    private org.springframework.test.web.servlet.ResultActions logout(
+            Cookie accessCookie, Cookie refreshCookie) throws Exception {
         MvcResult csrf = csrf();
-        return mockMvc.perform(post("/api/auth/logout")
-                .cookie(accessCookie, refreshCookie, csrfCookie(csrf))
-                .header("X-CSRF-TOKEN", csrfToken(csrf)));
+        return mockMvc.perform(
+                post("/api/auth/logout")
+                        .cookie(accessCookie, refreshCookie, csrfCookie(csrf))
+                        .header("X-CSRF-TOKEN", csrfToken(csrf)));
     }
 
     private MvcResult csrf() throws Exception {
@@ -269,7 +296,8 @@ class RefreshLogoutTest {
     }
 
     private String csrfToken(MvcResult csrf) throws Exception {
-        return new tools.jackson.databind.json.JsonMapper().readTree(csrf.getResponse().getContentAsString())
+        return new tools.jackson.databind.json.JsonMapper()
+                .readTree(csrf.getResponse().getContentAsString())
                 .get("csrfToken")
                 .asString();
     }

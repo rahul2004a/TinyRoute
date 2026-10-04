@@ -148,7 +148,8 @@ the API host, and Spring permits credentialed browser calls only from the
 exact app origin. Caddy replaces untrusted forwarded headers; the application
 trusts only its configured proxy address (NFR-SEC-01/06, FR-ABS-02/03).
 
-Future GitHub Actions runs credential-free checks on pull requests, publishes
+GitHub Actions runs credential-free checks on pull requests; see
+[CI checks](../development/ci.md). Future delivery publishes
 the verified backend image to private GitHub Container Registry, and gates
 production deployment from `main` behind GitHub `production` environment
 approval. A restricted SSH release command pulls the approved image by digest,
