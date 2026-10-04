@@ -63,7 +63,7 @@ Surefire/Failsafe reports and `target/site/jacoco`; Docker target `ci` consumes
 Files: `Readme.md`, `docs/development/ci.md`, feature spec and verification record.
 
 - [x] Run frontend frozen install, lint/format/type/tests/build.
-- [ ] Record actual hosted validation; local evidence and branch-protection setup are documented.
+- [x] Record actual hosted validation; local evidence and branch-protection setup are documented.
 - [x] Obtain independent review; fix material findings and rerun relevant checks.
-- [ ] Push feature branch and create PR without opening browser; inspect CI.
-- [ ] Complete criteria and archive plan/todo only when checks pass.
+- [x] Push feature branch and create PR without opening browser; inspect CI.
+- [x] Complete criteria and archive plan/todo only when checks pass.

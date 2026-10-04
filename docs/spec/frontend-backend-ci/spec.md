@@ -84,15 +84,15 @@ for identical bounded log output, removing untrusted-data flow into logs
 
 ## Acceptance criteria
 
-- [ ] Both workflows implement triggers, conservative change detection, and stable gates.
-- [ ] Frontend checks use Node 24, packageManager pnpm, frozen install, and safe build env.
-- [ ] Secrets, failed/cancelled jobs, and unexpectedly skipped required jobs block the backend gate.
-- [ ] Maven separates unit/integration tests, provisions isolated datastores, checks format/static analysis, and enforces 70% coverage.
-- [ ] CodeQL findings and HIGH/CRITICAL Trivy findings produce failing job results.
-- [ ] Docker validation consumes the successfully verified JAR artifact.
-- [ ] Helper tests cover deletion/rename/diff semantics, missing infrastructure/output, and gate failure/skip conditions; workflow syntax validation passes.
-- [ ] Relevant local checks pass, hosted-only checks are exercised in the feature PR, and required-check setup is documented.
-- [ ] Documentation and feature task archive are current before readiness.
+- [x] Both workflows implement triggers, conservative change detection, and stable gates.
+- [x] Frontend checks use Node 24, packageManager pnpm, frozen install, and safe build env.
+- [x] Secrets, failed/cancelled jobs, and unexpectedly skipped required jobs block the backend gate.
+- [x] Maven separates unit/integration tests, provisions isolated datastores, checks format/static analysis, and enforces 70% coverage.
+- [x] CodeQL findings and HIGH/CRITICAL Trivy findings produce failing job results.
+- [x] Docker validation consumes the successfully verified JAR artifact.
+- [x] Helper tests cover deletion/rename/diff semantics, missing report output, and gate failure/skip conditions; workflow syntax validation passes.
+- [x] Relevant local checks pass, hosted-only checks are exercised in the feature PR, and required-check setup is documented.
+- [x] Documentation and feature task archive are current before readiness.
 
 ## References
 

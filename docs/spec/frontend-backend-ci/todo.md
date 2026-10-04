@@ -9,5 +9,5 @@
 - [x] Verify frontend install, static checks, tests and production build.
 - [x] Document required checks and actual verification evidence.
 - [x] Complete independent code review and resolve material findings.
-- [ ] Push feature PR and verify hosted checks.
-- [ ] Complete acceptance criteria and archive task files before readiness.
+- [x] Push feature PR and verify hosted checks.
+- [x] Complete acceptance criteria and archive task files before readiness.
