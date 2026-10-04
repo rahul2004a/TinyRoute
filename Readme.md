@@ -9,8 +9,9 @@ rate limits, and persistence.
 ## Project status
 
 **Work in progress.** The account-authentication feature is the active workstream
-and is implemented through its review gates. Link creation and management,
-public redirects, analytics, production infrastructure, and CI/CD remain future
+and is implemented through its review gates. Frontend and backend CI validate
+pull requests. Link creation and management, public redirects, analytics,
+production infrastructure, and deployment delivery remain future
 work. Do not treat this repository as deployed software.
 
 ## What TinyRoute is intended to deliver
@@ -99,6 +100,7 @@ docs/
   architecture/                  authoritative system design and diagrams
   decisions/                     accepted architecture decisions
   deployment/                    VPS operations and future CI/CD instructions
+  development/                   CI checks and local verification
   spec/                          feature specifications and contracts
 tasks/                           active plan and checklist for the current feature
 compose.yml                      local PostgreSQL and Redis only
@@ -133,13 +135,17 @@ Spring Boot application runs separately through Maven or an IDE.
 ### Install and verify
 
 ```sh
-# Backend tests (require the local PostgreSQL and Redis services)
-mvn -f backend/pom.xml test
-mvn -f backend/pom.xml verify
+# Backend unit tests (no running datastores needed)
+./backend/mvnw -f backend/pom.xml test
+# Unit + integration/security tests, coverage and static analysis (requires Docker)
+./backend/mvnw -f backend/pom.xml clean verify
+# Check Java files changed since origin/main
+./backend/mvnw -f backend/pom.xml spotless:check
 
 # Frontend dependencies and checks
 pnpm --dir frontend install --frozen-lockfile
 pnpm --dir frontend lint
+pnpm --dir frontend format:check
 pnpm --dir frontend typecheck
 pnpm --dir frontend test --run
 pnpm --dir frontend build
@@ -158,13 +164,20 @@ Maven and Java 21, then copies it into a Java 21 JRE image running as UID/GID
 `10001`. Both base images are pinned by digest; update those digests deliberately
 when applying base-image updates. Maven dependencies use a BuildKit cache.
 [The build-context allowlist](backend/.dockerignore) includes only `pom.xml` and
-`src/main`, excluding local credentials, certificates, tests, and build output.
+`src/main`, plus only `target/application.jar` for CI's verified-artifact target,
+excluding local credentials, certificates, tests, and other build output.
 This implements NFR-DEP-05/08 and NFR-SEC-03.
 
-Run `mvn -f backend/pom.xml verify` against local PostgreSQL and Redis before
-releasing an image. Image packaging skips tests because its build has no
+Run `./backend/mvnw -f backend/pom.xml clean verify` before releasing an image.
+Integration tests start disposable Testcontainers PostgreSQL and Redis on random
+ports; they do not use or change local Compose data. Image packaging skips tests because its build has no
 datastore services. For a host with a different CPU architecture, build with
 the matching `--platform` value, for example `--platform linux/amd64`.
+
+CI downloads the successfully verified JAR and builds `--target ci`; it scans
+that runtime image without publishing it. The default target still builds from
+source. See [CI checks and required gates](docs/development/ci.md) for workflows,
+security thresholds, artifacts, and GitHub required-check setup.
 
 Supply the profile, endpoints, JWT keys, OAuth credentials, and mail settings at
 runtime through a protected environment file, using the configuration table

@@ -4,6 +4,8 @@
 !src/
 !src/main/
 !src/main/**
+!target/
+!target/application.jar
 
 # Keep locally supplied credentials and certificates out of the build context.
 **/.env

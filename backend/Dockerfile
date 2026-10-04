@@ -12,13 +12,12 @@ COPY src/main ./src/main
 RUN --mount=type=cache,id=tinyroute-maven,target=/root/.m2,sharing=locked \
     mvn --batch-mode --no-transfer-progress -Dmaven.test.skip=true package
 
-FROM eclipse-temurin:21-jre-noble@sha256:22138efd69393501fccd8176ae16b01791ed71ff801b28f0359415389b17c766 AS runtime
+FROM eclipse-temurin:21-jre-noble@sha256:22138efd69393501fccd8176ae16b01791ed71ff801b28f0359415389b17c766 AS runtime-base
 
 RUN groupadd --gid 10001 tinyroute \
     && useradd --uid 10001 --gid tinyroute --no-create-home --shell /usr/sbin/nologin tinyroute
 
 WORKDIR /app
-COPY --from=build --chmod=0444 /build/target/tinyroute-backend-*.jar ./application.jar
 
 USER 10001:10001
 EXPOSE 8080
@@ -28,3 +27,11 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
         "http://127.0.0.1:${SERVER_PORT:-8080}/actuator/health" || exit 1
 
 ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+
+# CI copies the exact artifact that passed Maven verify, without rebuilding it.
+FROM runtime-base AS ci
+COPY --chmod=0444 target/application.jar ./application.jar
+
+# Preserve the source-building default for local and future release builds.
+FROM runtime-base AS runtime
+COPY --from=build --chmod=0444 /build/target/tinyroute-backend-*.jar ./application.jar

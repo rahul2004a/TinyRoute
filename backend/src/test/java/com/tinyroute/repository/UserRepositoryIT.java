@@ -1,32 +1,29 @@
 package com.tinyroute.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.tinyroute.config.TestInfrastructureConfiguration;
 import com.tinyroute.config.TestJwtTokenConfiguration;
 import com.tinyroute.model.User;
-
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("dev")
-@Import(TestJwtTokenConfiguration.class)
-class UserRepositoryTest {
+@Import({TestJwtTokenConfiguration.class, TestInfrastructureConfiguration.class})
+class UserRepositoryIT {
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     private UUID createdUserId;
 
@@ -43,9 +40,7 @@ class UserRepositoryTest {
         User user = userRepository.save(User.create(email));
         createdUserId = user.id();
 
-        assertThat(userRepository.findByEmailNormalized(email))
-                .map(User::id)
-                .contains(user.id());
+        assertThat(userRepository.findByEmailNormalized(email)).map(User::id).contains(user.id());
     }
 
     @Test

@@ -1,19 +1,12 @@
 package com.tinyroute.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.tinyroute.config.TestInfrastructureConfiguration;
 import com.tinyroute.config.TestJwtTokenConfiguration;
 import com.tinyroute.model.AuthIdentity;
 import com.tinyroute.model.AuthProvider;
 import com.tinyroute.model.User;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,22 +17,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("dev")
-@Import(TestJwtTokenConfiguration.class)
-class AuthIdentityRepositoryTest {
+@Import({TestJwtTokenConfiguration.class, TestInfrastructureConfiguration.class})
+class AuthIdentityRepositoryIT {
 
-    @Autowired
-    private AuthIdentityRepository authIdentityRepository;
+    @Autowired private AuthIdentityRepository authIdentityRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     private final List<UUID> createdUserIds = new ArrayList<>();
     private String createdGoogleSubject;
@@ -50,8 +46,7 @@ class AuthIdentityRepositoryTest {
             jdbcTemplate.update(
                     "delete from auth_identities where provider = ? and subject = ?",
                     AuthProvider.GOOGLE.name(),
-                    createdGoogleSubject
-            );
+                    createdGoogleSubject);
         }
         for (UUID userId : createdUserIds) {
             jdbcTemplate.update("delete from users where id = ?", userId);
@@ -80,8 +75,10 @@ class AuthIdentityRepositoryTest {
         CountDownLatch start = new CountDownLatch(1);
 
         try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
-            Future<UUID> firstAttempt = executor.submit(saveGoogleIdentity(firstUser, subject, ready, start));
-            Future<UUID> secondAttempt = executor.submit(saveGoogleIdentity(secondUser, subject, ready, start));
+            Future<UUID> firstAttempt =
+                    executor.submit(saveGoogleIdentity(firstUser, subject, ready, start));
+            Future<UUID> secondAttempt =
+                    executor.submit(saveGoogleIdentity(secondUser, subject, ready, start));
             assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
             start.countDown();
 
@@ -89,7 +86,9 @@ class AuthIdentityRepositoryTest {
             int successes = completedAttempts(firstAttempt, secondAttempt, failures);
 
             assertThat(successes).isEqualTo(1);
-            assertThat(failures).singleElement().isInstanceOf(DataIntegrityViolationException.class);
+            assertThat(failures)
+                    .singleElement()
+                    .isInstanceOf(DataIntegrityViolationException.class);
         }
     }
 
@@ -104,11 +103,7 @@ class AuthIdentityRepositoryTest {
     }
 
     private Callable<UUID> saveGoogleIdentity(
-            User user,
-            String subject,
-            CountDownLatch ready,
-            CountDownLatch start
-    ) {
+            User user, String subject, CountDownLatch ready, CountDownLatch start) {
         return () -> {
             ready.countDown();
             if (!start.await(5, TimeUnit.SECONDS)) {
@@ -118,7 +113,8 @@ class AuthIdentityRepositoryTest {
         };
     }
 
-    private int completedAttempts(Future<UUID> firstAttempt, Future<UUID> secondAttempt, List<Throwable> failures)
+    private int completedAttempts(
+            Future<UUID> firstAttempt, Future<UUID> secondAttempt, List<Throwable> failures)
             throws InterruptedException {
         int successes = 0;
         for (Future<UUID> attempt : List.of(firstAttempt, secondAttempt)) {

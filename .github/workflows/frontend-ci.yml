@@ -1,0 +1,96 @@
+name: Frontend validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  precheck:
+    name: Frontend pre-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      frontend: ${{ steps.changes.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test CI helpers
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      - name: Detect frontend and shared changes
+        id: changes
+        run: python3 .github/scripts/ci.py changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  verify:
+    name: Frontend verification
+    needs: precheck
+    if: needs.precheck.outputs.frontend == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_API_BASE_URL: https://api.tinyroute.test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: frontend/.nvmrc
+      - name: Enable packageManager-pinned pnpm
+        run: |
+          corepack enable
+          corepack install
+          pnpm --version
+      - name: Locate pnpm download store
+        id: store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.store.outputs.path }}
+          key: pnpm-${{ runner.os }}-node24-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-node24-
+      - name: Frozen dependency installation
+        run: pnpm install --frozen-lockfile
+      - name: ESLint (zero warnings)
+        run: pnpm lint
+      - name: Prettier
+        run: pnpm format:check
+      - name: Next.js route types and TypeScript
+        run: pnpm typecheck
+      - name: Vitest unit and component tests
+        run: pnpm test --run
+      - name: Next.js production build
+        run: pnpm build
+
+  gate:
+    name: Frontend CI
+    needs: [precheck, verify]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Required frontend gate
+        run: python3 .github/scripts/ci.py gate frontend verify
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}

@@ -1,0 +1,198 @@
+name: Backend validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  precheck:
+    name: Backend pre-check and secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test CI helpers
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      - name: Detect backend and shared changes
+        id: changes
+        run: python3 .github/scripts/ci.py changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Install pinned Gitleaks
+        run: bash .github/scripts/install-tool.sh gitleaks "$RUNNER_TEMP/ci-tools"
+      - name: Scan Git history for secrets (all changes)
+        run: >-
+          gitleaks git . --log-opts=--all --redact
+          --report-format json --report-path "$RUNNER_TEMP/gitleaks.json"
+      - name: Upload redacted secret scan report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: secret-scan
+          path: ${{ runner.temp }}/gitleaks.json
+          retention-days: 7
+
+  verify:
+    name: Backend verification
+    needs: precheck
+    if: needs.precheck.outputs.backend == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: |
+            backend/pom.xml
+            backend/.mvn/wrapper/maven-wrapper.properties
+      - name: Spotless changed-source formatting
+        run: ./mvnw -B -ntp spotless:check
+      - name: Compile, unit/integration/security tests, coverage and static analysis
+        run: ./mvnw -B -ntp clean verify
+      - name: Require coverage data and report
+        run: python3 ../.github/scripts/ci.py coverage target
+      - name: Install pinned Trivy
+        run: bash ../.github/scripts/install-tool.sh trivy "$RUNNER_TEMP/ci-tools"
+      - name: Scan packaged runtime dependencies
+        run: >-
+          trivy rootfs --no-progress --scanners vuln --pkg-types library --severity HIGH,CRITICAL
+          --exit-code 1 --format json --output target/trivy-dependencies.json target
+      - name: Require scanned Java package inventory
+        run: python3 ../.github/scripts/ci.py trivy-inventory target/trivy-dependencies.json
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: backend-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+            backend/target/site/jacoco/
+            backend/target/spotbugsXml.xml
+            backend/target/trivy-dependencies.json
+          retention-days: 7
+      - name: Upload verified Spring Boot JAR
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: backend-jar
+          path: backend/target/tinyroute-backend-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
+          retention-days: 7
+
+  codeql:
+    name: Backend CodeQL
+    needs: [precheck, verify]
+    if: needs.precheck.outputs.backend == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+        with:
+          languages: java-kotlin
+          build-mode: manual
+          queries: security-extended
+      - name: Compile Java for CodeQL
+        working-directory: backend
+        run: ./mvnw -B -ntp -Dmaven.test.skip=true clean compile
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4
+        with:
+          output: codeql-results
+          category: /language:java-kotlin
+      - name: Fail on blocking CodeQL findings
+        run: python3 .github/scripts/ci.py sarif codeql-results
+      - name: Upload CodeQL report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: codeql-report
+          path: codeql-results/*.sarif
+          retention-days: 7
+
+  docker:
+    name: Backend Docker validation
+    needs: [precheck, verify]
+    if: needs.precheck.outputs.backend == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: backend-jar
+          path: ${{ runner.temp }}/backend-jar
+      - name: Stage verified artifact and build runtime image
+        run: |
+          mkdir -p backend/target
+          cp "$RUNNER_TEMP/backend-jar/tinyroute-backend-0.0.1-SNAPSHOT.jar" backend/target/application.jar
+          docker build --target ci --tag "tinyroute-backend:ci-$GITHUB_SHA" backend
+      - name: Install pinned Trivy
+        run: bash .github/scripts/install-tool.sh trivy "$RUNNER_TEMP/ci-tools"
+      - name: Scan runtime image
+        run: >-
+          trivy image --no-progress --scanners vuln --severity HIGH,CRITICAL --exit-code 1
+          --format json --output "$RUNNER_TEMP/trivy-image.json"
+          "tinyroute-backend:ci-$GITHUB_SHA"
+      - name: Require scanned Java and OS package inventory
+        run: python3 .github/scripts/ci.py trivy-inventory "$RUNNER_TEMP/trivy-image.json" --image
+      - name: Upload image scan report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: backend-image-scan
+          path: ${{ runner.temp }}/trivy-image.json
+          retention-days: 7
+
+  gate:
+    name: Backend CI
+    needs: [precheck, verify, codeql, docker]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Required backend gate
+        run: python3 .github/scripts/ci.py gate backend verify codeql docker
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
