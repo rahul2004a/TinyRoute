@@ -81,6 +81,9 @@ def sarif_findings(directory):
         if report.get("version") != "2.1.0" or not report.get("runs"):
             raise ValueError(f"Invalid SARIF report: {file}")
         for run in report["runs"]:
+            modes = run.get("properties", {}).get("incrementalMode", "").split(",")
+            if "diff-informed" in modes:
+                raise ValueError("CodeQL must analyze the full backend, not only PR changes")
             tool = run.get("tool", {})
             results = run.get("results")
             if not isinstance(tool.get("driver", {}).get("rules"), list) or not isinstance(results, list):

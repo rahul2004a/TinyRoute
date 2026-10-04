@@ -1,8 +1,8 @@
 # CI checks and required gates
 
-The [frontend workflow](../../.github/workflows/frontend-ci.yml) validates pull
-requests targeting `main`. The [backend workflow](../../.github/workflows/backend-ci.yml)
-validates those pull requests and pushes to `main`. CI never deploys, pushes an
+The [frontend workflow](../../.github/workflows/frontend-ci.yml) and
+[backend workflow](../../.github/workflows/backend-ci.yml) validate pull
+requests targeting `main` and pushes to `main`. CI never deploys, pushes an
 image, logs into a registry, or reads production secrets.
 
 ## Required checks
@@ -15,7 +15,7 @@ Without that rule, failing workflow checks alone do not enforce merge blocking.
 Avoid requiring conditional internal jobs, which intentionally skip for
 unaffected applications. If enabling a merge queue later, first add
 `merge_group` support and test its diff semantics; these workflows currently
-support ordinary pull requests and backend main pushes.
+support ordinary pull requests and main pushes for both applications.
 
 Both aggregate gates run with `always()`. Detection must succeed. If an
 application changed, all its required jobs must succeed; failed, cancelled,
@@ -93,6 +93,9 @@ After verification, two jobs run in parallel:
   sets `upload: never` and disables database upload so both analyses coexist
   without changing repository security settings.
   Only this job receives `security-events: read` for the Action's feature API.
+  `CODEQL_ACTION_DIFF_INFORMED_QUERIES=false` makes PRs and main pushes scan
+  the full backend. The SARIF gate rejects reports marked `diff-informed`;
+  otherwise unchanged vulnerable code could pass a PR and fail after merge.
   `CODEQL_ACTION_FILE_COVERAGE_ON_PRS=true` explicitly retains PR analysis
   file metadata. This metadata is separate from JaCoCo test coverage.
 - Docker downloads the current run's verified JAR, copies it to

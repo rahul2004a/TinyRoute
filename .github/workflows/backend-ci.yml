@@ -115,6 +115,8 @@ jobs:
       contents: read
       security-events: read
     env:
+      # The gate needs the same full-backend findings on PRs and main pushes.
+      CODEQL_ACTION_DIFF_INFORMED_QUERIES: 'false'
       # Retain analysis file metadata on PRs; JaCoCo separately gates test coverage.
       CODEQL_ACTION_FILE_COVERAGE_ON_PRS: 'true'
     steps:
