@@ -4,7 +4,7 @@
 - Classification: architectural; creation and public resolution extend existing
   link, security, persistence, and cache interfaces.
 - Approach approved: 2026-10-07.
-- Written specification: awaiting user approval. Approval permits planning;
+- Written specification approved: 2026-10-07. Approval permits planning;
   implementation requires separate approval of the saved plan and checklist.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
@@ -540,10 +540,10 @@ was changed to work around that environment restriction.
 
 The existing feature branch is now checked out in the shared project workspace;
 the initial temporary worktree is detached at the same base commit. Save and
-commit this specification on the feature branch. No active implementation plan
-or checklist has been written. After written-spec approval, use
-`superpowers:writing-plans` to save `tasks/plan.md` and `tasks/todo.md`, present
-both, and wait for plan approval.
+commit this specification on the feature branch. The written specification was
+approved on 2026-10-07. The implementation plan and checklist are saved at
+`tasks/plan.md` and `tasks/todo.md`; their approval is the next gate. No
+application implementation is authorized before that gate.
 
 Final independent review must examine namespace/collision safety, transaction
 and deletion races, exact Location preservation, cache freshness/expiry,
@@ -560,5 +560,5 @@ and exclusions are preserved; format/reserved-word/rate/expiry decisions are
 explicit. Review clarified reserved generated-candidate exhaustion, short-host
 routing and host canonicalization, expiry checks after owner-lock waits, deletion
 markers in redirect projections, and original-read cache freshness. Local source
-links and JSON examples are validated before committing. Written-spec approval
-remains the next workflow gate.
+links and JSON examples were validated before committing. The approved product
+contract remains unchanged while planning; saved-plan approval is the next gate.
