@@ -519,6 +519,10 @@ Use the shared credentialed HTTP client and existing in-memory CSRF helper for
 the typed TanStack Query mutation. Do not automatically retry POST. A 401
 rechecks session through existing renewal behavior and offers sign-in or a
 deliberate resubmission; it does not silently resubmit the original mutation.
+Each manual creation fetches a fresh CSRF bootstrap and clears its cached token
+afterwards, accommodating cookie rotation by the existing authentication flow.
+No creation POST is automatically retried.
+
 A CSRF failure clears the cached CSRF token and offers resubmission after a new
 bootstrap. Quota/service/validation/conflict errors preserve form values and
 explain the next action. Prevent accidental duplicate submits while pending.

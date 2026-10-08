@@ -21,6 +21,10 @@ class ChangesTest(unittest.TestCase):
                 self.assertEqual(ci.classify([path]), (True, True))
         self.assertEqual(ci.classify(["Readme.md", "docs/spec/example/spec.md"]), (False, False))
 
+    def test_link_load_harness_requires_frontend_verification(self):
+        for path in ["tools/link-performance.mjs", "tools/link-performance.test.mjs"]:
+            self.assertEqual(ci.classify([path]), (True, False))
+
     def test_git_diff_includes_deletions_and_both_sides_of_rename(self):
         with tempfile.TemporaryDirectory() as directory:
             repo = Path(directory)

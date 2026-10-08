@@ -15,11 +15,14 @@ import org.testcontainers.utility.DockerImageName;
 public class TestInfrastructureConfiguration {
 
     @Bean
-    DynamicPropertyRegistrar testDatastoreProperties() {
+    public DynamicPropertyRegistrar testDatastoreProperties() {
         return registry -> {
             registry.add("spring.datasource.url", Containers.POSTGRES::getJdbcUrl);
             registry.add("spring.datasource.username", Containers.POSTGRES::getUsername);
             registry.add("spring.datasource.password", Containers.POSTGRES::getPassword);
+            // Cached Spring test contexts share one small disposable database.
+            registry.add("spring.datasource.hikari.maximum-pool-size", () -> 4);
+            registry.add("spring.datasource.hikari.minimum-idle", () -> 0);
             registry.add("spring.data.redis.host", Containers.REDIS::getHost);
             registry.add("spring.data.redis.port", () -> Containers.REDIS.getMappedPort(6379));
         };

@@ -312,6 +312,56 @@ port `1025` free and configure the backend mail settings shown above:
 pnpm --dir frontend exec playwright test --config playwright.live.config.ts
 ```
 
+### Disposable link verification and load protocol
+
+The link feature's live gate requires the test-only verification application,
+not an ordinary development database. It launches PostgreSQL/Redis Testcontainers,
+seeds three disposable accounts and 100 links, and exposes loopback/token-guarded
+fixtures only on the test classpath. It is never packaged in the backend image.
+Use existing local TLS certificates and externally activate `dev`. Supply a fresh
+random `TINYROUTE_VERIFICATION_TOKEN` through the environment; keep it private and
+use the same token in the browser/load terminals. Do not put it in command arguments
+or tracked files. No production JWT keys are needed by this test entry point.
+
+```sh
+./backend/mvnw -f backend/pom.xml -B -ntp test-compile
+SPRING_PROFILES_ACTIVE=dev ./backend/mvnw -f backend/pom.xml -B -ntp spring-boot:test-run -Dspring-boot.run.main-class=com.tinyroute.LinkVerificationApplication
+pnpm --dir frontend exec playwright test --config playwright.live.config.ts
+```
+
+Defaults are frontend/backend/SMTP ports 3000/8443/1025. If occupied, use an
+isolated frontend checkout/copy with its own build output, and set
+`TINYROUTE_E2E_FRONTEND_PORT=3001`, `TINYROUTE_VERIFICATION_PORT=8444`,
+`TINYROUTE_E2E_SMTP_PORT=1026`, backend `MAIL_PORT=1026`, and
+`NEXT_PUBLIC_API_BASE_URL=https://localhost:8444`. Match backend
+`ALLOWED_FRONTEND_ORIGINS=https://localhost:3001` and
+`PASSWORD_RESET_CONFIRMATION_URI=https://localhost:3001/password-reset/confirm`.
+Keep certificate references valid in that checkout. Never stop another developer's
+server or point state fixtures at their datastores. The backend test pool is bounded
+to four connections with zero minimum idle; production pool settings are unchanged.
+
+The driver binds source `127.0.0.2`, trusted only by this disposable application;
+ordinary browser `127.0.0.1` traffic stays untrusted. On macOS, add a temporary
+loopback alias with `sudo /sbin/ifconfig lo0 alias 127.0.0.2` and remove it afterwards
+with `sudo /sbin/ifconfig lo0 -alias 127.0.0.2`. On systems where 127/8 binding works
+without an alias, no administrator setup is needed. The driver validates local TLS:
+point `NODE_EXTRA_CA_CERTS` at the mkcert root CA, without disabling TLS validation.
+
+```sh
+node --test tools/link-performance.test.mjs
+node tools/link-performance.mjs --api-base https://localhost:8444 --rate 100 --duration 600 --warmup 30 --create-samples 200 --clients 100 --output .local-verification/link-performance.json
+```
+
+Run against freshly restarted disposable data if creation quotas were consumed by
+a prior measurement. The driver obtains CSRF for each creation, omits aliases,
+never retries POST, and never follows a redirect. It retains all statuses and transport
+failures, checks complete issuance/server timing samples, and fails on dropped arrivals
+or scheduling lateness above 100 ms. Server percentiles wrap the full Spring chain;
+client round trips are separate. Operational logs/metrics contain only fixed route,
+method, status and duration, with no link or owner identifiers. See the
+[feature verification record](docs/spec/link-creation-and-redirection/verification.md)
+for current results and outstanding local/production gates (NFR-PER-01–03).
+
 Open `https://localhost:3000/register`. The frontend calls
 `https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
 its working directory, so the development profile reads `../.local-certs/`.

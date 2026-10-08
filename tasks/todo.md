@@ -5,7 +5,7 @@
 - Specification: [approved feature spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **original plan approved 2026-10-08; Tasks 1–7 verified; Task 8 partially executed. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 revision approved 2026-10-08 ("done"); Task 7A implemented and verified; resume Task 8.**
+- Current state: **original plan approved 2026-10-08; Tasks 1–8 (including 7A) implemented and verified; Task 9 timing support verified, sustained load pending. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 revision approved 2026-10-08 ("done"); Task 7A and Task 8 complete; independent final review and sustained load pending.**
 
 ## Approval gates and baseline
 
@@ -35,32 +35,32 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 6. Public Spring redirect boundary — exact Location, state matrix, host/path/auth isolation, GET/HEAD/no-store.
 - [x] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
 - [x] 7A. HLD Redis-counter generation — fixed-key/salt FF1 Base62 encoding, V6 metadata, atomic allocation/recovery, alias/legacy compatibility, bounded safe failures, and affected regressions.
-- [ ] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
+- [x] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
 - [ ] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
 - [ ] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
 
 ## Acceptance checklist
 
-- [ ] AC-01: Signed-in create, unique copyable URL, one-click copy, committed next request works.
-- [ ] AC-02: Signed-out/invalid/revoked/stale/deleted credentials and missing CSRF cannot create; sign-in prompt.
-- [ ] AC-03: Invalid/non-HTTPS/self-host errors are clear and create no row.
-- [ ] AC-04: Alias validity/reservation/conflict, atomic counter and recovery concurrency, legacy compatibility, deleted/expired non-reuse.
-- [ ] AC-05: Optional expiry, future validation after locking, exact expiry even when cached.
-- [ ] AC-06: Anonymous exact case-sensitive stored destination with path/query/fragment/encoding.
-- [ ] AC-07: Unknown/case-mismatched/deleted/expired 404; disabled 403; no details or Location.
-- [ ] AC-08: Hourly creation cap and client redirect cap, accurate retry guidance, independent visitors.
-- [ ] AC-09: Redis cache fallback, bounded limiter fallback, counter/recovery safe failure, safe indeterminate-state error.
+- [x] AC-01: Signed-in create, unique copyable URL, one-click copy, committed next request works.
+- [x] AC-02: Signed-out/invalid/revoked/stale/deleted credentials and missing CSRF cannot create; sign-in prompt.
+- [x] AC-03: Invalid/non-HTTPS/self-host errors are clear and create no row.
+- [x] AC-04: Alias validity/reservation/conflict, atomic counter and recovery concurrency, legacy compatibility, deleted/expired non-reuse.
+- [x] AC-05: Optional expiry, future validation after locking, exact expiry even when cached.
+- [x] AC-06: Anonymous exact case-sensitive stored destination with path/query/fragment/encoding.
+- [x] AC-07: Unknown/case-mismatched/deleted/expired 404; disabled 403; no details or Location.
+- [x] AC-08: Hourly creation cap and client redirect cap, accurate retry guidance, independent visitors.
+- [x] AC-09: Redis cache fallback, bounded limiter fallback, counter/recovery safe failure, safe indeterminate-state error.
 - [ ] AC-10: Creation p95 <500 ms; complete 100 rps/600-second redirect run p95 <150/p99 <300 ms/errors <0.5%.
-- [ ] AC-11: Creation/deletion race fence and compatible bounded deletion cleanup.
-- [ ] AC-12: Keyboard/screen-reader/clipboard/error flow; both themes, reduced motion, all four widths.
+- [x] AC-11: Creation/deletion race fence and compatible bounded deletion cleanup.
+- [x] AC-12: Keyboard/screen-reader/clipboard/error flow; both themes, reduced motion, all four widths.
 
 ## Review and verification gates
 
-- [ ] All relevant critical-path tests and full Maven clean verify pass; ≥70% line coverage.
-- [ ] Backend formatting/static analysis, frontend lint/format/typecheck/unit/build checks pass.
-- [ ] Full contract and live Playwright suites pass with disposable accounts/datastores.
+- [x] All relevant critical-path tests and full Maven clean verify pass; ≥70% line coverage.
+- [x] Backend formatting/static analysis, frontend lint/format/typecheck/unit/build checks pass.
+- [x] Full contract and live Playwright suites pass with disposable accounts/datastores.
 - [ ] Complete local load protocol and harness self-tests pass; raw report summarized in verification.md.
-- [ ] Sanitized UI evidence reviewed for layout, keyboard, focus, contrast and target sizes.
+- [x] Sanitized UI evidence reviewed for layout, keyboard, focus, contrast and target sizes.
 - [ ] One independent final review completed; blocking findings fixed and stale checks rerun.
 - [ ] No analytics/events/click increments, extra endpoints, secrets, unrelated changes or production provisioning.
 - [ ] Documentation and acceptance mapping reflect actual results and material limitations.
@@ -99,6 +99,12 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-08 | Salted FF1 revision approved; Task 7A verification in progress | User written approval "done". Red: focused tests failed compilation on missing encoder/counter/recovery contracts. Green: 54 focused unit tests and 37 real PostgreSQL/Redis/security regressions; 100 concurrent initialization and allocation calls each remain unique. Migration-upgrade/configuration regressions running next | V6 nullable metadata, fixed AES-FF1 key/salt, atomic non-TTL Redis counter, bounded conflict recovery; preserve Task 8 work |
 
 | 2026-10-08 | Task 7A complete | Green: 54 encoder/counter/service units; 37 real datastore/security regressions; 64 configuration/domain/error units plus one V5→V6 migration integration; final explicit ten-allocation/no-eleventh regression: 8 service units. All pass, no failures/errors. Spotless applied and diff whitespace checked | Redis recovery retains deleted/expired allocations; alias and legacy NULL metadata remain intact; fixed key/salt required. Resume Task 8 on isolated ports |
+
+| 2026-10-08 | Task 8 green; Task 9 support in progress | Full contracts: 27 Playwright tests; new eight theme/viewport contrast checks (≥4.5:1), 24 clean screenshots. Full live auth + links: 2 tests passed in 1.1 min. Fixture/isolation: 4 integration tests. Live stale-CSRF red → new regression red → 23 focused API/form tests green; link requests bootstrap fresh CSRF once, no POST retry | Isolated 3001/8444 and disposable datastores; production auth unchanged. Load source alias awaits user admin setup. Timing red → 3 filter/6 Node/14 CI helper checks green; full checks pending |
+
+| 2026-10-08 | Full-check failures under systematic debugging | Frontend lint/format/typecheck/build, full 77 Vitest tests and 27 Playwright contracts passed. Full Maven run exposed fixture rows blocking legacy auth cleanup, plus cached test-context default pools exhausting the shared PG connection limit. Fix: remove only fixture accounts after its class; test datastores use max pool 4/min idle 0 | No production pool/security changes. Rerun full Maven after observed integration red; load alias still pending |
+
+| 2026-10-08 | Full gates green; Task 8 ready for checkpoint | Full Maven clean verify: 238 unit + 106 integration, zero failures/errors/skips; JaCoCo 90.27%; SpotBugs/FindSecBugs and Spotless pass. Frontend lint/format/typecheck/77 Vitest/build/27 contracts pass. Full live 2 journeys passed; 6 Node + 14 CI helpers pass | Scope-safe fixture teardown and test-only max pool 4/min idle 0 fixed observed full-suite failures. No versions or production security/pools changed. Load alias and independent final review outstanding |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 

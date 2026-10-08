@@ -92,7 +92,9 @@ test("password sign-in persists on reload and sign-out clears the session", asyn
 
   await page.goto("/login");
   await page.getByLabel("Email address").fill("browser@example.com");
-  await page.getByLabel("Password").fill("browser-password-123");
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("browser-password-123");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "You’re signed in" }),

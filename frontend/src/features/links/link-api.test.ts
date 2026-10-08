@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createLink } from "./link-api";
-import { clearCsrfToken } from "../../lib/csrf";
+import { clearCsrfToken, getCsrfToken } from "../../lib/csrf";
 
 export const created = {
   id: "86b9f592-c6ec-43e1-aa62-adf606f03c1e",
@@ -85,4 +85,40 @@ it("rejects a malformed success that omits nullable expiry", async () => {
     createLink({ destinationUrl: created.destinationUrl }),
   ).rejects.toThrow();
   expect(fetch).toHaveBeenCalledTimes(2);
+});
+
+it("gets a fresh CSRF bootstrap for each creation after the server rotates its cookie", async () => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ csrfToken: "old-cached-token" }), {
+        status: 200,
+      }),
+    )
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ csrfToken: "first-token" }), {
+        status: 200,
+      }),
+    )
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify(created), { status: 201 }),
+    )
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ csrfToken: "second-token" }), {
+        status: 200,
+      }),
+    )
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify(created), { status: 201 }),
+    );
+  vi.stubGlobal("fetch", fetch);
+  await getCsrfToken();
+  await createLink({ destinationUrl: created.destinationUrl });
+  await createLink({ destinationUrl: created.destinationUrl });
+  expect(fetch).toHaveBeenCalledTimes(5);
+  const posts = fetch.mock.calls.filter((call) => call[1]?.method === "POST");
+  expect(posts).toHaveLength(2);
+  expect(
+    posts.map((call) => new Headers(call[1].headers).get("X-CSRF-TOKEN")),
+  ).toEqual(["first-token", "second-token"]);
 });
