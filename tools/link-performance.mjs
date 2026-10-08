@@ -1,8 +1,16 @@
 import https from "node:https";
 import { performance } from "node:perf_hooks";
 import { parseArgs } from "node:util";
-import { writeFile } from "node:fs/promises";
+import { mkdir, open, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+
+export async function prepareReportOutput(output) {
+  const path = resolve(output);
+  await mkdir(dirname(path), { recursive: true, mode: 0o700 });
+  const file = await open(path, "a", 0o600);
+  await file.close();
+}
 
 export function percentile(values, fraction) {
   if (
@@ -234,6 +242,7 @@ async function main() {
   const token = process.env.TINYROUTE_VERIFICATION_TOKEN;
   if (!token || !/^[A-Za-z0-9_-]{32,128}$/.test(token))
     throw new Error("Private fixture token is required");
+  await prepareReportOutput(values.output);
   const agent = new https.Agent({ keepAlive: true, maxSockets: 256 });
   const send = transport(agent, "127.0.0.2");
   const fixtureHeaders = { "X-Verification-Token": token };

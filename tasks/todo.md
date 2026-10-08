@@ -5,7 +5,7 @@
 - Specification: [approved feature spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **original plan approved 2026-10-08; Tasks 1–8 (including 7A) implemented and verified; Task 9 timing support verified, sustained load pending. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 revision approved 2026-10-08 ("done"); Task 7A and Task 8 complete; independent final review and sustained load pending.**
+- Current state: **original plan approved 2026-10-08; Tasks 1–8 (including 7A) implemented and verified; Task 9 timing support verified, sustained load pending. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 revision approved 2026-10-08 ("done"); Task 7A and Task 8 complete; independent final review complete and sustained load pending.**
 
 ## Approval gates and baseline
 
@@ -61,14 +61,14 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] Full contract and live Playwright suites pass with disposable accounts/datastores.
 - [ ] Complete local load protocol and harness self-tests pass; raw report summarized in verification.md.
 - [x] Sanitized UI evidence reviewed for layout, keyboard, focus, contrast and target sizes.
-- [ ] One independent final review completed; blocking findings fixed and stale checks rerun.
-- [ ] No analytics/events/click increments, extra endpoints, secrets, unrelated changes or production provisioning.
-- [ ] Documentation and acceptance mapping reflect actual results and material limitations.
+- [x] One independent final review completed; minor findings fixed and affected checks rerun. Sustained-load readiness gate remains pending.
+- [x] No analytics/events/click increments, extra production endpoints, secrets, unrelated changes or production provisioning.
+- [x] Documentation and acceptance mapping reflect actual results and material limitations.
 - [ ] Every implementation task/AC complete; documentation links checked and records ready for archive.
 
 ## Post-completion delivery record
 
-Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: awaiting implementation and verification. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, create/update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
+Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks and independent review complete; sustained-load verification blocked by the unavailable temporary loopback source. Keep Tasks 9–10 active and publish a draft PR if that local gate remains blocked; do not archive or mark ready. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, create/update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
 
 ## Durable execution ledger
 
@@ -105,6 +105,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-08 | Full-check failures under systematic debugging | Frontend lint/format/typecheck/build, full 77 Vitest tests and 27 Playwright contracts passed. Full Maven run exposed fixture rows blocking legacy auth cleanup, plus cached test-context default pools exhausting the shared PG connection limit. Fix: remove only fixture accounts after its class; test datastores use max pool 4/min idle 0 | No production pool/security changes. Rerun full Maven after observed integration red; load alias still pending |
 
 | 2026-10-08 | Full gates green; Task 8 ready for checkpoint | Full Maven clean verify: 238 unit + 106 integration, zero failures/errors/skips; JaCoCo 90.27%; SpotBugs/FindSecBugs and Spotless pass. Frontend lint/format/typecheck/77 Vitest/build/27 contracts pass. Full live 2 journeys passed; 6 Node + 14 CI helpers pass | Scope-safe fixture teardown and test-only max pool 4/min idle 0 fixed observed full-suite failures. No versions or production security/pools changed. Load alias and independent final review outstanding |
+
+| 2026-10-08 | Independent final review complete; minor fixes verified | Reviewer inspected base through `26dfcda`: no critical implementation defects; independently confirmed 344 backend tests and 90.27% coverage. Report preflight regression red on missing export → all 9 Node tests green; output directory/file prepared before traffic, old evidence preserved, bad targets rejected. Current approval/Task 8 status reconciled | Task 8/check support checkpoint `26dfcda`. Full sustained load remains blocked by unavailable macOS loopback alias; retain active tasks and draft readiness. No product/security policy changes |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 

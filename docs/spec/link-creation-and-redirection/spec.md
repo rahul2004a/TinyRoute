@@ -9,8 +9,9 @@
 - Redis-counter revision requested: 2026-10-08, to match HLD.excalidraw.
   This revision and its revised plan were approved 2026-10-08 ("ok do now").
   A subsequent request adds salt and rejects truncated HMAC to avoid generated
-  collisions. The AES-FF1 proposal awaits written spec/plan approval; generator
-  code and new tests remain unchanged. Prior completed work remains recorded.
+  collisions. The AES-FF1 written spec/plan was approved 2026-10-08 ("done");
+  Task 7A is implemented and verified. Tasks 1–8 are complete; independent
+  review is complete and sustained-load acceptance remains pending.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
 - Branch: `feature/link-creation-and-redirection`, based on `origin/main`

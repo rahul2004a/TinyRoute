@@ -1,9 +1,20 @@
+import {
+  mkdtemp,
+  stat,
+  readFile,
+  mkdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
   percentile,
   evaluateRun,
   requestOptions,
+  prepareReportOutput,
 } from "./link-performance.mjs";
 
 const good = () => ({
@@ -90,4 +101,39 @@ test("driver options validate TLS, never follow redirects and bind the proxy sou
   assert.throws(() =>
     requestOptions(new URL("http://localhost:8444/AbC"), "GET", {}),
   );
+});
+
+test("report preflight creates a private nested output before measurement", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tinyroute-report-"));
+  try {
+    const output = join(directory, "missing-parent", "report.json");
+    await prepareReportOutput(output);
+    assert.equal((await stat(output)).isFile(), true);
+    assert.equal((await stat(output)).mode & 0o777, 0o600);
+    assert.equal(await readFile(output, "utf8"), "");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+test("report preflight rejects a directory masquerading as the report file", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tinyroute-report-"));
+  try {
+    const output = join(directory, "report.json");
+    await mkdir(output);
+    await assert.rejects(prepareReportOutput(output));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("report preflight preserves previous evidence until replacement is ready", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tinyroute-report-"));
+  try {
+    const output = join(directory, "report.json");
+    await writeFile(output, "previous evidence", { mode: 0o600 });
+    await prepareReportOutput(output);
+    assert.equal(await readFile(output, "utf8"), "previous evidence");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

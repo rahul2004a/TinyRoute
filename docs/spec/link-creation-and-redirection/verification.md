@@ -1,7 +1,7 @@
 # Link creation and redirection verification
 
 Feature `link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`.
-Status: feature implementation and browser/live verification are complete; final review and sustained load evidence are pending. This is not a completion or production performance claim.
+Status: feature implementation and browser/live verification are complete; independent final review is complete and sustained load evidence is pending. This is not a completion or production performance claim.
 
 ## Counter, encoding and migration
 
@@ -33,11 +33,29 @@ The macOS benchmark source `127.0.0.2` needs a temporary loopback alias. Automat
 
 Fresh full Maven `clean verify`: 238 unit + 106 integration tests, no failures/errors/skips; JaCoCo 2,013/2,230 application lines = 90.27%, exceeding the unchanged 70% gate; SpotBugs/FindSecBugs verify passed. Spotless check passed. The first full run exposed seeded fixture rows blocking older auth cleanup and cached test pools exhausting the shared disposable database. Scoped fixture-account teardown and a test-only four-connection/zero-idle pool fixed those issues; production pools and security remain unchanged.
 
-Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Node harness self-tests (6) and CI helper tests (14) passed. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
+Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Node harness self-tests (9, including final-review filesystem regressions) and CI helper tests (14) passed. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
+
+## Independent final review
+
+One independent reviewer inspected base `ecffb917a489cd18770127ede3b1a96f3a0debfb`
+through `26dfcdaa47999a07bbc53507ce45bf3b215bbf9f`, the approved spec/plan,
+verification record and representative UI evidence. No critical implementation
+defects were found. The reviewer independently confirmed all 344 backend tests
+and 90.27% coverage, and checked counter recovery, permanent uniqueness,
+owner fencing, exact cache expiry, public authentication isolation, throttling,
+privacy and absence of analytics.
+
+The sustained-load gate remains incomplete and keeps the PR in draft. Minor
+findings were resolved: report output is prepared before measurement, and current
+approval/Task 8 status records are reconciled. The report preflight tests first
+failed on the missing exported helper, then all nine Node tests passed, including
+real filesystem checks for nested private output, invalid directory targets and
+preserving previous evidence. No product behavior changed; earlier full backend
+and frontend results remain applicable (NFR-PER-01–03; NFR-TST-01/02).
 
 ## Outstanding completion gates and limitations
 
-- Complete independent final review; rerun checks made stale by any review fixes.
+- Independent final review is complete; its minor report preflight and stale-status findings are fixed and affected checks pass.
 - Run and save the complete sustained-load report; no measured load claim yet.
 - Keep fixed FF1 key/salt configuration; rotation requires a future namespace/recovery design. Short links are public URLs, not authorization tokens.
 - Local benchmarks do not establish latency or availability on Hostinger/nearby Supabase/Vercel. Verify the production topology before release.

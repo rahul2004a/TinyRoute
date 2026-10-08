@@ -352,6 +352,10 @@ node --test tools/link-performance.test.mjs
 node tools/link-performance.mjs --api-base https://localhost:8444 --rate 100 --duration 600 --warmup 30 --create-samples 200 --clients 100 --output .local-verification/link-performance.json
 ```
 
+The driver creates missing output directories and a private report file before sending
+traffic, rejecting unusable output paths immediately. Existing evidence is preserved
+until a replacement report is ready.
+
 Run against freshly restarted disposable data if creation quotas were consumed by
 a prior measurement. The driver obtains CSRF for each creation, omits aliases,
 never retries POST, and never follows a redirect. It retains all statuses and transport
