@@ -645,17 +645,19 @@ sandbox because Mockito JVM attachment failed inside it. No application source
 was changed to work around that environment restriction.
 
 The existing feature branch is now checked out in the shared project workspace;
-the initial temporary worktree is detached at the same base commit. Save and
-commit this specification on the feature branch. The original specification was
-approved on 2026-10-07 and original plan on 2026-10-08. Tasks 1–7 are complete;
-Task 8 has partial browser/test-fixture evidence and remains incomplete. The
+the initial temporary worktree is detached at the same base commit. The saved
+specification was approved on 2026-10-07 and original plan on 2026-10-08.
+Tasks 1–8, including Task 7A, are implemented, committed and verified. The
 user requested Redis-counter alignment on 2026-10-08. This revised specification,
-architecture, and `tasks/plan.md`/`tasks/todo.md` record the proposed replacement
+architecture, and `tasks/plan.md`/`tasks/todo.md` record the approved replacement
 as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
 plain-counter implementation was authorized. The subsequent salt/uniqueness
 request was approved as the AES-FF1 revision on 2026-10-08 ("done");
-Task 7A implementation and focused regression verification are complete. Preserve existing commits, completed checkboxes, and
-uncommitted Task 8 work; do not archive partially completed tasks.
+Independent final review is complete; its minor report-output and stale-status
+findings are resolved. Sustained-load acceptance remains blocked by the unavailable
+temporary loopback source. Preserve existing commits and completed checkboxes;
+keep Tasks 9–10 active and any PR in draft until the full protocol passes. Do not
+archive partially completed tasks.
 
 Final independent review must examine atomic counter allocation, recovery and
 capacity, alias/legacy compatibility, namespace/collision safety, transaction

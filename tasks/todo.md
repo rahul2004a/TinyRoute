@@ -112,6 +112,12 @@ Add rows during approved execution with exact command outcomes, test counts, fai
 
 ## Material limitations to retain
 
+Final-review follow-up confirmed the report preflight fix and identified one
+remaining stale Task 8 paragraph in the spec; that paragraph is now reconciled.
+Review fix commit: `db22899`. Node self-tests (9), CI helper tests (14), touched
+file Prettier checks and `git diff --check` pass. The loopback alias is still absent;
+no sustained-load completion is claimed.
+
 - Local Testcontainers measurements establish local performance only. Hostinger/nearby Supabase latency remains a production release verification item; this feature does not authorize deployment.
 - Redis limiter outages use one backend process's bounded, best-effort redirect window; recovery/restart can start a fresh window. Auth/creation remain fail-closed.
 - Link state changes have the approved maximum five-second snapshot bound; expiry is checked at the exact instant without grace.
