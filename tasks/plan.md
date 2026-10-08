@@ -237,7 +237,7 @@ retrySeconds = max(1, seconds + (remainingNanosWithinSecond > 0 ? 1 : 0))
 
 **Requirements:** FR-CRE-01/02/03/04/07/08; NFR-SEC-06/09, NFR-CON-01; AC-01/02/03/04/08.
 
-**Files — create:** `backend/src/main/java/com/tinyroute/controller/LinkController.java`, `dto/CreateLinkRequest.java`, `dto/CreateLinkResponse.java`, `dto/StrictStringDeserializer.java`; `backend/src/test/java/com/tinyroute/controller/LinkCreationContractIT.java`.
+**Files — create:** `backend/src/main/java/com/tinyroute/controller/LinkController.java`, `dto/CreateLinkRequest.java`, `dto/CreateLinkResponse.java`, `dto/StrictStringDeserializer.java`; `backend/src/test/java/com/tinyroute/controller/LinkCreationContractIT.java`, `LinkHttpTestSupport.java` (shared real-security fixture).
 
 **Files — modify:** `backend/src/main/java/com/tinyroute/dto/error/ApiErrorResponse.java`, `exception/GlobalExceptionHandler.java`; `backend/src/test/java/com/tinyroute/exception/GlobalExceptionHandlerTest.java`, `security/RequestBodyLimitFilterTest.java`.
 
@@ -256,7 +256,7 @@ ApiErrorResponse ApiErrorResponse.aliasUnavailable(String requestId);
 ApiErrorResponse ApiErrorResponse.codeAllocationFailed(String requestId);
 ```
 
-- [ ] **4.1 Write full-security MockMvc integration failures first.** Use existing real JWT key/test datastores and CSRF bootstrap fixtures. Verify missing/invalid/expired/revoked/wrong-version/deleted-owner credentials, valid cookie without CSRF, trusted CORS, malformed JSON, unknown ownerId field, numeric/boolean/array/object fields, explicit null required destination, declared/streamed >16 KiB bodies. Assert no row and no quota consumption for auth/CSRF rejection. Semantic invalid input/conflict consumes one authorized attempt. Verify all status/error contracts, accurate field messages, expiresAt null present, committed next-read, no owner/analytics/creation Location, and no-store.
+- [x] **4.1 Write full-security MockMvc integration failures first.** Use existing real JWT key/test datastores and CSRF bootstrap fixtures. Verify missing/invalid/expired/revoked/wrong-version/deleted-owner credentials, valid cookie without CSRF, trusted CORS, malformed JSON, unknown ownerId field, numeric/boolean/array/object fields, explicit null required destination, declared/streamed >16 KiB bodies. Assert no row and no quota consumption for auth/CSRF rejection. Semantic invalid input/conflict consumes one authorized attempt. Verify all status/error contracts, accurate field messages, expiresAt null present, committed next-read, no owner/analytics/creation Location, and no-store.
 
 ```java
 // csrfCookie/header and accessCookie come from the existing real bootstrap/login fixture.
@@ -270,8 +270,8 @@ mockMvc.perform(post("/api/links").cookie(accessCookie, csrfCookie)
     .andExpect(jsonPath("$.ownerId").doesNotExist());
 ```
 
-- [ ] **4.2 Run red:** focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=LinkCreationContractIT`; unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=GlobalExceptionHandlerTest,RequestBodyLimitFilterTest`. Expected authenticated POST currently lacks contract.
-- [ ] **4.3 Implement thin controller, strict DTO decoding, and safe exception mappings.** Use the existing security default authentication/CSRF, not a new auth mechanism. Quota check occurs once before service validation. Keep String coercion changes DTO-scoped so auth decoding stays unchanged; use installed Jackson 3 APIs. Unknown JSON fields retain the global rejection. Error maps use explicit safe messages/field names and never exception text. Map known `DataAccessException`/`TransactionException` failures, including a failure at proxy commit, to safe 503; do not expose stack/SQL text or catch every unchecked exception indiscriminately. Return 201 after the proxied transactional service returns. Force explicit null expiresAt serialization.
+- [x] **4.2 Run red:** focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=LinkCreationContractIT`; unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=GlobalExceptionHandlerTest,RequestBodyLimitFilterTest`. Expected authenticated POST currently lacks contract.
+- [x] **4.3 Implement thin controller, strict DTO decoding, and safe exception mappings.** Use the existing security default authentication/CSRF, not a new auth mechanism. Quota check occurs once before service validation. Keep String coercion changes DTO-scoped so auth decoding stays unchanged; use installed Jackson 3 APIs. Unknown JSON fields retain the global rejection. Error maps use explicit safe messages/field names and never exception text. Map known `DataAccessException`/`TransactionException` failures, including a failure at proxy commit, to safe 503; do not expose stack/SQL text or catch every unchecked exception indiscriminately. Return 201 after the proxied transactional service returns. Force explicit null expiresAt serialization.
 
 ```text
 principal → allowCreation(principal.userId()) → create(principal, request-to-command)
@@ -282,8 +282,8 @@ CodeAllocationFailedException → 409/CODE_ALLOCATION_FAILED
 known datastore inability → 503/SERVICE_UNAVAILABLE, no internal message
 ```
 
-- [ ] **4.4 Run green plus existing `AuthContractIT,SecurityPerimeterIT,AccountDeletionIT`.** Confirm security errors preserve existing behavior and creation cannot authorize with stale state after the user-row fence. Force an actual transaction rollback/commit failure in the service boundary test: assert no 201 or cache success assumption is emitted and the HTTP response is safe 503.
-- [ ] **4.5 Record evidence and commit:** `git commit -m "feat: expose secured link creation API"`.
+- [x] **4.4 Run green plus existing `AuthContractIT,SecurityPerimeterIT,AccountDeletionIT`.** Confirm security errors preserve existing behavior and creation cannot authorize with stale state after the user-row fence. Force an actual transaction rollback/commit failure in the service boundary test: assert no 201 or cache success assumption is emitted and the HTTP response is safe 503.
+- [x] **4.5 Record evidence and commit:** `git commit -m "feat: expose secured link creation API"`.
 
 ## Task 5: Expiry-safe redirect cache and authoritative resolution
 

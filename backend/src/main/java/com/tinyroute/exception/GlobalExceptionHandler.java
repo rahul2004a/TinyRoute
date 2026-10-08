@@ -16,6 +16,37 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(LinkValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleLinkValidation(
+            LinkValidationException exception) {
+        return ResponseEntity.badRequest()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(
+                        ApiErrorResponse.validationError(
+                                UUID.randomUUID().toString(), exception.fieldErrors()));
+    }
+
+    @ExceptionHandler(AliasUnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleAliasUnavailable() {
+        return ResponseEntity.status(409)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(ApiErrorResponse.aliasUnavailable(UUID.randomUUID().toString()));
+    }
+
+    @ExceptionHandler(CodeAllocationFailedException.class)
+    public ResponseEntity<ApiErrorResponse> handleCodeAllocationFailed() {
+        return ResponseEntity.status(409)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(ApiErrorResponse.codeAllocationFailed(UUID.randomUUID().toString()));
+    }
+
+    @ExceptionHandler({
+        org.springframework.dao.DataAccessException.class,
+        org.springframework.transaction.TransactionException.class
+    })
+    public ResponseEntity<ApiErrorResponse> handlePersistenceFailure() {
+        return handleServiceUnavailable();
+    }
 
     @ExceptionHandler(AuthenticationFailedException.class)
     public ResponseEntity<ApiErrorResponse> handleAuthenticationFailed() {

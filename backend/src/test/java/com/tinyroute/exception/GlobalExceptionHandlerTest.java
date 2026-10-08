@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 class GlobalExceptionHandlerTest {
     @Test
+    void aCommitFailureReturnsASafeServiceError() throws Exception {
+        mockMvc.perform(get("/test/commit"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"));
+    }
+
+    @Test
     void roundsRetryGuidanceUpAndMatchesTheResponseHeader() throws Exception {
         mockMvc.perform(get("/test/rate"))
                 .andExpect(status().isTooManyRequests())
@@ -46,6 +53,12 @@ class GlobalExceptionHandlerTest {
 
     @RestController
     static final class ThrowingController {
+        @GetMapping("/test/commit")
+        void commit() {
+            throw new org.springframework.transaction.TransactionSystemException(
+                    "private database details");
+        }
+
         @GetMapping("/test/rate")
         void rate() {
             throw new RateLimitExceededException(java.time.Duration.ofMillis(60001));
