@@ -309,7 +309,7 @@ void RedirectCache.evict(String code); // preserve throwing failures for deletio
 RedirectOutcome RedirectService.resolve(ShortCode code);
 ```
 
-- [ ] **5.1 Write failing unit/integration tests.** Assert exact read/hit, case mismatch, deletedAt overriding status, expired-disabled precedence, ACTIVE invalid/null/self-host destination → 503, cache corruption/version/type/missing-explicit-null/wrong-code/time-bound violations → DB. Fake clock verifies exact expiry and five-second cutoff; delayed database read/late cache put cannot extend freshness. Redis read/write failure still returns known DB state, unknown is never cached, stale cache plus DB failure returns 503, valid fresh cache can work during DB outage. Inspect real TTL ≤ remaining original deadline and sanitized inactive entries. Verify deletion eviction still retries failures.
+- [x] **5.1 Write failing unit/integration tests.** Assert exact read/hit, case mismatch, deletedAt overriding status, expired-disabled precedence, ACTIVE invalid/null/self-host destination → 503, cache corruption/version/type/missing-explicit-null/wrong-code/time-bound violations → DB. Fake clock verifies exact expiry and five-second cutoff; delayed database read/late cache put cannot extend freshness. Redis read/write failure still returns known DB state, unknown is never cached, stale cache plus DB failure returns 503, valid fresh cache can work during DB outage. Inspect real TTL ≤ remaining original deadline and sanitized inactive entries. Verify deletion eviction still retries failures.
 
 ```java
 var expiry = Instant.parse("2026-10-07T12:00:02Z");
@@ -321,8 +321,8 @@ assertThat(snapshot.isUsableFor("Abc", expiry, "go.tinyroute.test")).isFalse();
 assertThat(snapshot.isUsableFor("abc", expiry.minusMillis(1), "go.tinyroute.test")).isFalse();
 ```
 
-- [ ] **5.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=RedirectServiceTest,AccountDeletionRetryJobTest`; focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisRedirectCacheIT,AccountDeletionRetryJobIT`.
-- [ ] **5.3 Implement strict cache adapter and policy resolver.** Adapter requires all cache field names/types including nullable expiry, validates schema/status, and drops destination on inactive writes. Get/put use their own one-second backoff; evict remains a real attempted operation so cleanup does not falsely finish. Use 100 ms Redis connect/command defaults and test normal auth regression. Resolve outside a long-lived transaction; the single repository read uses READ COMMITTED and no user join. Capture read-start before lookup, compute deadline `min(readStart+5s, expiresAt)`, validate again after read, then perform best-effort bounded put. Null/malformed authoritative state is safe unavailable, never a guessed destination.
+- [x] **5.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=RedirectServiceTest,AccountDeletionRetryJobTest`; focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisRedirectCacheIT,AccountDeletionRetryJobIT`.
+- [x] **5.3 Implement strict cache adapter and policy resolver.** Adapter requires all cache field names/types including nullable expiry, validates schema/status, and drops destination on inactive writes. Get/put use their own one-second backoff; evict remains a real attempted operation so cleanup does not falsely finish. Use 100 ms Redis connect/command defaults and test normal auth regression. Resolve outside a long-lived transaction; the single repository read uses READ COMMITTED and no user join. Capture read-start before lookup, compute deadline `min(readStart+5s, expiresAt)`, validate again after read, then perform best-effort bounded put. Null/malformed authoritative state is safe unavailable, never a guessed destination.
 
 ```text
 fresh valid cache → evaluate deleted/expiry/disabled/active at current Clock time
@@ -335,8 +335,8 @@ otherwise: readStart = now; read exact database state
 required database failure → SERVICE_UNAVAILABLE
 ```
 
-- [ ] **5.4 Run green.** Include parallel callers during Redis outage to assert bounded attempts, and account-deletion cleanup tests to confirm key namespace and retry semantics remain compatible.
-- [ ] **5.5 Record evidence and commit:** `git commit -m "feat: resolve links through bounded expiry-safe cache"`.
+- [x] **5.4 Run green.** Include parallel callers during Redis outage to assert bounded attempts, and account-deletion cleanup tests to confirm key namespace and retry semantics remain compatible.
+- [x] **5.5 Record evidence and commit:** `git commit -m "feat: resolve links through bounded expiry-safe cache"`.
 
 ## Task 6: Public Spring redirect boundary and safe pages
 

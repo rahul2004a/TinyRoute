@@ -5,7 +5,7 @@
 - Specification: [approved spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **plan approved 2026-10-08; Tasks 1–4 verified; Task 5 in progress, cache/resolution tests.**
+- Current state: **plan approved 2026-10-08; Tasks 1–5 verified; Task 6 in progress, public HTTP/security tests.**
 
 ## Approval gates and baseline
 
@@ -27,7 +27,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 2. Atomic creation and account-deletion fence — real conflict/race/non-reuse/after-lock expiry evidence.
 - [x] 3. Creation budgets and degraded redirect throttling — cap/TTL/retry/isolation/bounded fallback/probe evidence.
 - [x] 4. Authenticated creation HTTP — real JWT/CSRF/strict JSON/body/error/committed-result contract.
-- [ ] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
+- [x] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
 - [ ] 6. Public Spring redirect boundary — exact Location, state matrix, host/path/auth isolation, GET/HEAD/no-store.
 - [ ] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
 - [ ] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
@@ -78,6 +78,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-08 | Task 3 complete | Red: missing limiter/backoff methods; green: 14 focused unit tests + Redis store integration | Task 2 `a571164`; unchanged auth keys; redirect-only bounded fallback; ceil retry |
 
 | 2026-10-08 | Task 4 complete | Red: six HTTP failures (missing endpoint); green: 16 security/datastore integration + 7 error/body-limit unit tests | Task 3 `554d671`; strict DTO-local Jackson decoding; shared real-security fixture; safe commit error mapping |
+
+| 2026-10-08 | Task 5 complete | Red: missing resolver/cache types; boundary regressions observed stale-cache 302 and expiry-during-put 302 before fixes. Green: 20 unit + 5 datastore/rollback integration tests | Task 4 `bd88d82`; check time after external calls, preserve original deadline; actual creation rollback returns 503 with no row; parallel cache-outage backoff verified |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
