@@ -189,7 +189,7 @@ Signed-in users hit Next.js at `app.<zone>` on Vercel; their browser calls the S
 
 Inside the monolith: Auth, URL (create/manage), Redirect, and analytics paths that are **not** on the redirect critical path. Redis is consulted first for redirects; a miss or Redis failure falls through to PostgreSQL. If PostgreSQL cannot determine link state, the service returns an error and **never** guesses a `Location` (NFR-REL-02).
 
-Generated short codes use the Redis global counter shown in [HLD.excalidraw](HLD.excalidraw), encoded as fixed-width Base62. PostgreSQL still persists every link and enforces the shared generated-code/custom-alias namespace (FR-CRE-04/07). The counter implementation is a proposed revision to the in-progress [link feature specification](../spec/link-creation-and-redirection/spec.md) and [active plan](../../tasks/plan.md), requested 2026-10-08; generator code remains unchanged pending written approval of those revisions. This feature excludes all analytics and link-management implementation.
+Generated short codes use the Redis global counter shown in [HLD.excalidraw](HLD.excalidraw), scrambled with fixed-salt, secret-keyed AES-FF1 while retaining eight Base62 characters. PostgreSQL still persists every link and enforces the shared generated-code/custom-alias namespace (FR-CRE-04/07). The counter implementation is a proposed revision to the in-progress [link feature specification](../spec/link-creation-and-redirection/spec.md) and [active plan](../../tasks/plan.md), requested 2026-10-08; the plain-counter revision was approved 2026-10-08 ("ok do now"). The subsequent salted AES-FF1 proposal awaits written spec/plan approval; generator code remains unchanged. This feature excludes all analytics and link-management implementation.
 
 Click totals, 30-day trends, and aggregated referrer/device/OS/browser/country/city analytics are MVP (FR-ANA-01..04). A separate analytics worker, API keys, and blocklists are growth/V1 work.
 
@@ -202,7 +202,7 @@ controller   RedirectController, AuthController, LinkController, AnalyticsContro
              HealthController
 dto          HTTP request and response DTOs
 security     JwtAuthenticationFilter, CsrfProtection, OwnershipGuard
-service      AuthService, LinkService, ShortCodeGenerator, RedirectService, RateLimitService,
+service      AuthService, LinkService, ShortCodeGenerator, ShortCodeEncoder, RedirectService, RateLimitService,
              ClickCountService (async), AnalyticsService
 client       AuthProvider map (PasswordAuthProvider, GoogleAuthProvider),
              OtpSender map (EmailOtpSender), GoogleOAuthClient, PasswordHasher,
@@ -300,7 +300,7 @@ After authentication, CSRF, the account quota, the active-owner row lock, and de
 
 1. For a custom alias, LinkService attempts one conflict-safe PostgreSQL insert without calling the code counter. A taken alias returns 409; it is never replaced with a generated code (FR-CRE-07).
 2. Otherwise LinkService → **ShortCodeGenerator** → **ShortCodeCounter** → **RedisShortCodeCounter**. One atomic Lua operation validates the existing nonexpiring `code:global` value and increments it. There is no PostgreSQL availability lookup on this normal allocation path.
-3. Encode the positive allocation value using alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`, left-padded with `0` to exactly eight characters: `1` → `00000001`, `62` → `00000010`. Supported values are `1..218340105584895` (`62^8 - 1`). Preserve case; generated identifiers are predictable and are not access credentials (FR-RED-01/06).
+3. ShortCodeGenerator → concrete **ShortCodeEncoder**: convert the positive allocation into eight radix-62 digits, apply AES-FF1 under a fixed salt (tweak) and secret key, then map encrypted digits using alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`. This is a one-to-one permutation under fixed key/salt configuration: distinct counter values produce distinct eight-character codes, with no hash truncation. Counter range remains `1..218340105584895` (`62^8 - 1`); never wrap. The salt alone does not hide the sequence (FR-CRE-04, FR-RED-06).
 4. LinkService rechecks expiry, then inserts the code and its numeric `generation_value` in the same transaction using `INSERT ... ON CONFLICT (code) DO NOTHING`. The existing case-sensitive unique constraint remains the final authority; no existing row is updated (FR-CRE-04, NFR-REL-01).
 5. A confirmed generated-code conflict consumes a candidate and requests recovery before the next candidate. This covers aliases, legacy random codes, and stale Redis restores. At most ten candidates, including reserved candidates, are considered per external request, with one creation-quota charge. Exhaustion returns `CODE_ALLOCATION_FAILED`; success is returned only after commit (FR-ABS-01, NFR-CON-01).
 
@@ -310,7 +310,7 @@ V6 adds nullable, range-checked, indexed `links.generation_value`. Custom aliase
 
 Missing-key recovery is distinct from an unavailable, malformed, wrong-type, or expiring counter. Those failures return safe 503 without creating a link or falling back to random/process-local generation; numeric capacity exhaustion returns the bounded allocation 409. Creation performance measurements must include allocation and persistence (NFR-PER-02). Redirects do not consult this counter and retain their PostgreSQL fallback (NFR-REL-02).
 
-This design does not eliminate the required database insert or unique constraint. The previous random implementation already used conflict-safe insertion without a separate existence SELECT. The counter provides deterministic allocation and normally avoids generated-code collisions; alias and recovery collisions still require safe handling. Redis provides the [increment primitive](https://redis.io/docs/latest/commands/incr/); PostgreSQL provides [conflict-safe insertion](https://www.postgresql.org/docs/current/sql-insert.html).
+This design does not eliminate the required database insert or unique constraint. The previous random implementation already used conflict-safe insertion without a separate existence SELECT. Fixed-key/salt FF1 introduces no collisions between distinct generated counter values; aliases, legacy codes, and recovery races still require safe handling. Redis provides the [increment primitive](https://redis.io/docs/latest/commands/incr/); PostgreSQL provides [conflict-safe insertion](https://www.postgresql.org/docs/current/sql-insert.html).
 
 ### Owner analytics
 
@@ -340,6 +340,14 @@ Health does **not** call Auth/Link/Redirect services, rate limits, CSRF, JWTs, o
 
 Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or RedirectService.
 
+### Salted encoder configuration and limits
+
+Use existing Bouncy Castle `bcprov-jdk18on` 1.86 (already used for Argon2id): `FPEFF1Engine`, AES, radix 62, eight digits, no inverse AES option. No new dependency or custom cipher. See [the implementation API](https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/org/bouncycastle/crypto/fpe/FPEFF1Engine.html), [NIST SP 800-38G](https://csrc.nist.gov/pubs/sp/800/38/g/upd1/final), and [the current revision draft](https://csrc.nist.gov/pubs/sp/800/38/g/r1/2pd). The domain exceeds the draft's one-million minimum; this is not an application certification claim.
+
+Add `tinyroute.links.code-key` (`SHORT_CODE_KEY`), canonical Base64 for exactly 32 random bytes, and `tinyroute.links.code-salt` (`SHORT_CODE_SALT`), 8–64 ASCII `[A-Za-z0-9:_-]+` characters. Production requires environment values without defaults. Development/test examples are explicitly public local-only fixtures. Validate startup configuration with generic errors, never echoing secrets. Keep the key secret and separate from JWT/rate-limit keys (NFR-SEC-03); the salt is a fixed FF1 tweak, not a substitute for the secret key.
+
+Keep key, salt, alphabet, width, and encoder version fixed across creators and deployments. Per-link changes or key/salt rotation invalidate the shared one-to-one mapping; rotation needs a separate version/namespace and recovery design and is outside this feature. Construct a cipher per call for thread safety. Store only the final code and internal `generation_value`, not a digest or per-link key/salt. Redirects look up the stored code without decoding. Obscuring the counter does not make finite public links access-controlled or impossible to guess (FR-RED-01, NFR-REL-01).
+
 ## Domain model (MVP Must)
 
 **User** — `id`, `emailNormalized`, `tokenVersion`, optional `deletedAt`. No `passwordHash` or profile data lives on User. Password hashes live on `AuthIdentity` (`PASSWORD` only). Argon2id with a unique salt per password (NFR-SEC-02). Increment `tokenVersion` on password reset and account deletion so previously issued JWTs fail verification (NFR-SEC-09). Account deletion anonymizes the user record while preserving its internal id for link tombstones.
@@ -352,7 +360,7 @@ Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or Redir
 
 **LinkStatus** — `ACTIVE` | `DISABLED` | `DELETED`. Delete writes a tombstone; the row stays so the code cannot be issued again.
 
-**ShortCode** — case-sensitive code syntax and reserved-word invariants. **GeneratedShortCode** couples a positive counter value to its exact eight-character Base62 encoding. ShortCodeGenerator obtains values through ShortCodeCounter; PostgreSQL uniqueness and bounded conflict retries protect the shared namespace. Never overwrite an existing code.
+**ShortCode** — case-sensitive code syntax and reserved-word invariants. **GeneratedShortCode** holds a positive counter value and its salted eight-character code, produced by concrete **ShortCodeEncoder**. ShortCodeGenerator obtains values through ShortCodeCounter; PostgreSQL uniqueness and bounded conflict retries protect the shared namespace. Never overwrite an existing code.
 
 **DestinationUrl** — well-formed `https`; reject destinations that point at TinyRoute’s own host (FR-CRE-06 Should).
 

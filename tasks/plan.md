@@ -4,22 +4,23 @@
 
 **Goal:** Let signed-in users create and copy HTTPS short links with optional aliases and expiry, and let anyone follow eligible links safely.
 
-**Architecture:** Spring controllers translate HTTP; `LinkService` owns creation transactions and `RedirectService` owns resolution policy. A Redis global counter supplies eight-character Base62 generated codes; PostgreSQL retains allocation metadata, uniqueness, and owner locking, including recovery after counter loss. Bounded Redis snapshots accelerate redirects, with PostgreSQL fallback and redirect-only local throttling. Next.js renders session and API results through the existing credentialed HTTP client.
+**Architecture:** Spring controllers translate HTTP; `LinkService` owns creation transactions and `RedirectService` owns resolution policy. A Redis global counter supplies values; fixed-key/salt AES-FF1 scrambles them into eight-character Base62 codes without truncation; PostgreSQL retains allocation metadata, uniqueness, and owner locking, including recovery after counter loss. Bounded Redis snapshots accelerate redirects, with PostgreSQL fallback and redirect-only local throttling. Next.js renders session and API results through the existing credentialed HTTP client.
 
 **Tech Stack:** Existing Java 21 / Spring Boot 4.1.1 MVC, Security, JPA, PostgreSQL, Redis, Flyway, Maven, JUnit/Mockito/MockMvc/Testcontainers/JaCoCo; Node.js 24 LTS, Next.js App Router, React, strict TypeScript, Tailwind, Radix-backed shadcn/ui, Lucide, React Hook Form/Zod, TanStack Query, pnpm, Vitest/RTL, Playwright. No new dependency.
 
-**Spec:** [Feature specification](../docs/spec/link-creation-and-redirection/spec.md): original approved 2026-10-07; Redis-counter revision saved 2026-10-08, awaiting written approval together with this revised plan. Read it with [AGENTS.md](../AGENTS.md), requirements, [architecture](../docs/architecture/architecture.md), ADRs, and [DESIGN.md](../DESIGN.md).
+**Spec:** [Feature specification](../docs/spec/link-creation-and-redirection/spec.md): original approved 2026-10-07; plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salted FF1 revision saved for written approval. Read it with [AGENTS.md](../AGENTS.md), requirements, [architecture](../docs/architecture/architecture.md), ADRs, and [DESIGN.md](../DESIGN.md).
 
 ## Global Constraints
 
 - Feature and branch: `link-creation-and-redirection`, `feature/link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`. Check branch, status, and active tasks before every resumed execution. Stop for unrelated changes or another feature's incomplete tasks.
-- Current gate: original approach/spec/plan approved (plan approval 2026-10-08); Tasks 1–7 complete and Task 8 partially executed. User-requested Redis-counter revision is saved for written spec/plan approval before generator changes. After approval, execute Task 7A, then resume 8–10 inline.
+- Current gate: original approach/spec/plan approved (plan approval 2026-10-08); Tasks 1–7 complete and Task 8 partially executed. User-requested Redis-counter spec/plan revision approved 2026-10-08 ("ok do now"). The subsequent salt/uniqueness request is saved as a pending AES-FF1 spec/plan revision. Obtain its written approval before Task 7A, then resume 8–10 inline.
 - Keep the locked stack, layer-first Java packages, repository/store interfaces, and existing authentication contract. Never put ownership, redirect policy, or API proxies in Next.js.
 - Exclude all analytics, click increments/events, link-management endpoints/UI, auth implementation, blocklists, safe browsing, API keys, and admin tools. Existing `click_count` remains zero for new links.
 - PostgreSQL is authoritative. Do not change applied migrations or remove expired/deleted rows. Add V6 for nullable, indexed, range-checked `generation_value`; retain NULL on aliases/legacy random rows. Commit metadata in the same insert as the generated code.
 - Destinations: absolute ASCII HTTPS URI, at most 8192 characters, valid host/port, no credentials, whitespace, controls, backslashes, malformed escapes, or ambiguous numeric authorities; preserve the exact original string. No destination fetch/DNS lookup.
 - Aliases: 3–64 ASCII `[A-Za-z0-9_-]+`, case-sensitive; reserve the entire words `api`, `actuator`, `error`, `health`, `login`, `logout`, `register`, `links`, `settings`, `analytics`, `account`, `password-reset`, case-insensitively.
-- Generated codes: atomic Redis `code:global` increment, no TTL; alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`, zero-padded to eight characters, values `1..218340105584895`. At most ten candidates including reserved skips; never overwrite/reuse a code. No random/local fallback.
+- Generated codes: atomic Redis `code:global` increment, no TTL; values `1..218340105584895`; fixed-key/salt AES-FF1 over eight radix-62 digits; output alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`. No hashing/truncation; distinct values map to distinct codes under fixed configuration. At most ten candidates including reserved skips; never overwrite/reuse a code. No random/local fallback.
+- Salted encoding: existing Bouncy Castle 1.86 FF1/AES, concrete encoder, no new dependency. `SHORT_CODE_KEY` is canonical Base64 for exactly 32 random bytes; `SHORT_CODE_SALT` is 8–64 ASCII `[A-Za-z0-9:_-]+`. Production requires both; dev examples are public fixtures. Keep key/salt/alphabet/width/version stable across all creators; no per-link salt or rotation. Never log/return/store key/salt with links.
 - Counter recovery: query committed `MAX(generation_value)` only on missing key or confirmed generated-code conflict; atomically initialize/advance-and-increment without lowering the current value. Include every retained state/expiry; never decode aliases/legacy codes into the floor. Normal allocation has no database precheck. Invalid/unavailable/expiring counter or failed recovery → 503; valid capacity exhaustion → allocation 409.
 - Expiry: optional explicit-offset ISO-8601, years 0001–9999, at most millisecond precision, strictly future after owner-lock wait and immediately before insertion. `now >= expiresAt` never redirects.
 - Creation: existing verified principal and CSRF; 16 KiB API body limit; 201 only after commit, no-store; no automatic POST retry.
@@ -35,23 +36,23 @@
 
 Paths below are exact planned files, not new feature packages. Java main paths have prefix `backend/src/main/java/com/tinyroute/`; Java test paths have prefix `backend/src/test/java/com/tinyroute/`. Task file lists spell out the paths for execution.
 
-| Area                   | Files and responsibility                                                                                                                                                                                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Domain / validation    | `model/DestinationUrl.java`, `ShortCode.java`, `CreateLinkCommand.java`, `ValidatedLinkInput.java`, `CreatedLink.java`, `RedirectLinkState.java`, `RedirectLookup.java`, `RedirectOutcome.java`; concrete `service/LinkCreationValidator.java`, `ShortCodeGenerator.java` |
-| Configuration          | `config/LinkProperties.java`, existing `RateLimitProperties.java`, three existing application YAML files; positive budgets and validated short origin                                                                                                                     |
-| Persistence / creation | Extend existing `repository/LinkRepository.java`, `repository/jpa/JpaLinkRepository.java`, `service/LinkService.java`; native owner lock/conflict-safe insert, immutable redirect projection, existing tombstones                                                         |
-| Counter allocation     | `model/GeneratedShortCode.java`, concrete `service/ShortCodeGenerator.java`; `cache/ShortCodeCounter.java`, `cache/redis/RedisShortCodeCounter.java`; V6 generation metadata and repository recovery query; no availability precheck                                      |
-| Rate limits            | Extend existing `service/RateLimitService.java`; concrete `service/InMemoryRedirectRateLimiter.java`, `cache/StoreFailureBackoff.java`; reuse existing Redis atomic counter and HMAC resolver                                                                             |
-| Creation HTTP          | `controller/LinkController.java`, `dto/CreateLinkRequest.java`, `CreateLinkResponse.java`, `StrictStringDeserializer.java`; safe exceptions and shared error envelope/handler                                                                                             |
-| Cache / resolution     | Extend `cache/RedirectCache.java`, `cache/redis/RedisRedirectCache.java`; `service/RedirectService.java` owns outcomes, adapter owns strict serialization/timeouts                                                                                                        |
-| Public boundary        | `security/PublicRedirectRequestMatcher.java`; extend existing JWT filter/security configuration; `controller/RedirectController.java`, `RedirectPageRenderer.java` for constant HTML                                                                                      |
-| Frontend               | `src/app/(account)/links/page.tsx`, `src/features/links/{link-api,link-create-form,link-create-result,link-form-schema}`; home/login navigation and scoped styles                                                                                                         |
-| Runtime evidence       | Test-only Spring verification application/config/controller, shared Playwright SMTP fixture, contract/live browser tests, Node built-in load harness, operational timing filter, feature verification evidence                                                            |
-| Lifecycle              | Active `tasks/plan.md`, `tasks/todo.md`; completed archive under `docs/spec/link-creation-and-redirection/`; existing PR template                                                                                                                                         |
+| Area                   | Files and responsibility                                                                                                                                                                                                                                                                           |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain / validation    | `model/DestinationUrl.java`, `ShortCode.java`, `CreateLinkCommand.java`, `ValidatedLinkInput.java`, `CreatedLink.java`, `RedirectLinkState.java`, `RedirectLookup.java`, `RedirectOutcome.java`; concrete `service/LinkCreationValidator.java`, `ShortCodeGenerator.java`, `ShortCodeEncoder.java` |
+| Configuration          | `config/LinkProperties.java`, existing `RateLimitProperties.java`, three existing application YAML files; positive budgets and validated short origin                                                                                                                                              |
+| Persistence / creation | Extend existing `repository/LinkRepository.java`, `repository/jpa/JpaLinkRepository.java`, `service/LinkService.java`; native owner lock/conflict-safe insert, immutable redirect projection, existing tombstones                                                                                  |
+| Counter allocation     | `model/GeneratedShortCode.java`, concrete `service/ShortCodeGenerator.java`; `cache/ShortCodeCounter.java`, `cache/redis/RedisShortCodeCounter.java`; V6 generation metadata and repository recovery query; no availability precheck                                                               |
+| Rate limits            | Extend existing `service/RateLimitService.java`; concrete `service/InMemoryRedirectRateLimiter.java`, `cache/StoreFailureBackoff.java`; reuse existing Redis atomic counter and HMAC resolver                                                                                                      |
+| Creation HTTP          | `controller/LinkController.java`, `dto/CreateLinkRequest.java`, `CreateLinkResponse.java`, `StrictStringDeserializer.java`; safe exceptions and shared error envelope/handler                                                                                                                      |
+| Cache / resolution     | Extend `cache/RedirectCache.java`, `cache/redis/RedisRedirectCache.java`; `service/RedirectService.java` owns outcomes, adapter owns strict serialization/timeouts                                                                                                                                 |
+| Public boundary        | `security/PublicRedirectRequestMatcher.java`; extend existing JWT filter/security configuration; `controller/RedirectController.java`, `RedirectPageRenderer.java` for constant HTML                                                                                                               |
+| Frontend               | `src/app/(account)/links/page.tsx`, `src/features/links/{link-api,link-create-form,link-create-result,link-form-schema}`; home/login navigation and scoped styles                                                                                                                                  |
+| Runtime evidence       | Test-only Spring verification application/config/controller, shared Playwright SMTP fixture, contract/live browser tests, Node built-in load harness, operational timing filter, feature verification evidence                                                                                     |
+| Lifecycle              | Active `tasks/plan.md`, `tasks/todo.md`; completed archive under `docs/spec/link-creation-and-redirection/`; existing PR template                                                                                                                                                                  |
 
 ## Dependencies and execution rules
 
-Tasks **1–7 are complete under the original approval**; their checked steps below retain the actual implementation history. Task 8 has uncommitted partial work. After written counter-revision approval, execute **7A → resume 8 → 9 → 10**. Tasks 4 and 6 expose working HTTP slices; 8 verifies the cross-stack product; 9 proves performance using the revised generator. No implementation agents or routine checkpoint approval pauses after revised-plan approval.
+Tasks **1–7 are complete under the original approval**; their checked steps below retain the actual implementation history. Task 8 has uncommitted partial work. Plain counter revision was approved; the subsequent salted FF1 revision awaits written approval, then execute **7A → resume 8 → 9 → 10**. Tasks 4 and 6 expose working HTTP slices; 8 verifies the cross-stack product; 9 proves performance using the revised generator. No implementation agents or routine checkpoint approval pauses after revised-plan approval.
 
 Every task follows red → observed expected failure → minimal implementation → green/refactor → focused verification → commit. A compile failure caused by a deliberately absent new type is acceptable initial red evidence; an infrastructure failure is not a behavioral red. Use `systematic-debugging` for unexpected failures. Record command/result, red/green evidence, commits, decisions, and unresolved issues in `tasks/todo.md` before moving on or context compaction. Do not claim passes without executing commands.
 
@@ -448,7 +449,7 @@ const mutation = useMutation({ mutationFn: createLink, retry: false });
 
 ## Task 7A: Replace random generation with the HLD Redis counter
 
-**Status:** Saved revision, awaiting written spec/plan approval. No generator replacement has been implemented.
+**Status:** Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness revision proposes AES-FF1 and awaits written spec/plan approval. No generator code or new tests changed.
 
 **Requirements:** FR-CRE-01/04/07/08, FR-RED-06, FR-ABS-01; functional assumptions 5/6; NFR-CON-01, NFR-REL-01/02, NFR-PER-02; AC-01/04/05/08/09/10/11.
 
@@ -456,22 +457,24 @@ const mutation = useMutation({ mutationFn: createLink, retry: false });
 
 - `backend/src/main/resources/db/migration/V6__add_link_generation_value.sql`
 - `backend/src/main/java/com/tinyroute/model/GeneratedShortCode.java`
+- `backend/src/main/java/com/tinyroute/service/ShortCodeEncoder.java`
 - `backend/src/main/java/com/tinyroute/cache/ShortCodeCounter.java`
 - `backend/src/main/java/com/tinyroute/cache/redis/RedisShortCodeCounter.java`
 - `backend/src/main/java/com/tinyroute/exception/ShortCodeCounterExhaustedException.java`
 - `backend/src/test/java/com/tinyroute/model/GeneratedShortCodeTest.java`
+- `backend/src/test/java/com/tinyroute/service/ShortCodeEncoderTest.java`
 - `backend/src/test/java/com/tinyroute/cache/RedisShortCodeCounterTest.java`
 - `backend/src/test/java/com/tinyroute/cache/RedisShortCodeCounterIT.java`
 
-**Files — modify:** `backend/src/main/java/com/tinyroute/model/Link.java`, `repository/LinkRepository.java`, `repository/jpa/JpaLinkRepository.java`, `service/ShortCodeGenerator.java`, `service/LinkService.java`, `config/LinkConfiguration.java`; corresponding existing `service/ShortCodeGeneratorTest.java`, `service/LinkServiceTest.java`, `service/LinkCreationIT.java`, `repository/LinkRepositoryIT.java`, `controller/LinkCreationContractIT.java`, `controller/LinkCreationCommitFailureIT.java`, `controller/AccountDeletionIT.java`, `ProfileConfigurationTest.java`. Update any existing generator stubs/insertion callers found by `rg -n 'nextCandidate|insertIfCodeAvailable|new ShortCodeGenerator' backend/src`; preserve their original behavioral assertions. Update the feature spec/architecture/ledger with actual approval and evidence.
+**Files — modify:** `backend/src/main/java/com/tinyroute/config/LinkProperties.java`, `backend/src/main/resources/application-dev.yml`, `application-prod.yml`, `.env.example`, `README.md`, `backend/src/test/java/com/tinyroute/config/LinkPropertiesTest.java`; `backend/src/main/java/com/tinyroute/model/Link.java`, `repository/LinkRepository.java`, `repository/jpa/JpaLinkRepository.java`, `service/ShortCodeGenerator.java`, `service/LinkService.java`, `config/LinkConfiguration.java`; corresponding existing `service/ShortCodeGeneratorTest.java`, `service/LinkServiceTest.java`, `service/LinkCreationIT.java`, `repository/LinkRepositoryIT.java`, `controller/LinkCreationContractIT.java`, `controller/LinkCreationCommitFailureIT.java`, `controller/AccountDeletionIT.java`, `ProfileConfigurationTest.java`. Update any existing generator stubs/insertion callers found by `rg -n 'nextCandidate|insertIfCodeAvailable|new ShortCodeGenerator' backend/src`; preserve their original behavioral assertions. Update the feature spec/architecture/ledger with actual approval and evidence.
 
 **Interfaces:** Consumes existing owner fence, validation, code uniqueness, configured Redis timeouts, and the creation transaction. Produces the following public contracts, superseding the original generator and insert signatures in Tasks 1/2:
 
 ```java
 record GeneratedShortCode(ShortCode code, long generationValue) {
     public static final long MAX_VALUE = 218_340_105_584_895L;
-    public static GeneratedShortCode from(long generationValue);
-    // Constructor enforces positive range and matching eight-character encoding.
+    // Constructor validates positive range and exactly eight Base62 characters.
+    // Generator/encoder enforce correspondence without putting secrets in the model.
 }
 interface ShortCodeCounter {
     OptionalLong nextValueIfInitialized(); // empty ONLY for a missing key
@@ -480,7 +483,13 @@ interface ShortCodeCounter {
 // Store exhaustion is an internal boundary exception, not an HTTP response.
 class ShortCodeCounterExhaustedException extends RuntimeException {}
 // Concrete coordinator, no second generator interface:
-ShortCodeGenerator(ShortCodeCounter counter, LinkRepository repository);
+ShortCodeEncoder(byte[] key, byte[] salt); // defensive copies; 32-byte key
+ShortCode ShortCodeEncoder.encode(long generationValue);
+String LinkProperties.getCodeKey(); void LinkProperties.setCodeKey(String value);
+String LinkProperties.getCodeSalt(); void LinkProperties.setCodeSalt(String value);
+byte[] LinkProperties.codeKeyBytes(); byte[] LinkProperties.codeSaltBytes();
+// Byte accessors validate canonical Base64/range/ASCII with generic safe errors.
+ShortCodeGenerator(ShortCodeCounter counter, LinkRepository repository, ShortCodeEncoder encoder);
 GeneratedShortCode ShortCodeGenerator.nextCandidate();
 GeneratedShortCode ShortCodeGenerator.nextCandidateAfterConflict();
 long LinkRepository.findMaxGenerationValue(); // all retained states, NULL excluded
@@ -489,21 +498,34 @@ int LinkRepository.insertIfCodeAvailable(UUID id, String code, UUID ownerId,
         Long generationValue); // 1 inserted, 0 exact-code conflict
 ```
 
-Counter adapter maps missing to empty, capacity to `ShortCodeCounterExhaustedException`, and invalid/unavailable/null/unexpected Redis replies to `ServiceUnavailableException`. Generator maps capacity to the existing `CodeAllocationFailedException`; a failed/invalid committed-floor lookup is safe service-unavailable. No code/destination/owner values are logged.
+Counter adapter maps missing to empty, capacity to `ShortCodeCounterExhaustedException`, and invalid/unavailable/null/unexpected Redis replies to `ServiceUnavailableException`. Generator maps capacity to the existing `CodeAllocationFailedException`; a failed/invalid committed-floor lookup is safe service-unavailable. An encoding failure for a valid allocation is safe service-unavailable with no insert or fallback. No code/destination/owner/key/salt values are logged.
 
-- [ ] **7A.1 Write failing encoding, coordinator, store, and persistence tests.** Verify the exact alphabet, padding, boundaries, invalid values, aliases bypassing the counter, ordinary allocation without a MAX query, missing-key recovery, and confirmed-conflict recovery. Verify migration on V5 data and fresh startup, unchanged alias/legacy code strings/NULL metadata, retained generated metadata after deletion/expiry, and a maximum-valued alias unable to poison the floor. Real Redis tests use concurrent callers and a start barrier for unique allocation and competing initialization; simulate a removed key and an older restored value with committed PostgreSQL rows. Test malformed/noninteger/negative/too-large/wrong-type/TTL values, Redis outage, and numeric exhaustion without wrap. Force ten alias/legacy collisions and assert no eleventh allocation, no extra quota, no overwrite, and no row on unsafe failure.
+- [ ] **7A.1 Write failing encoding, coordinator, store, and persistence tests.** Verify salted FF1 using independently decrypted digit fixtures, determinism and unique outputs for distinct values under fixed key/salt, concurrent thread safety, range boundaries, invalid values, aliases bypassing the counter, ordinary allocation without a MAX query, missing-key recovery, and confirmed-conflict recovery. Verify migration on V5 data and fresh startup, unchanged alias/legacy code strings/NULL metadata, retained generated metadata after deletion/expiry, and a maximum-valued alias unable to poison the floor. Real Redis tests use concurrent callers and a start barrier for unique allocation and competing initialization; simulate a removed key and an older restored value with committed PostgreSQL rows. Test malformed/noninteger/negative/too-large/wrong-type/TTL values, Redis outage, and numeric exhaustion without wrap. Force ten alias/legacy collisions and assert no eleventh allocation, no extra quota, no overwrite, and no row on unsafe failure.
 
 ```java
-assertThat(GeneratedShortCode.from(1).code().value()).isEqualTo("00000001");
-assertThat(GeneratedShortCode.from(61).code().value()).isEqualTo("0000000z");
-assertThat(GeneratedShortCode.from(62).code().value()).isEqualTo("00000010");
-assertThat(GeneratedShortCode.from(GeneratedShortCode.MAX_VALUE).code().value())
-        .isEqualTo("zzzzzzzz");
-assertThatThrownBy(() -> GeneratedShortCode.from(0))
-        .isInstanceOf(IllegalArgumentException.class);
+// Public test fixtures; no production secrets.
+byte[] fixtureKey = new byte[32];
+for (int i = 0; i < 32; i++) fixtureKey[i] = (byte) i;
+byte[] fixtureSalt = "tinyroute-test-v1".getBytes(StandardCharsets.US_ASCII);
+var encoder = new ShortCodeEncoder(fixtureKey, fixtureSalt);
+assertThat(encoder.encode(1).value()).matches("[A-Za-z0-9]{8}");
+assertThat(encoder.encode(1)).isEqualTo(encoder.encode(1));
+assertThat(encoder.encode(1)).isNotEqualTo(encoder.encode(2));
+assertThatThrownBy(() -> encoder.encode(0)).isInstanceOf(IllegalArgumentException.class);
+// Separate FF1 decryption asserts the intended plaintext digits independently.
+String alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+String code = encoder.encode(62).value();
+byte[] ciphertext = new byte[8];
+for (int i = 0; i < 8; i++) ciphertext[i] = (byte) alphabet.indexOf(code.charAt(i));
+var decryptor = new FPEFF1Engine();
+decryptor.init(false, new FPEParameters(new KeyParameter(fixtureKey), 62, fixtureSalt));
+byte[] recovered = new byte[8];
+decryptor.processBlock(ciphertext, 0, 8, recovered, 0);
+assertThat(recovered).containsExactly((byte) 0, (byte) 0, (byte) 0, (byte) 0,
+        (byte) 0, (byte) 0, (byte) 1, (byte) 0);
 // ShortCodeGeneratorTest uses Mockito boundary mocks, no Redis/JPA dependency.
 when(counter.nextValueIfInitialized()).thenReturn(OptionalLong.of(62));
-assertThat(generator.nextCandidate().code().value()).isEqualTo("00000010");
+assertThat(generator.nextCandidate().generationValue()).isEqualTo(62L);
 verify(repository, never()).findMaxGenerationValue();
 // Separate missing-key test:
 when(counter.nextValueIfInitialized()).thenReturn(OptionalLong.empty());
@@ -512,9 +534,9 @@ when(counter.advanceAndIncrement(62L)).thenReturn(63L);
 assertThat(generator.nextCandidate().generationValue()).isEqualTo(63L);
 ```
 
-- [ ] **7A.2 Run red and record actual expected failures.** Unit: `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=GeneratedShortCodeTest,ShortCodeGeneratorTest,RedisShortCodeCounterTest,LinkServiceTest`. Integration: `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisShortCodeCounterIT,LinkRepositoryIT,LinkCreationIT`. Absent contracts/behavior are expected red; Docker/sandbox failures are not. Run Maven commands sequentially to avoid shared build artifacts.
+- [ ] **7A.2 Run red and record actual expected failures.** Unit: `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=GeneratedShortCodeTest,ShortCodeEncoderTest,ShortCodeGeneratorTest,RedisShortCodeCounterTest,LinkServiceTest,LinkPropertiesTest`. Integration: `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisShortCodeCounterIT,LinkRepositoryIT,LinkCreationIT`. Absent contracts/behavior are expected red; Docker/sandbox failures are not. Run Maven commands sequentially to avoid shared build artifacts.
 
-- [ ] **7A.3 Implement encoding, V6, metadata, and recovery query.** Encode positive `long` values by repeated remainder/division by 62 into an eight-character array prefilled with `'0'`. Keep one encoding implementation on `GeneratedShortCode`; constructor validates that code/value correspond. Map `@Column(name = "generation_value") private Long generationValue` on Link. Extend only the native insertion column/parameter list; aliases pass NULL, generated candidates pass their allocation. Add the MAX query below; do not add a code existence query or decode legacy strings.
+- [ ] **7A.3 Implement encoding, V6, metadata, and recovery query.** Implement ShortCodeEncoder: validate positive counter range, create eight radix-62 digit bytes, initialize a fresh FF1/AES engine per call with fixed key/salt, encrypt the whole digit array and map encrypted digits to Base62 characters. GeneratedShortCode validates format/range without decoding or holding secrets. No custom cipher, hash, or truncation. Map `@Column(name = "generation_value") private Long generationValue` on Link. Extend only the native insertion column/parameter list; aliases pass NULL, generated candidates pass their allocation. Add the MAX query below; do not add a code existence query or decode legacy strings.
 
 ```sql
 alter table links add column generation_value bigint;
@@ -570,13 +592,26 @@ All numbers in the accepted range are below `2^53`, preserving exact integer ari
 nextCandidate:
   counter.nextValueIfInitialized()
   if missing: counter.advanceAndIncrement(repository.findMaxGenerationValue())
-  return GeneratedShortCode.from(value)
+  return new GeneratedShortCode(encoder.encode(value), value)
 nextCandidateAfterConflict:
-  return GeneratedShortCode.from(
-      counter.advanceAndIncrement(repository.findMaxGenerationValue()))
+  value = counter.advanceAndIncrement(repository.findMaxGenerationValue())
+  return new GeneratedShortCode(encoder.encode(value), value)
 ```
 
-Wire `ShortCodeGenerator(ShortCodeCounter, LinkRepository)` in LinkConfiguration. Remove only this generator's SecureRandom import/bean construction; existing authentication randomness is unchanged. No eager counter reset or application-startup floor query is needed.
+Wire ShortCodeEncoder from validated properties and `ShortCodeGenerator(ShortCodeCounter, LinkRepository, ShortCodeEncoder)` in LinkConfiguration. Remove only this generator's SecureRandom import/bean construction; existing authentication randomness is unchanged. No eager counter reset or application-startup floor query is needed. Add key/salt configuration tests first, then validate startup configuration and wire dev/prod environment values. Errors never echo keys/salt. Production has no defaults; dev/test values are public fixtures. Update README/.env.example with stable configuration, separate-secret, no-rotation and recovery requirements; real secrets stay outside Git.
+
+```java
+byte[] digits = new byte[8];
+long remainder = generationValue;
+for (int i = 7; i >= 0; i--) { digits[i] = (byte) (remainder % 62); remainder /= 62; }
+var cipher = new FPEFF1Engine();
+cipher.init(true, new FPEParameters(new KeyParameter(key), 62, salt));
+byte[] encrypted = new byte[8];
+cipher.processBlock(digits, 0, digits.length, encrypted, 0);
+StringBuilder encoded = new StringBuilder(8);
+for (byte digit : encrypted) encoded.append(ALPHABET.charAt(Byte.toUnsignedInt(digit)));
+return new ShortCode(encoded.toString());
+```
 
 - [ ] **7A.5 Integrate bounded creation retry and run green.** Inside the existing owner-fenced transaction, maintain a flag selecting `nextCandidateAfterConflict()` only for the next candidate following an INSERT conflict. Clear it after obtaining that candidate. Reserved skips use the ordinary next allocation. Each loop iteration consumes one of ten candidates; final conflict returns 409 without allocating again. Alias path obtains no GeneratedShortCode and passes NULL metadata. Recheck future expiry after counter/recovery waits and immediately before insertion. Existing commit/after-commit semantics remain intact.
 
@@ -698,7 +733,7 @@ assert.equal(
 ```
 
 - [ ] **9.2 Run red:** `node --test tools/link-performance.test.mjs`; `python3 -m unittest discover -s .github/scripts -p 'test_*.py'`; backend `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=LinkRequestTimingFilterTest`, plus fixture integration command from Task 8. Expected absent harness/filter or incorrect measurement/change-detection assertions.
-- [ ] **9.3 Implement Node built-in HTTPS load driver and test-only timing collector.** Use keep-alive requests without following redirects; for the benchmark bind IPv4 client source to `127.0.0.2` and provide 100 distinct fixture XFF identities, with test-only proxy trust. Read fixture accounts, log in normally with CSRF/cookie handling, then issue at least 200 successful counter-generated creates with alias omitted, spread below 100/account; no mutation retry. Include Redis allocation and PostgreSQL commit in server creation timing; former random-generator measurements do not satisfy the revised result. Keep credentials/cookies private in memory. Warm redirects for 30 seconds, reset server samples, then schedule a full 600-second 100 rps open-loop run across at least 100 codes/clients. Do not reset quotas or bypass limits. Record issuance lateness/dropped arrivals and drain bounded in-flight requests. Use a bounded collector sufficient for all offered requests; overflow fails evidence. Calculate server percentiles from complete durationNanos samples, client round trips separately. Count every main-run non-302/timeout as error; abuse 429 tests remain separate.
+- [ ] **9.3 Implement Node built-in HTTPS load driver and test-only timing collector.** Use keep-alive requests without following redirects; for the benchmark bind IPv4 client source to `127.0.0.2` and provide 100 distinct fixture XFF identities, with test-only proxy trust. Read fixture accounts, log in normally with CSRF/cookie handling, then issue at least 200 successful counter-generated creates with alias omitted, spread below 100/account; no mutation retry. Include Redis allocation, salted FF1 encoding, and PostgreSQL commit in server creation timing; former random-generator measurements do not satisfy the revised result. Keep credentials/cookies private in memory. Warm redirects for 30 seconds, reset server samples, then schedule a full 600-second 100 rps open-loop run across at least 100 codes/clients. Do not reset quotas or bypass limits. Record issuance lateness/dropped arrivals and drain bounded in-flight requests. Use a bounded collector sufficient for all offered requests; overflow fails evidence. Calculate server percentiles from complete durationNanos samples, client round trips separately. Count every main-run non-302/timeout as error; abuse 429 tests remain separate.
 
 ```sh
 node --test tools/link-performance.test.mjs
@@ -770,8 +805,8 @@ After Tasks 1–10, including 7A, and all acceptance checks are complete, perfor
 | AC-11     | 2, 5, 7A, 8    | both deletion race orders, retained allocation metadata, live deletion         |
 | AC-12     | 7, 8           | keyboard/clipboard/errors, eight theme-width screenshots, reduced motion       |
 
-Final reviewer checks: atomic counter/capacity/recovery behavior and no normal-path MAX/precheck; V6 alias/legacy compatibility and retained metadata; unique namespace/non-reuse; conflict-safe transaction recovery; owner lock order/version/deletion races; expiry after allocation waits and cache instant boundary; original-read deadline under delayed fill; cache serialization/time validation; no destination on inactive/failure; literal host/path matching and public JWT omission; CSRF/CORS/quota order; no mutation retry; fallback/probe memory/time bounds; HMAC privacy; unchanged auth/deletion behavior; no click writes/events/per-code metrics; safe UI/error states; complete local load evidence and honest production limits.
+Final reviewer checks: fixed-key/salt FF1 bijection, thread safety, validated secrets/non-disclosure and stable configuration; atomic counter/capacity/recovery behavior and no normal-path MAX/precheck; V6 alias/legacy compatibility and retained metadata; unique namespace/non-reuse; conflict-safe transaction recovery; owner lock order/version/deletion races; expiry after allocation waits and cache instant boundary; original-read deadline under delayed fill; cache serialization/time validation; no destination on inactive/failure; literal host/path matching and public JWT omission; CSRF/CORS/quota order; no mutation retry; fallback/probe memory/time bounds; HMAC privacy; unchanged auth/deletion behavior; no click writes/events/per-code metrics; safe UI/error states; complete local load evidence and honest production limits.
 
 ## Planning self-review
 
-Original self-review completed 2026-10-07; original plan approved 2026-10-08 and Tasks 1–7 executed. Redis-counter revision self-review completed 2026-10-08: Task 7A replaces the generator/insert interfaces, adds V6 and an external-store boundary, covers atomic initialization/recovery/alias/legacy failures, and updates acceptance/performance mappings. Completed history remains checked; unfinished Task 8 and Tasks 9/10 remain active. No new dependency, authentication/UI policy, analytics, or production provisioning change is planned. This revised spec/plan awaits written approval before counter implementation; inline execution remains selected.
+Original self-review completed 2026-10-07; original plan approved 2026-10-08 and Tasks 1–7 executed. Redis-counter revision self-review completed 2026-10-08: Task 7A replaces the generator/insert interfaces, adds V6 and an external-store boundary, covers atomic initialization/recovery/alias/legacy failures, and updates acceptance/performance mappings. Completed history remains checked; unfinished Task 8 and Tasks 9/10 remain active. No new dependency, authentication/UI policy, analytics, or production provisioning change is planned. The plain-counter revision was approved 2026-10-08 ("ok do now"). The subsequent salt/uniqueness revision is self-reviewed and saved for written approval: FF1 retains a one-to-one mapping and eight-character length, uses the existing dependency, and explicitly requires fixed key/salt configuration. Inline execution remains selected; no generator code has changed.

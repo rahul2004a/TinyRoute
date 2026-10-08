@@ -7,8 +7,10 @@
 - Original written specification approved: 2026-10-07; original implementation
   plan approved: 2026-10-08. Tasks 1–7 were implemented under those approvals.
 - Redis-counter revision requested: 2026-10-08, to match HLD.excalidraw.
-  This saved revision and its revised plan await written approval before
-  generator implementation changes. Prior completed work remains recorded.
+  This revision and its revised plan were approved 2026-10-08 ("ok do now").
+  A subsequent request adds salt and rejects truncated HMAC to avoid generated
+  collisions. The AES-FF1 proposal awaits written spec/plan approval; generator
+  code and new tests remain unchanged. Prior completed work remains recorded.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
 - Branch: `feature/link-creation-and-redirection`, based on `origin/main`
@@ -57,20 +59,20 @@ required change to existing authentication UI.
 
 ## Acceptance criteria
 
-| ID    | Observable behavior                                                                                                                                                                                                                                                                                                                    | Requirement trace                                        |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| AC-01 | A signed-in user creates `https://example.com/docs?q=java#setup`, receives a unique complete short URL, copies it with one action, and the next request redirects to that exact destination.                                                                                                                                           | FR-CRE-01/04/05; NFR-CON-01, NFR-REL-01                  |
-| AC-02 | Missing, invalid, expired, revoked, wrong-version, or deleted-user access credentials never authorize creation. The UI prompts sign-in after an authentication rejection. Missing/invalid CSRF rejects the mutation.                                                                                                                   | FR-CRE-02; NFR-SEC-06/09; architecture security contract |
-| AC-03 | Malformed, non-HTTPS, and self-host destinations produce actionable field errors and no link row.                                                                                                                                                                                                                                      | FR-CRE-03/06; NFR-SEC-05/08                              |
-| AC-04 | Available valid aliases succeed. Invalid/reserved aliases fail validation; taken aliases conflict. Redis-counter allocation is atomic; concurrent inserts, missing-key recovery, stale Redis restores, and alias/legacy collisions never overwrite another row. Deleted and expired codes remain reserved.                             | FR-CRE-04/07; FR-RED-06; functional assumptions 5/6      |
-| AC-05 | Expiry is optional. At `now >= expiresAt`, a link never redirects, including from a previously populated cache.                                                                                                                                                                                                                        | FR-CRE-08, FR-RED-07                                     |
-| AC-06 | Anonymous GET resolves an exact, case-sensitive code to the stored destination, including its path, query, fragment, and encoding.                                                                                                                                                                                                     | FR-RED-01/02/06; NFR-REL-01                              |
-| AC-07 | Unknown, unallocated case variants, deleted, and expired codes return generic not-found HTML. Disabled, unexpired links return generic unavailable HTML. Neither response exposes a destination or owner or has `Location`.                                                                                                            | FR-RED-03 through FR-RED-07; NFR-SEC-08                  |
-| AC-08 | Creation over the hourly account cap and redirects over the client cap return 429 with accurate retry guidance. One client's traffic does not consume another client's redirect budget.                                                                                                                                                | FR-ABS-01/03; NFR-PRV-02                                 |
-| AC-09 | Redis cache failure or invalid cache data falls back to PostgreSQL. Redis limiter failure activates bounded local redirect throttling. Indeterminate link state returns safe 503 without `Location`. Creation fails safely if the code counter or required recovery query cannot complete; it has no random/local generation fallback. | NFR-REL-01/02; FR-CRE-04                                 |
-| AC-10 | Measured server-side creation p95 is below 500 ms. A complete run sustains 100 redirects/second for 600 seconds with p95 below 150 ms, p99 below 300 ms, and errors below 0.5%.                                                                                                                                                        | NFR-PER-01/02/03, NFR-TST-03                             |
-| AC-11 | Creation and account deletion serialize correctly: deletion either tombstones a committed creation or prevents creation for the deleted owner. Existing deletion cleanup and the five-second cache bound remain effective.                                                                                                             | Existing FR-ACC-05; NFR-SEC-09, NFR-CON-02               |
-| AC-12 | The create/copy flow works with keyboard and screen reader, both themes, reduced motion, and widths 320, 768, 1024, and 1440 px. Loading, validation, conflict, rate-limit, session, clipboard, and service failures are understandable.                                                                                               | FR-CRE-02/05; DESIGN.md                                  |
+| ID    | Observable behavior                                                                                                                                                                                                                                                                                                                                                                      | Requirement trace                                        |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| AC-01 | A signed-in user creates `https://example.com/docs?q=java#setup`, receives a unique complete short URL, copies it with one action, and the next request redirects to that exact destination.                                                                                                                                                                                             | FR-CRE-01/04/05; NFR-CON-01, NFR-REL-01                  |
+| AC-02 | Missing, invalid, expired, revoked, wrong-version, or deleted-user access credentials never authorize creation. The UI prompts sign-in after an authentication rejection. Missing/invalid CSRF rejects the mutation.                                                                                                                                                                     | FR-CRE-02; NFR-SEC-06/09; architecture security contract |
+| AC-03 | Malformed, non-HTTPS, and self-host destinations produce actionable field errors and no link row.                                                                                                                                                                                                                                                                                        | FR-CRE-03/06; NFR-SEC-05/08                              |
+| AC-04 | Available valid aliases succeed. Invalid/reserved aliases fail validation; taken aliases conflict. Redis-counter allocation is atomic; fixed-key/salt FF1 maps distinct values to distinct codes without truncation; concurrent inserts, missing-key recovery, stale Redis restores, and alias/legacy collisions never overwrite another row. Deleted and expired codes remain reserved. | FR-CRE-04/07; FR-RED-06; functional assumptions 5/6      |
+| AC-05 | Expiry is optional. At `now >= expiresAt`, a link never redirects, including from a previously populated cache.                                                                                                                                                                                                                                                                          | FR-CRE-08, FR-RED-07                                     |
+| AC-06 | Anonymous GET resolves an exact, case-sensitive code to the stored destination, including its path, query, fragment, and encoding.                                                                                                                                                                                                                                                       | FR-RED-01/02/06; NFR-REL-01                              |
+| AC-07 | Unknown, unallocated case variants, deleted, and expired codes return generic not-found HTML. Disabled, unexpired links return generic unavailable HTML. Neither response exposes a destination or owner or has `Location`.                                                                                                                                                              | FR-RED-03 through FR-RED-07; NFR-SEC-08                  |
+| AC-08 | Creation over the hourly account cap and redirects over the client cap return 429 with accurate retry guidance. One client's traffic does not consume another client's redirect budget.                                                                                                                                                                                                  | FR-ABS-01/03; NFR-PRV-02                                 |
+| AC-09 | Redis cache failure or invalid cache data falls back to PostgreSQL. Redis limiter failure activates bounded local redirect throttling. Indeterminate link state returns safe 503 without `Location`. Creation fails safely if the code counter or required recovery query cannot complete; it has no random/local generation fallback.                                                   | NFR-REL-01/02; FR-CRE-04                                 |
+| AC-10 | Measured server-side creation p95 is below 500 ms. A complete run sustains 100 redirects/second for 600 seconds with p95 below 150 ms, p99 below 300 ms, and errors below 0.5%.                                                                                                                                                                                                          | NFR-PER-01/02/03, NFR-TST-03                             |
+| AC-11 | Creation and account deletion serialize correctly: deletion either tombstones a committed creation or prevents creation for the deleted owner. Existing deletion cleanup and the five-second cache bound remain effective.                                                                                                                                                               | Existing FR-ACC-05; NFR-SEC-09, NFR-CON-02               |
+| AC-12 | The create/copy flow works with keyboard and screen reader, both themes, reduced motion, and widths 320, 768, 1024, and 1440 px. Loading, validation, conflict, rate-limit, session, clipboard, and service failures are understandable.                                                                                                                                                 | FR-CRE-02/05; DESIGN.md                                  |
 
 AC-01's immediate-resolution guarantee assumes the request precedes any chosen
 expiry. Expiry always wins when reached. An allocated `Abc` never falls back to
@@ -86,19 +88,19 @@ Use the existing frontend stack, HTTP client, React Hook Form/Zod, and TanStack
 Query. No Next.js route handler or Server Action proxies application APIs or
 implements public redirects. No new dependency is needed for the approach.
 
-| Component                                    | Responsibility and dependencies                                                                                                                                                                                                      |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `LinkController`                             | Translate authenticated POST DTOs, take identity from the verified principal, call the creation rate limit and `LinkService`, and map the committed result to JSON.                                                                  |
-| `LinkService`                                | Own creation rules and transactions; retain existing account-deletion tombstoning. Depend on repository/cache contracts and local domain values, not Redis/JPA types or `AuthService`.                                               |
-| `RedirectController`                         | Translate public GET/HEAD, invoke redirect throttling and `RedirectService`, and map outcomes to a temporary redirect or static safe HTML.                                                                                           |
-| `RedirectService`                            | Own exact-code resolution, cache validation, freshness/expiry checks, PostgreSQL fallback, and state outcomes. No user/session/authentication or analytics calls.                                                                    |
-| `LinkRepository` and `Jpa*` implementation   | Persist without overwrite; serialize eligible-owner insertion with account deletion; fetch a minimal redirect projection by exact code. Keep existing tombstone/cleanup operations.                                                  |
-| `ShortCodeGenerator`                         | Obtain allocation values through `ShortCodeCounter`, recover from the committed repository high-water mark only on a missing key or confirmed collision, and return `GeneratedShortCode`. Concrete coordinator, no helper interface. |
-| `ShortCodeCounter` / `RedisShortCodeCounter` | Atomic validated increment and initialize/advance-and-increment of nonexpiring `code:global`; Redis commands and serialization stay in the adapter. No database or link-policy dependency.                                           |
-| `RedirectCache` / `RedisRedirectCache`       | Extend the existing eviction contract with lookup and bounded writes. Redis access and serialization stay in the adapter.                                                                                                            |
-| `RateLimitService` / `RateLimitStore`        | Retain existing auth budgets; add separate creation and redirect namespaces and the redirect-only bounded fallback. Redis commands stay behind the store contract.                                                                   |
-| Security configuration and filters           | Protect creation with existing JWT/revocation/user-state and CSRF checks. Admit only the public redirect methods/path and omit authentication work on that route.                                                                    |
-| Next.js `/links`                             | Render session/API outcomes and the focused creation form, typed mutation, and clipboard feedback.                                                                                                                                   |
+| Component                                    | Responsibility and dependencies                                                                                                                                                                                                                                              |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LinkController`                             | Translate authenticated POST DTOs, take identity from the verified principal, call the creation rate limit and `LinkService`, and map the committed result to JSON.                                                                                                          |
+| `LinkService`                                | Own creation rules and transactions; retain existing account-deletion tombstoning. Depend on repository/cache contracts and local domain values, not Redis/JPA types or `AuthService`.                                                                                       |
+| `RedirectController`                         | Translate public GET/HEAD, invoke redirect throttling and `RedirectService`, and map outcomes to a temporary redirect or static safe HTML.                                                                                                                                   |
+| `RedirectService`                            | Own exact-code resolution, cache validation, freshness/expiry checks, PostgreSQL fallback, and state outcomes. No user/session/authentication or analytics calls.                                                                                                            |
+| `LinkRepository` and `Jpa*` implementation   | Persist without overwrite; serialize eligible-owner insertion with account deletion; fetch a minimal redirect projection by exact code. Keep existing tombstone/cleanup operations.                                                                                          |
+| `ShortCodeGenerator`                         | Obtain allocation values through `ShortCodeCounter`, recover from the committed repository high-water mark only on a missing key or confirmed collision, and return `GeneratedShortCode`. Concrete coordinator using a concrete local ShortCodeEncoder, no helper interface. |
+| `ShortCodeCounter` / `RedisShortCodeCounter` | Atomic validated increment and initialize/advance-and-increment of nonexpiring `code:global`; Redis commands and serialization stay in the adapter. No database or link-policy dependency.                                                                                   |
+| `RedirectCache` / `RedisRedirectCache`       | Extend the existing eviction contract with lookup and bounded writes. Redis access and serialization stay in the adapter.                                                                                                                                                    |
+| `RateLimitService` / `RateLimitStore`        | Retain existing auth budgets; add separate creation and redirect namespaces and the redirect-only bounded fallback. Redis commands stay behind the store contract.                                                                                                           |
+| Security configuration and filters           | Protect creation with existing JWT/revocation/user-state and CSRF checks. Admit only the public redirect methods/path and omit authentication work on that route.                                                                                                            |
+| Next.js `/links`                             | Render session/API outcomes and the focused creation form, typed mutation, and clipboard feedback.                                                                                                                                                                           |
 
 Domain values `DestinationUrl`, `ShortCode`, `GeneratedShortCode`, and
 `RedirectLookup` hold relevant invariants. The generator remains concrete and
@@ -203,12 +205,15 @@ No rejected input is interpolated into an error page or log.
 - Reserve these entire words, case-insensitively: `api`, `actuator`, `error`,
   `health`, `login`, `logout`, `register`, `links`, `settings`, `analytics`,
   `account`, and `password-reset`. Return a validation error for a reserved word.
-- Generate exactly eight Base62 characters from an atomic Redis global counter,
-  using alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`
-  and left-padding with `0`. Positive values `1..218340105584895` (`62^8 - 1`)
-  map bijectively to codes: `1` → `00000001`, `61` → `0000000z`,
-  `62` → `00000010`, maximum → `zzzzzzzz`. Reject out-of-range allocations;
-  never wrap. Generated candidates also pass format/reserved-word checks.
+- Allocate a positive Redis counter value `1..218340105584895` (`62^8 - 1`).
+  Convert it into eight radix-62 digit bytes, including leading zero digits,
+  encrypt those digits with AES-FF1 under fixed key/salt configuration, and map
+  the output using `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`.
+  Publish exactly eight characters, never the unencoded counter. No hashing or
+  truncation. FF1 is a bijection for fixed key/salt: distinct allocations do not
+  collide through encoding. Reject out-of-range allocations; never wrap.
+  Generated candidates still pass format/reserved-word checks; alias, legacy,
+  and recovery conflicts remain bounded.
 - Allow at most ten generated candidates per request. Retry only a confirmed
   code uniqueness conflict; other datastore failures return safe 503. A custom
   alias conflict returns 409 immediately and is never replaced by a generated code.
@@ -252,12 +257,44 @@ process-local fallback is introduced. Redis uses the existing bounded timeouts;
 the counter is not called during public redirect resolution. Rollback and skipped
 candidates may leave gaps; no published code is ever overwritten or reused.
 
-Counter codes are predictable identifiers for publicly accessible links, not
-secrets or authorization. The eight-character format preserves the existing
-generated-code length. This revision aligns allocation with
+Salted FF1 encoding hides the counter sequence and retains eight characters.
+A numeric salt/alphabet shuffle alone remains predictable; truncated HMAC
+permits generated collisions. Public codes still have a finite namespace and
+are not secrets or authorization. This revision aligns allocation with
 [HLD.excalidraw](../../architecture/HLD.excalidraw); it does not remove the required
 PostgreSQL insert or unique constraint. The original random implementation
 already avoided a separate existence SELECT.
+
+### Salted encoder and key lifecycle
+
+Concrete `service/ShortCodeEncoder` uses existing Bouncy Castle 1.86
+`FPEFF1Engine`, AES, radix 62, eight digit bytes, and
+`FPEParameters(KeyParameter(key), 62, saltBytes)`. Construct an engine per call;
+never share mutable cipher state, truncate a hash, or implement a custom cipher.
+Use no inverse AES option. A failure to encode a valid allocation returns safe 503 with no insert or fallback.
+No new dependency. See
+[the FF1 implementation API](https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/org/bouncycastle/crypto/fpe/FPEFF1Engine.html),
+[NIST SP 800-38G](https://csrc.nist.gov/pubs/sp/800/38/g/upd1/final), and
+[the current revision draft](https://csrc.nist.gov/pubs/sp/800/38/g/r1/2pd).
+The `62^8` domain exceeds the draft's one-million minimum; do not claim
+certification or describe the draft as a final standard.
+
+Add `tinyroute.links.code-key` from `SHORT_CODE_KEY`, canonical Base64 for exactly
+32 random bytes, and `tinyroute.links.code-salt` from `SHORT_CODE_SALT`, 8–64
+ASCII `[A-Za-z0-9:_-]+` characters. Production requires both environment values
+with no defaults. Dev defaults and `.env.example` may contain explicitly public
+local-only fixtures. Reject missing/malformed configuration at startup with
+safe errors that never echo it. Keep the key secret and separate from JWT/rate-
+limit keys (NFR-SEC-03). The salt is a fixed FF1 tweak; the secret key hides the
+sequence.
+
+Keep key, salt, alphabet, width, and encoder version fixed across deployments
+and creators. Per-link changes break the shared one-to-one mapping. Rotation
+is outside this feature and needs a separate version/namespace and recovery
+design. Store only the final code and nullable internal `generation_value`;
+no digest or per-link key/salt column. Public redirects look up the stored code,
+without decoding or invoking the encoder. PostgreSQL still protects aliases,
+legacy codes, and counter-recovery races.
 
 ### Expiry
 
@@ -511,7 +548,9 @@ Required evidence covers all acceptance criteria, including:
 - Destination parsing/self-host variants; alias syntax/reserved/taken states;
   forced generated collisions and retry exhaustion; real concurrent alias
   inserts; deleted/expired code reservation; owner deletion/creation ordering.
-- Base62 padding/boundaries/capacity, concurrent atomic Redis allocation and
+- Fixed-key/salt FF1 encoding, independent decryption fixtures, unique sampled
+  outputs, thread safety, range/capacity and key/salt validation/non-disclosure;
+  concurrent atomic Redis allocation and
   missing-key initialization, recovery from deleted/expired generated values,
   stale restored counters, alias/legacy collisions without floor poisoning,
   safe malformed/wrong-type/TTL/outage behavior, and no recovery SELECT on normal
@@ -562,7 +601,8 @@ the server-side thresholds.
 
 Run at least 200 successful authenticated counter-generated creation samples across enough fresh
 accounts to stay under the unchanged per-account limit. Include normal security
-and CSRF checks, Redis allocation, PostgreSQL persistence, and no request retry.
+and CSRF checks, Redis allocation, salted FF1 encoding, PostgreSQL persistence,
+and no request retry.
 Report p95 below 500 ms. Measurements from the former random generator cannot
 establish the revised creation performance result.
 
@@ -606,8 +646,10 @@ approved on 2026-10-07 and original plan on 2026-10-08. Tasks 1–7 are complete
 Task 8 has partial browser/test-fixture evidence and remains incomplete. The
 user requested Redis-counter alignment on 2026-10-08. This revised specification,
 architecture, and `tasks/plan.md`/`tasks/todo.md` record the proposed replacement
-as Task 7A. Written approval of the revised spec and plan is required before
-changing the generator. Preserve existing commits, completed checkboxes, and
+as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
+plain-counter implementation was authorized. The subsequent salt/uniqueness
+request is saved as the pending AES-FF1 revision; obtain written spec/plan
+approval before changing the generator. Preserve existing commits, completed checkboxes, and
 uncommitted Task 8 work; do not archive partially completed tasks.
 
 Final independent review must examine atomic counter allocation, recovery and
@@ -633,4 +675,7 @@ boundaries, V6 metadata, legacy/alias compatibility, concurrent initialization,
 safe failure/capacity behavior, bounded candidate/quota handling, and revised
 performance evidence are explicit and mapped to Task 7A. Stack, authentication,
 UI, redirect behavior, analytics exclusion, and prior implementation evidence
-remain intact. This revision is saved for written review, not implemented.
+remain intact. The plain-counter revision was approved 2026-10-08 ("ok do now"). The subsequent
+salt/uniqueness revision is saved for approval: existing FF1 implementation, no
+new dependency or truncation, explicit fixed-key/salt limits. No generator code
+or new tests have changed.

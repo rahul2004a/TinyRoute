@@ -5,7 +5,7 @@
 - Specification: [feature spec and pending counter revision](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **original plan approved 2026-10-08; Tasks 1–7 verified; Task 8 partially executed. Redis-counter spec/plan/architecture revision saved for written approval; Task 7A has not started.**
+- Current state: **original plan approved 2026-10-08; Tasks 1–7 verified; Task 8 partially executed. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 spec/plan revision saved for written approval; Task 7A has no generator code or new tests yet.**
 
 ## Approval gates and baseline
 
@@ -17,7 +17,9 @@
 - [x] Save/self-review `tasks/plan.md` and `tasks/todo.md`; AC coverage and interface consistency checked.
 - [x] User approves saved plan/checklist, 2026-10-08 ("done"); inline implementation authorized.
 - [x] Save and self-review user-requested Redis-counter revision in spec, architecture, plan, and checklist, 2026-10-08; retain completed history and Task 8 work.
-- [ ] User gives written approval of revised spec and plan before Task 7A generator replacement.
+- [x] User gives written approval of plain-counter spec/plan, 2026-10-08 ("ok do now").
+- [x] Save/self-review subsequent salted, collision-free FF1 encoding proposal using the existing dependency.
+- [ ] User approves the salted FF1 written spec/plan revision before generator implementation.
 
 Baseline at `ecffb917a489cd18770127ede3b1a96f3a0debfb`: backend offline unit test command passed 63 tests; frontend Vitest passed 48 tests across 13 files. Mockito required execution outside the sandbox due to JVM attachment restrictions; no source workaround. Full integration/build/load evidence is still required for this feature.
 
@@ -32,7 +34,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
 - [x] 6. Public Spring redirect boundary — exact Location, state matrix, host/path/auth isolation, GET/HEAD/no-store.
 - [x] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
-- [ ] 7A. HLD Redis-counter generation — exact Base62 encoding, V6 metadata, atomic allocation/recovery, alias/legacy compatibility, bounded safe failures, and affected regressions. Awaiting revision approval.
+- [ ] 7A. HLD Redis-counter generation — fixed-key/salt FF1 Base62 encoding, V6 metadata, atomic allocation/recovery, alias/legacy compatibility, bounded safe failures, and affected regressions. Awaiting salted encoding revision approval.
 - [ ] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
 - [ ] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
 - [ ] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
@@ -92,6 +94,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 
 | 2026-10-08 | Counter revision saved, awaiting written approval | HLD confirms Redis global counter; original code uses random eight-character candidates with conflict-safe INSERT and no availability SELECT. Self-review covers V6, recovery/collision/capacity/error tests and AC mappings. Four-document Prettier check, local links/fenced blocks/numeric range check, placeholder scan, and git diff --check passed; no generator code changes | Task 7A replaces generator after approval. Committed numeric metadata excludes aliases/legacy rows from recovery floor; permanent PostgreSQL uniqueness protects published codes after reset/restore |
 
+| 2026-10-08 | Salt/uniqueness revision saved | User rejected truncated HMAC to avoid generated-code collisions. Existing Bouncy Castle 1.86 FF1 API verified read-only; AES-FF1 proposed as a fixed-key/salt eight-digit radix-62 permutation. No generator code/new tests added; prior attempted test patch was rejected atomically before changes or any test run | Awaiting written spec/plan approval; retain Task 8 work. Stable encoding configuration required; PostgreSQL protects alias/legacy/recovery races |
+
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
 ## Material limitations to retain
@@ -100,4 +104,4 @@ Add rows during approved execution with exact command outcomes, test counts, fai
 - Redis limiter outages use one backend process's bounded, best-effort redirect window; recovery/restart can start a fresh window. Auth/creation remain fail-closed.
 - Link state changes have the approved maximum five-second snapshot bound; expiry is checked at the exact instant without grace.
 - Ambiguous creation network failures require deliberate resubmission and may already have committed; no idempotency-key contract is introduced.
-- Proposed generated codes are predictable public identifiers; alias/legacy conflicts still require PostgreSQL uniqueness. Missing/stale counters recover from committed numeric metadata; malformed/unavailable counters fail creation safely. Allocation/rollback gaps are permitted; published codes are never reused.
+- Proposed salted FF1 codes hide the counter sequence but remain finite public identifiers. The generated-code bijection requires fixed key/salt/alphabet/width; rotation is outside this feature. Alias/legacy conflicts still require PostgreSQL uniqueness. Missing/stale counters recover from committed numeric metadata; malformed/unavailable counters fail creation safely. Allocation/rollback gaps are permitted; published codes are never reused.
