@@ -354,7 +354,7 @@ String RedirectPageRenderer.render(int status); // only fixed 403/404/429/503 pa
 // GET /{code}, Spring HEAD equivalent; raw-path/host checks before resolve.
 ```
 
-- [ ] **6.1 Write failing HTTP/security tests.** Exact literal case lookup; query ignored; original query/fragment/percent encoding preserved in Location; separate exact case variants; unknown, disabled, deleted, deletedAt and expired fixtures; 302/no-store and every failure no Location/no details. HEAD mirrors headers/status with empty body and uses same client budget. Wrong hostname → safe 404. Reserved, percent-encoded, matrix, slash/multiple-segment and malformed forms never resolve. Malformed firewall 400 is acceptable; ensure no authentication details leak from intended redirect responses. Supply invalid/revoked cookies and make user/revocation dependencies fail: public redirects still perform no auth calls. Keep API, health, error-dispatch and non-GET/HEAD permissions unchanged.
+- [x] **6.1 Write failing HTTP/security tests.** Exact literal case lookup; query ignored; original query/fragment/percent encoding preserved in Location; separate exact case variants; unknown, disabled, deleted, deletedAt and expired fixtures; 302/no-store and every failure no Location/no details. HEAD mirrors headers/status with empty body and uses same client budget. Wrong hostname → safe 404. Reserved, percent-encoded, matrix, slash/multiple-segment and malformed forms never resolve. Malformed firewall 400 is acceptable; ensure no authentication details leak from intended redirect responses. Supply invalid/revoked cookies and make user/revocation dependencies fail: public redirects still perform no auth calls. Keep API, health, error-dispatch and non-GET/HEAD permissions unchanged.
 
 ```java
 mockMvc.perform(get("/Abc").secure(true).with(request -> {
@@ -367,8 +367,8 @@ mockMvc.perform(head("/Abc").secure(true))
     .andExpect(status().isFound()).andExpect(content().string(""));
 ```
 
-- [ ] **6.2 Run red:** unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=PublicRedirectRequestMatcherTest,JwtAuthenticationFilterTest`; focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedirectContractIT,RedirectOutageIT,SecurityPerimeterIT`.
-- [ ] **6.3 Implement one shared, method/path-scoped matcher and controller.** Admit GET/HEAD single-segment candidates without opening `/api/**`, `/actuator/**` or error dispatch; application rejects invalid/reserved forms. Matcher must permit otherwise valid candidate paths even on the wrong host so controller can return 404. JWT `shouldNotFilter` uses the same matcher. Controller checks original raw path equals `/` plus the validated literal code, checks canonical hostname, then throttles and resolves. Do not trust forwarded Host. Map safe service/limiter failure locally to public HTML rather than API error bodies. Build successful Location directly from stored String, avoiding MVC redirect encoding. Render fixed inline CSS/system-font HTML with design palette and no dynamic request values; suppress HEAD body.
+- [x] **6.2 Run red:** unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=PublicRedirectRequestMatcherTest,JwtAuthenticationFilterTest`; focused `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedirectContractIT,RedirectOutageIT,SecurityPerimeterIT`.
+- [x] **6.3 Implement one shared, method/path-scoped matcher and controller.** Admit GET/HEAD single-segment candidates without opening `/api/**`, `/actuator/**` or error dispatch; application rejects invalid/reserved forms. Matcher must permit otherwise valid candidate paths even on the wrong host so controller can return 404. JWT `shouldNotFilter` uses the same matcher. Controller checks original raw path equals `/` plus the validated literal code, checks canonical hostname, then throttles and resolves. Do not trust forwarded Host. Map safe service/limiter failure locally to public HTML rather than API error bodies. Build successful Location directly from stored String, avoiding MVC redirect encoding. Render fixed inline CSS/system-font HTML with design palette and no dynamic request values; suppress HEAD body.
 
 ```text
 REDIRECT → 302, Location=stored exact destination, empty body
@@ -377,8 +377,8 @@ rate denied → 429 with ceil Retry-After
 every branch → Cache-Control: no-store; unsuccessful branch → no Location
 ```
 
-- [ ] **6.4 Run green plus creation security tests.** Explicitly prove Redis cache/limiter outage → DB redirect for normal traffic, DB unknown state → safe 503, degraded client throttling → 429 without affecting another client. Assert no click_count changes or event writes.
-- [ ] **6.5 Record evidence and commit:** `git commit -m "feat: serve public redirects with safe state responses"`.
+- [x] **6.4 Run green plus creation security tests.** Explicitly prove Redis cache/limiter outage → DB redirect for normal traffic, DB unknown state → safe 503, degraded client throttling → 429 without affecting another client. Assert no click_count changes or event writes.
+- [x] **6.5 Record evidence and commit:** `git commit -m "feat: serve public redirects with safe state responses"`.
 
 ## Task 7: Accessible create-and-copy frontend
 

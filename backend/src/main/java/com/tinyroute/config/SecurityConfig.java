@@ -1,7 +1,9 @@
 package com.tinyroute.config;
 
 import com.tinyroute.security.JwtAuthenticationFilter;
+import com.tinyroute.security.PublicRedirectRequestMatcher;
 import com.tinyroute.security.SecurityErrorResponseWriter;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,8 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 public class SecurityConfig {
@@ -28,30 +28,39 @@ public class SecurityConfig {
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
             SecurityErrorResponseWriter securityErrors,
-            CsrfTokenRepository csrfTokenRepository
-    ) throws Exception {
-        return http
-                .cors(Customizer.withDefaults())
+            CsrfTokenRepository csrfTokenRepository,
+            PublicRedirectRequestMatcher publicRedirects)
+            throws Exception {
+        return http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfTokenRepository))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(requestCache -> requestCache.disable())
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(securityErrors)
-                        .accessDeniedHandler(securityErrors)
-                )
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/actuator/**", "/api/auth/csrf").permitAll()
-                        .requestMatchers(
-                                "/api/auth/register/**",
-                                "/api/auth/login",
-                                "/api/auth/refresh",
-                                "/api/auth/password-reset/**",
-                                "/api/auth/google/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(
+                        exceptions ->
+                                exceptions
+                                        .authenticationEntryPoint(securityErrors)
+                                        .accessDeniedHandler(securityErrors))
+                .authorizeHttpRequests(
+                        authorize ->
+                                authorize
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        .requestMatchers(publicRedirects)
+                                        .permitAll()
+                                        .requestMatchers("/actuator/**", "/api/auth/csrf")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                "/api/auth/register/**",
+                                                "/api/auth/login",
+                                                "/api/auth/refresh",
+                                                "/api/auth/password-reset/**",
+                                                "/api/auth/google/**")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .addFilterBefore(
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -60,11 +69,8 @@ public class SecurityConfig {
         CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
         repository.setHeaderName("X-CSRF-TOKEN");
         repository.setCookieName("__Host-tinyroute_csrf");
-        repository.setCookieCustomizer(cookie -> cookie
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .path("/"));
+        repository.setCookieCustomizer(
+                cookie -> cookie.httpOnly(true).secure(true).sameSite("Lax").path("/"));
         return repository;
     }
 
