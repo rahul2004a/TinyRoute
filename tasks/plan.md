@@ -206,7 +206,7 @@ void StoreFailureBackoff.recordFailure();
 // creationWindow=PT1H, redirectMaximumAttempts=600, redirectWindow=PT1M.
 ```
 
-- [ ] **3.1 Write failing tests.** Account request 100 allowed/101 rejected; different account independent; internal code retry does not call limiter again. Client request 600 allowed/601 rejected, same GET/HEAD key, untrusted XFF ignored and malformed trusted metadata safe failure. Redis first-use TTL stays fixed under subsequent requests. Creation Redis failure → 503; redirect Redis failure → fallback. Fake monotonic time tests boundary reset, one recovery probe under concurrent callers, capacity 10,000 rejecting a new key while existing budgets stay usable, and expired cleanup within two minutes.
+- [x] **3.1 Write failing tests.** Account request 100 allowed/101 rejected; different account independent; internal code retry does not call limiter again. Client request 600 allowed/601 rejected, same GET/HEAD key, untrusted XFF ignored and malformed trusted metadata safe failure. Redis first-use TTL stays fixed under subsequent requests. Creation Redis failure → 503; redirect Redis failure → fallback. Fake monotonic time tests boundary reset, one recovery probe under concurrent callers, capacity 10,000 rejecting a new key while existing budgets stay usable, and expired cleanup within two minutes.
 
 ```java
 var ticks = new java.util.concurrent.atomic.AtomicLong();
@@ -219,8 +219,8 @@ ticks.set(Duration.ofMinutes(1).toNanos());
 assertThat(limiter.allow("client-a").allowed()).isTrue();
 ```
 
-- [ ] **3.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=RateLimitServiceTest,InMemoryRedirectRateLimiterTest,StoreFailureBackoffTest,GlobalExceptionHandlerTest`; focused Redis integration `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisAuthStoresIT`.
-- [ ] **3.3 Implement namespaces and fallback.** Creation key `rl:create:{UUID}`, redirect key `rl:redirect:{HMAC}`; use existing atomic Redis store. Separate redirect backoff from auth/creation. `LinkConfiguration` wires the fallback with validated redirect properties, 10,000 maximum keys and `System::nanoTime`. Synchronize bounded fallback updates or use an equivalent atomic critical section: remove expired entries, find/create a window only when capacity permits, increment once, deny beyond cap. Do not evict live clients or retain raw addresses. Use scheduled cleanup even during idle periods. Apply ceil retry rounding to JSON/header with no change to auth budgets.
+- [x] **3.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=RateLimitServiceTest,InMemoryRedirectRateLimiterTest,StoreFailureBackoffTest,GlobalExceptionHandlerTest`; focused Redis integration `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=RedisAuthStoresIT`.
+- [x] **3.3 Implement namespaces and fallback.** Creation key `rl:create:{UUID}`, redirect key `rl:redirect:{HMAC}`; use existing atomic Redis store. Separate redirect backoff from auth/creation. `LinkConfiguration` wires the fallback with validated redirect properties, 10,000 maximum keys and `System::nanoTime`. Synchronize bounded fallback updates or use an equivalent atomic critical section: remove expired entries, find/create a window only when capacity permits, increment once, deny beyond cap. Do not evict live clients or retain raw addresses. Use scheduled cleanup even during idle periods. Apply ceil retry rounding to JSON/header with no change to auth budgets.
 
 ```text
 redirect: derive HMAC safely → if Redis attempt allowed, increment
@@ -230,8 +230,8 @@ creation: increment Redis → decision; store failure → ServiceUnavailableExce
 retrySeconds = max(1, seconds + (remainingNanosWithinSecond > 0 ? 1 : 0))
 ```
 
-- [ ] **3.4 Run green, including existing auth rate tests.** Confirm recovery/restart may start a fresh best-effort window, documented as single-process degraded behavior, with no creation/auth fallback.
-- [ ] **3.5 Record evidence and commit:** `git commit -m "feat: enforce link budgets with bounded redirect fallback"`.
+- [x] **3.4 Run green, including existing auth rate tests.** Confirm recovery/restart may start a fresh best-effort window, documented as single-process degraded behavior, with no creation/auth fallback.
+- [x] **3.5 Record evidence and commit:** `git commit -m "feat: enforce link budgets with bounded redirect fallback"`.
 
 ## Task 4: Authenticated creation HTTP contract
 

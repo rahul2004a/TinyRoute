@@ -1,20 +1,20 @@
 package com.tinyroute.cache;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.tinyroute.config.RateLimitProperties;
 import com.tinyroute.exception.ServiceUnavailableException;
 import com.tinyroute.model.RateLimitAction;
 import com.tinyroute.model.RateLimitCounter;
 import com.tinyroute.security.ClientAddressResolver;
+import com.tinyroute.service.InMemoryRedirectRateLimiter;
 import com.tinyroute.service.RateLimitService;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 class RateLimitServiceTest {
 
@@ -23,7 +23,8 @@ class RateLimitServiceTest {
         RecordingRateLimitStore store = new RecordingRateLimitStore();
         RateLimitService service = service(store);
 
-        service.allowClient(RateLimitAction.REGISTER, request("10.12.0.5", "2001:0db8:0:0:0:0:0:1"));
+        service.allowClient(
+                RateLimitAction.REGISTER, request("10.12.0.5", "2001:0db8:0:0:0:0:0:1"));
         service.allowClient(RateLimitAction.PASSWORD_LOGIN, request("10.12.0.5", "2001:db8::1"));
 
         String registerKey = store.keysByAction.get(RateLimitAction.REGISTER);
@@ -50,13 +51,8 @@ class RateLimitServiceTest {
         RateLimitService service = service(store);
 
         service.allowClient(
-                RateLimitAction.REGISTER,
-                request("10.12.0.5", "198.51.100.99, 203.0.113.42")
-        );
-        service.allowClient(
-                RateLimitAction.PASSWORD_LOGIN,
-                request("203.0.113.42", null)
-        );
+                RateLimitAction.REGISTER, request("10.12.0.5", "198.51.100.99, 203.0.113.42"));
+        service.allowClient(RateLimitAction.PASSWORD_LOGIN, request("203.0.113.42", null));
 
         assertThat(subject(store.keysByAction.get(RateLimitAction.REGISTER)))
                 .isEqualTo(subject(store.keysByAction.get(RateLimitAction.PASSWORD_LOGIN)));
@@ -69,12 +65,8 @@ class RateLimitServiceTest {
 
         service.allowClient(
                 RateLimitAction.REGISTER,
-                request("10.12.0.5", "198.51.100.42, 10.20.0.6, 10.30.0.7")
-        );
-        service.allowClient(
-                RateLimitAction.PASSWORD_LOGIN,
-                request("198.51.100.42", null)
-        );
+                request("10.12.0.5", "198.51.100.42, 10.20.0.6, 10.30.0.7"));
+        service.allowClient(RateLimitAction.PASSWORD_LOGIN, request("198.51.100.42", null));
 
         assertThat(subject(store.keysByAction.get(RateLimitAction.REGISTER)))
                 .isEqualTo(subject(store.keysByAction.get(RateLimitAction.PASSWORD_LOGIN)));
@@ -96,21 +88,75 @@ class RateLimitServiceTest {
 
     @Test
     void failsClosedWhenTheRateLimitStoreIsUnavailable() {
-        RateLimitStore unavailableStore = (key, window) -> {
-            throw new IllegalStateException("Redis unavailable");
-        };
+        RateLimitStore unavailableStore =
+                (key, window) -> {
+                    throw new IllegalStateException("Redis unavailable");
+                };
 
-        assertThatThrownBy(() -> service(unavailableStore).allowClient(
-                RateLimitAction.REGISTER,
-                request("192.0.2.10", null)
-        )).isInstanceOf(ServiceUnavailableException.class);
+        assertThatThrownBy(
+                        () ->
+                                service(unavailableStore)
+                                        .allowClient(
+                                                RateLimitAction.REGISTER,
+                                                request("192.0.2.10", null)))
+                .isInstanceOf(ServiceUnavailableException.class);
     }
 
     private RateLimitService service(RateLimitStore store) {
         RateLimitProperties properties = new RateLimitProperties();
         properties.setHmacSecret("test-rate-limit-secret");
         properties.setTrustedProxyCidrs(java.util.List.of("10.0.0.0/8"));
-        return new RateLimitService(store, new ClientAddressResolver(properties));
+        return new RateLimitService(
+                store,
+                new ClientAddressResolver(properties),
+                properties,
+                new InMemoryRedirectRateLimiter(
+                        600, Duration.ofMinutes(1), 10_000, System::nanoTime));
+    }
+
+    @Test
+    void capsCreationPerAccountAndKeepsAuthBudgetsSeparate() {
+        var service = service(new RecordingRateLimitStore());
+        var id = java.util.UUID.randomUUID();
+        for (int i = 0; i < 100; i++) assertThat(service.allowCreation(id).allowed()).isTrue();
+        assertThat(service.allowCreation(id).allowed()).isFalse();
+        assertThat(service.allowCreation(java.util.UUID.randomUUID()).allowed()).isTrue();
+        assertThat(
+                        service.allowClient(RateLimitAction.REGISTER, request("192.0.2.1", null))
+                                .allowed())
+                .isTrue();
+    }
+
+    @Test
+    void redirectRedisFailureUsesBoundedLocalBudgetsWhileCreationFailsClosed() {
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        RateLimitStore failed =
+                (key, window) -> {
+                    calls.incrementAndGet();
+                    throw new IllegalStateException("offline");
+                };
+        var service = service(failed);
+        var request = request("192.0.2.1", null);
+        for (int i = 0; i < 600; i++) assertThat(service.allowRedirect(request).allowed()).isTrue();
+        assertThat(service.allowRedirect(request).allowed()).isFalse();
+        assertThat(service.allowRedirect(request("192.0.2.2", null)).allowed()).isTrue();
+        assertThat(calls.get()).isEqualTo(1);
+        assertThatThrownBy(() -> service.allowCreation(java.util.UUID.randomUUID()))
+                .isInstanceOf(ServiceUnavailableException.class);
+    }
+
+    @Test
+    void normalRedirectsShareTheHmacIdentityButIgnoreSpoofedForwarding() {
+        var service = service(new RecordingRateLimitStore());
+        for (int i = 0; i < 600; i++)
+            assertThat(
+                            service.allowRedirect(request("192.0.2.1", "203.0.113." + (i % 250)))
+                                    .allowed())
+                    .isTrue();
+        assertThat(service.allowRedirect(request("192.0.2.1", null)).allowed()).isFalse();
+        assertThat(service.allowRedirect(request("192.0.2.2", null)).allowed()).isTrue();
+        assertThatThrownBy(() -> service.allowRedirect(request("10.12.0.5", null)))
+                .isInstanceOf(ServiceUnavailableException.class);
     }
 
     private MockHttpServletRequest request(String remoteAddress, String forwardedFor) {
@@ -133,11 +179,15 @@ class RateLimitServiceTest {
 
         @Override
         public RateLimitCounter increment(String key, Duration window) {
-            RateLimitAction action = java.util.Arrays.stream(RateLimitAction.values())
-                    .filter(candidate -> key.startsWith("rl:auth:" + candidate.keySegment() + ":"))
-                    .findFirst()
-                    .orElseThrow();
-            keysByAction.put(action, key);
+            RateLimitAction action =
+                    java.util.Arrays.stream(RateLimitAction.values())
+                            .filter(
+                                    candidate ->
+                                            key.startsWith(
+                                                    "rl:auth:" + candidate.keySegment() + ":"))
+                            .findFirst()
+                            .orElse(null);
+            if (action != null) keysByAction.put(action, key);
             return new RateLimitCounter(counts.merge(key, 1L, Long::sum), window);
         }
     }

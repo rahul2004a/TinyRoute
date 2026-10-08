@@ -5,7 +5,7 @@
 - Specification: [approved spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **plan approved 2026-10-08; Tasks 1–2 verified; Task 3 in progress, quota/fallback tests.**
+- Current state: **plan approved 2026-10-08; Tasks 1–3 verified; Task 4 in progress, authenticated HTTP contract tests.**
 
 ## Approval gates and baseline
 
@@ -25,7 +25,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 
 - [x] 1. Domain invariants and validated configuration — destination/alias/expiry matrices, generated format, profile checks.
 - [x] 2. Atomic creation and account-deletion fence — real conflict/race/non-reuse/after-lock expiry evidence.
-- [ ] 3. Creation budgets and degraded redirect throttling — cap/TTL/retry/isolation/bounded fallback/probe evidence.
+- [x] 3. Creation budgets and degraded redirect throttling — cap/TTL/retry/isolation/bounded fallback/probe evidence.
 - [ ] 4. Authenticated creation HTTP — real JWT/CSRF/strict JSON/body/error/committed-result contract.
 - [ ] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
 - [ ] 6. Public Spring redirect boundary — exact Location, state matrix, host/path/auth isolation, GET/HEAD/no-store.
@@ -74,6 +74,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-08 | Task 1 complete | Red: missing domain types; green: 90 focused tests, 0 failures/errors; Maven Spotless applied | HTTPS/host/alias/expiry invariants; injectable clock; no schema change |
 
 | 2026-10-08 | Task 2 complete | Red: missing create/repository methods; green: 6 unit + 9 PostgreSQL/Redis integration tests | Task 1 `ede8684`; corrected test catch outside rollback boundary; native conflict-safe insertion and owner fence |
+
+| 2026-10-08 | Task 3 complete | Red: missing limiter/backoff methods; green: 14 focused unit tests + Redis store integration | Task 2 `a571164`; unchanged auth keys; redirect-only bounded fallback; ceil retry |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
