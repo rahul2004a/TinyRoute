@@ -5,7 +5,7 @@
 - Specification: [approved spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **plan approved 2026-10-08; Task 1 verified; Task 2 in progress, persistence/creation tests.**
+- Current state: **plan approved 2026-10-08; Tasks 1–2 verified; Task 3 in progress, quota/fallback tests.**
 
 ## Approval gates and baseline
 
@@ -24,7 +24,7 @@ Baseline at `ecffb917a489cd18770127ede3b1a96f3a0debfb`: backend offline unit tes
 Each completion requires the plan's red evidence, green checks, recorded decisions and atomic commit. Mirror the detailed step checkboxes in plan.md; never check a task merely because its code exists.
 
 - [x] 1. Domain invariants and validated configuration — destination/alias/expiry matrices, generated format, profile checks.
-- [ ] 2. Atomic creation and account-deletion fence — real conflict/race/non-reuse/after-lock expiry evidence.
+- [x] 2. Atomic creation and account-deletion fence — real conflict/race/non-reuse/after-lock expiry evidence.
 - [ ] 3. Creation budgets and degraded redirect throttling — cap/TTL/retry/isolation/bounded fallback/probe evidence.
 - [ ] 4. Authenticated creation HTTP — real JWT/CSRF/strict JSON/body/error/committed-result contract.
 - [ ] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
@@ -72,6 +72,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-07 | Specification approved; planning complete | Ten tasks/twelve AC mappings; interface/placeholder/local-link/whitespace review; plan/checklist Prettier pass; no application changes | `72a45d2` spec; saved plan awaits approval |
 
 | 2026-10-08 | Task 1 complete | Red: missing domain types; green: 90 focused tests, 0 failures/errors; Maven Spotless applied | HTTPS/host/alias/expiry invariants; injectable clock; no schema change |
+
+| 2026-10-08 | Task 2 complete | Red: missing create/repository methods; green: 6 unit + 9 PostgreSQL/Redis integration tests | Task 1 `ede8684`; corrected test catch outside rollback boundary; native conflict-safe insertion and owner fence |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 

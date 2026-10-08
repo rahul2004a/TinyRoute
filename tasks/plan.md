@@ -151,7 +151,7 @@ CreatedLink LinkService.create(AccessToken principal, CreateLinkCommand command)
 void LinkService.tombstoneOwnedLinks(UUID userId); // existing signature unchanged
 ```
 
-- [ ] **2.1 Write failing service/repository tests.** Assert one custom insert or bounded generated retries, ten-candidate exhaustion, no fallback for alias conflict, unrelated DB failure → safe service-unavailable, correct response identity/timestamps, click_count zero. Use real PostgreSQL transactions and latches to force two simultaneous same-alias attempts, generated collisions, permanent expired/deleted reservations, independently allocated `Abc`/`abc`, and both owner-lock/deletion orderings. Assert at most one winning row and never an overwritten destination. Add expiry crossing while waiting for the owner lock.
+- [x] **2.1 Write failing service/repository tests.** Assert one custom insert or bounded generated retries, ten-candidate exhaustion, no fallback for alias conflict, unrelated DB failure → safe service-unavailable, correct response identity/timestamps, click_count zero. Use real PostgreSQL transactions and latches to force two simultaneous same-alias attempts, generated collisions, permanent expired/deleted reservations, independently allocated `Abc`/`abc`, and both owner-lock/deletion orderings. Assert at most one winning row and never an overwritten destination. Add expiry crossing while waiting for the owner lock.
 
 ```java
 // Repository integration test inside a TransactionTemplate transaction; ownerId is a fresh fixture user.
@@ -164,8 +164,8 @@ assertThat(linkRepository.findRedirectStateByCode("Abc").orElseThrow().destinati
         .isEqualTo("https://example.com/first");
 ```
 
-- [ ] **2.2 Run red:** unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=LinkServiceTest` and focused integration `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=LinkRepositoryIT,LinkCreationIT,AccountDeletionIT`. Expected absent creation methods or failure of race/conflict assertions; never accept Docker/startup failure as red.
-- [ ] **2.3 Implement native parameterized persistence and cohesive `LinkService.create`.** Lock the owner first, compare current persisted version to principal, validate after wait, and hold through commit. Native `ON CONFLICT (code) DO NOTHING` returns zero solely for the existing code constraint and keeps the transaction usable. Build the read projection without a user join. Recheck expiry using injected UTC `Clock` immediately before each insertion. Retain existing deletion cleanup semantics. Register after-commit eviction; catch its failure without changing a committed success, and never log code/owner/destination.
+- [x] **2.2 Run red:** unit `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=LinkServiceTest` and focused integration `./backend/mvnw -f backend/pom.xml -B -ntp test-compile failsafe:integration-test failsafe:verify -Dit.test=LinkRepositoryIT,LinkCreationIT,AccountDeletionIT`. Expected absent creation methods or failure of race/conflict assertions; never accept Docker/startup failure as red.
+- [x] **2.3 Implement native parameterized persistence and cohesive `LinkService.create`.** Lock the owner first, compare current persisted version to principal, validate after wait, and hold through commit. Native `ON CONFLICT (code) DO NOTHING` returns zero solely for the existing code constraint and keeps the transaction usable. Build the read projection without a user join. Recheck expiry using injected UTC `Clock` immediately before each insertion. Retain existing deletion cleanup semantics. Register after-commit eviction; catch its failure without changing a committed success, and never log code/owner/destination.
 
 ```sql
 select token_version from users where id = :ownerId and deleted_at is null for update;
@@ -176,8 +176,8 @@ values (:id, :code, :ownerId, :destinationUrl, 'ACTIVE', 0,
 on conflict (code) do nothing;
 ```
 
-- [ ] **2.4 Run focused checks green and repeat the deterministic concurrency scenarios.** Assert a returned create is visible from a separate transaction; deletion wins → authentication rejection, creation wins → later tombstone. No test relies solely on sleep for race ordering; timeouts bound latch/future waits.
-- [ ] **2.5 Record evidence and commit:** `git commit -m "feat: persist links atomically with owner eligibility fencing"` after staging listed files and ledger.
+- [x] **2.4 Run focused checks green and repeat the deterministic concurrency scenarios.** Assert a returned create is visible from a separate transaction; deletion wins → authentication rejection, creation wins → later tombstone. No test relies solely on sleep for race ordering; timeouts bound latch/future waits.
+- [x] **2.5 Record evidence and commit:** `git commit -m "feat: persist links atomically with owner eligibility fencing"` after staging listed files and ledger.
 
 ## Task 3: Creation budgets and bounded degraded redirect throttling
 
