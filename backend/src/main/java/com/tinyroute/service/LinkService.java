@@ -6,6 +6,7 @@ import com.tinyroute.model.AccessToken;
 import com.tinyroute.model.AccountDeletionCleanup;
 import com.tinyroute.model.CreateLinkCommand;
 import com.tinyroute.model.CreatedLink;
+import com.tinyroute.model.GeneratedShortCode;
 import com.tinyroute.model.ShortCode;
 import com.tinyroute.repository.AccountDeletionCleanupRepository;
 import com.tinyroute.repository.LinkRepository;
@@ -57,9 +58,17 @@ public class LinkService {
             if (version != principal.tokenVersion()) throw new AuthenticationFailedException();
             var input = validator.validate(command, clock.instant());
             UUID id = UUID.randomUUID();
+            boolean recoverNext = false;
             for (int candidate = 0; candidate < (input.alias() == null ? 10 : 1); candidate++) {
+                GeneratedShortCode allocation =
+                        input.alias() != null
+                                ? null
+                                : (recoverNext
+                                        ? generator.nextCandidateAfterConflict()
+                                        : generator.nextCandidate());
+                recoverNext = false;
                 String value =
-                        input.alias() == null ? generator.nextCandidate() : input.alias().value();
+                        input.alias() != null ? input.alias().value() : allocation.code().value();
                 if (ShortCode.isReserved(value)) continue;
                 ShortCode code = new ShortCode(value);
                 Instant createdAt = clock.instant().truncatedTo(ChronoUnit.MILLIS);
@@ -70,7 +79,8 @@ public class LinkService {
                                 principal.userId(),
                                 input.destinationUrl().value(),
                                 createdAt,
-                                input.expiresAt())
+                                input.expiresAt(),
+                                allocation == null ? null : allocation.generationValue())
                         == 1) {
                     if (TransactionSynchronizationManager.isSynchronizationActive()) {
                         TransactionSynchronizationManager.registerSynchronization(
@@ -89,6 +99,7 @@ public class LinkService {
                             id, code, input.destinationUrl(), createdAt, input.expiresAt());
                 }
                 if (input.alias() != null) throw new AliasUnavailableException();
+                recoverNext = true;
             }
             throw new CodeAllocationFailedException();
         } catch (DataAccessException exception) {

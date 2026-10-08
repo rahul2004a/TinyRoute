@@ -1,8 +1,10 @@
 package com.tinyroute.config;
 
+import com.tinyroute.cache.ShortCodeCounter;
+import com.tinyroute.repository.LinkRepository;
 import com.tinyroute.service.InMemoryRedirectRateLimiter;
+import com.tinyroute.service.ShortCodeEncoder;
 import com.tinyroute.service.ShortCodeGenerator;
-import java.security.SecureRandom;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +26,13 @@ public class LinkConfiguration {
     }
 
     @Bean
-    ShortCodeGenerator shortCodeGenerator() {
-        return new ShortCodeGenerator(new SecureRandom());
+    ShortCodeEncoder shortCodeEncoder(LinkProperties properties) {
+        return new ShortCodeEncoder(properties.codeKeyBytes(), properties.codeSaltBytes());
+    }
+
+    @Bean
+    ShortCodeGenerator shortCodeGenerator(
+            ShortCodeCounter counter, LinkRepository links, ShortCodeEncoder encoder) {
+        return new ShortCodeGenerator(counter, links, encoder);
     }
 }

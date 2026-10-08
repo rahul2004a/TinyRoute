@@ -32,6 +32,8 @@ spring:
 tinyroute:
   links:
     short-base-url: ${SHORT_LINK_BASE_URL}
+    code-key: ${SHORT_CODE_KEY}
+    code-salt: ${SHORT_CODE_SALT}
   security:
     allowed-origins: ${ALLOWED_FRONTEND_ORIGINS}
   rate-limit:

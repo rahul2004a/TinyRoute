@@ -25,8 +25,8 @@ public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkReposi
     @Query(
             value =
                     """
-        insert into links (id,code,owner_id,destination_url,status,click_count,created_at,updated_at,expires_at)
-        values (:id,:code,:ownerId,:destinationUrl,'ACTIVE',0,:createdAt,:createdAt,:expiresAt)
+        insert into links (id,code,owner_id,destination_url,status,click_count,created_at,updated_at,expires_at,generation_value)
+        values (:id,:code,:ownerId,:destinationUrl,'ACTIVE',0,:createdAt,:createdAt,:expiresAt,:generationValue)
         on conflict (code) do nothing
         """,
             nativeQuery = true)
@@ -36,7 +36,15 @@ public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkReposi
             @Param("ownerId") UUID ownerId,
             @Param("destinationUrl") String destinationUrl,
             @Param("createdAt") Instant createdAt,
-            @Param("expiresAt") Instant expiresAt);
+            @Param("expiresAt") Instant expiresAt,
+            @Param("generationValue") Long generationValue);
+
+    @Override
+    @Query(
+            value =
+                    "select coalesce(max(generation_value),0) from links where generation_value is not null",
+            nativeQuery = true)
+    long findMaxGenerationValue();
 
     @Override
     @Query(

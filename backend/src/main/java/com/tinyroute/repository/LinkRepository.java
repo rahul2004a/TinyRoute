@@ -15,7 +15,10 @@ public interface LinkRepository {
             UUID ownerId,
             String destinationUrl,
             Instant createdAt,
-            Instant expiresAt);
+            Instant expiresAt,
+            Long generationValue);
+
+    long findMaxGenerationValue();
 
     Optional<RedirectLinkState> findRedirectStateByCode(String code);
 

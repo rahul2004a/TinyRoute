@@ -1,12 +1,11 @@
 package com.tinyroute;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ProfileConfigurationTest {
 
@@ -15,11 +14,18 @@ class ProfileConfigurationTest {
         Properties properties = loadProperties("application-dev.yml");
 
         assertThat(properties)
-                .containsEntry("spring.datasource.url", "jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:tinyroute}")
+                .containsEntry(
+                        "spring.datasource.url",
+                        "jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:tinyroute}")
                 .containsEntry("spring.datasource.username", "${POSTGRES_USER:tinyroute}")
-                .containsEntry("spring.datasource.password", "${POSTGRES_PASSWORD:local-dev-password}")
+                .containsEntry(
+                        "spring.datasource.password", "${POSTGRES_PASSWORD:local-dev-password}")
                 .containsEntry("spring.data.redis.host", "localhost")
                 .containsEntry("spring.data.redis.port", "${REDIS_PORT:6379}")
+                .containsEntry(
+                        "tinyroute.links.code-key",
+                        "${SHORT_CODE_KEY:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=}")
+                .containsEntry("tinyroute.links.code-salt", "${SHORT_CODE_SALT:tinyroute-local-v1}")
                 .doesNotContainKey("tinyroute.rate-limit.trusted-proxy-cidrs");
     }
 
@@ -37,13 +43,19 @@ class ProfileConfigurationTest {
                 .containsEntry("spring.mail.username", "${MAIL_USERNAME}")
                 .containsEntry("spring.mail.password", "${MAIL_PASSWORD}")
                 .containsEntry("spring.mail.properties[mail.smtp.auth]", "${MAIL_SMTP_AUTH:true}")
-                .containsEntry("spring.mail.properties[mail.smtp.starttls.enable]", "${MAIL_SMTP_STARTTLS:true}")
-                .containsEntry("spring.mail.properties[mail.smtp.starttls.required]", "${MAIL_SMTP_STARTTLS:true}")
+                .containsEntry(
+                        "spring.mail.properties[mail.smtp.starttls.enable]",
+                        "${MAIL_SMTP_STARTTLS:true}")
+                .containsEntry(
+                        "spring.mail.properties[mail.smtp.starttls.required]",
+                        "${MAIL_SMTP_STARTTLS:true}")
                 .containsEntry("tinyroute.security.allowed-origins", "${ALLOWED_FRONTEND_ORIGINS}")
                 .containsEntry("tinyroute.rate-limit.hmac-secret", "${RATE_LIMIT_HMAC_SECRET}")
                 .containsEntry("tinyroute.rate-limit.trusted-proxy-cidrs", "${TRUSTED_PROXY_CIDRS}")
                 .containsEntry("tinyroute.oauth.google.client-id", "${GOOGLE_CLIENT_ID}")
-                .containsEntry("tinyroute.oauth.google.client-secret", "${GOOGLE_CLIENT_SECRET}");
+                .containsEntry("tinyroute.oauth.google.client-secret", "${GOOGLE_CLIENT_SECRET}")
+                .containsEntry("tinyroute.links.code-key", "${SHORT_CODE_KEY}")
+                .containsEntry("tinyroute.links.code-salt", "${SHORT_CODE_SALT}");
     }
 
     @Test
@@ -75,8 +87,12 @@ class ProfileConfigurationTest {
                 .containsEntry("spring.mail.username", "${MAIL_USERNAME:}")
                 .containsEntry("spring.mail.password", "${MAIL_PASSWORD:}")
                 .containsEntry("spring.mail.properties[mail.smtp.auth]", "${MAIL_SMTP_AUTH:false}")
-                .containsEntry("spring.mail.properties[mail.smtp.starttls.enable]", "${MAIL_SMTP_STARTTLS:false}")
-                .containsEntry("spring.mail.properties[mail.smtp.starttls.required]", "${MAIL_SMTP_STARTTLS:false}");
+                .containsEntry(
+                        "spring.mail.properties[mail.smtp.starttls.enable]",
+                        "${MAIL_SMTP_STARTTLS:false}")
+                .containsEntry(
+                        "spring.mail.properties[mail.smtp.starttls.required]",
+                        "${MAIL_SMTP_STARTTLS:false}");
     }
 
     @Test
@@ -85,8 +101,12 @@ class ProfileConfigurationTest {
 
         assertThat(properties)
                 .containsEntry("server.port", 8443)
-                .containsEntry("server.ssl.certificate", "${DEV_TLS_CERTIFICATE:file:../.local-certs/localhost.pem}")
-                .containsEntry("server.ssl.certificate-private-key", "${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}");
+                .containsEntry(
+                        "server.ssl.certificate",
+                        "${DEV_TLS_CERTIFICATE:file:../.local-certs/localhost.pem}")
+                .containsEntry(
+                        "server.ssl.certificate-private-key",
+                        "${DEV_TLS_PRIVATE_KEY:file:../.local-certs/localhost-key.pem}");
     }
 
     @Test
@@ -94,7 +114,8 @@ class ProfileConfigurationTest {
         Properties properties = loadProperties("application-dev.yml");
 
         assertThat(properties)
-                .containsEntry("tinyroute.oauth.google.redirect-uri",
+                .containsEntry(
+                        "tinyroute.oauth.google.redirect-uri",
                         "${GOOGLE_REDIRECT_URI:https://localhost:8443/api/auth/google/callback}");
     }
 

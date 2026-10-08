@@ -36,11 +36,14 @@ class LinkCreationIT {
     @Autowired JdbcTemplate jdbc;
     @Autowired PlatformTransactionManager transactions;
     @Autowired MutableClock clock;
+    @Autowired org.springframework.data.redis.core.StringRedisTemplate redis;
+    @Autowired ShortCodeEncoder encoder;
     final List<UUID> owners = new ArrayList<>();
 
     @BeforeEach
     void resetClock() {
         clock.now.set(NOW);
+        redis.delete("code:global");
     }
 
     @AfterEach
@@ -310,6 +313,78 @@ class LinkCreationIT {
                                     user.userId()))
                     .isZero();
         }
+    }
+
+    @Test
+    void missingAndStaleCounterRecoverWithoutReusingExpiredOrDeletedCodes() {
+        var user = owner();
+        redis.opsForValue().set("code:global", "1000");
+        var first =
+                service.create(
+                        user, new CreateLinkCommand("https://example.com/first", null, null));
+        assertThat(
+                        jdbc.queryForObject(
+                                "select generation_value from links where id=?",
+                                Long.class,
+                                first.id()))
+                .isEqualTo(1001);
+        jdbc.update(
+                "update links set expires_at=? where id=?",
+                Timestamp.from(NOW.minusSeconds(1)),
+                first.id());
+        redis.delete("code:global");
+        var second =
+                service.create(
+                        user, new CreateLinkCommand("https://example.com/second", null, null));
+        assertThat(
+                        jdbc.queryForObject(
+                                "select generation_value from links where id=?",
+                                Long.class,
+                                second.id()))
+                .isEqualTo(1002);
+        service.tombstoneOwnedLinks(user.userId());
+        redis.opsForValue().set("code:global", "1000");
+        var third =
+                service.create(
+                        user, new CreateLinkCommand("https://example.com/third", null, null));
+        assertThat(
+                        jdbc.queryForObject(
+                                "select generation_value from links where id=?",
+                                Long.class,
+                                third.id()))
+                .isEqualTo(1003);
+        assertThat(third.code()).isNotEqualTo(first.code()).isNotEqualTo(second.code());
+        assertThat(
+                        links.findRedirectStateByCode(first.code().value())
+                                .orElseThrow()
+                                .destinationUrl())
+                .isEqualTo("https://example.com/first");
+    }
+
+    @Test
+    void legacyAndAliasRowsDoNotPoisonRecoveryAndCollisionsPreserveTheirDestinations() {
+        var user = owner();
+        service.create(
+                user, new CreateLinkCommand("https://example.com/max-alias", "zzzzzzzz", null));
+        String legacy = encoder.encode(1).value();
+        service.create(user, new CreateLinkCommand("https://example.com/legacy", legacy, null));
+        assertThat(links.findMaxGenerationValue()).isZero();
+        var made =
+                service.create(user, new CreateLinkCommand("https://example.com/new", null, null));
+        assertThat(
+                        jdbc.queryForObject(
+                                "select generation_value from links where id=?",
+                                Long.class,
+                                made.id()))
+                .isEqualTo(2);
+        assertThat(links.findRedirectStateByCode(legacy).orElseThrow().destinationUrl())
+                .isEqualTo("https://example.com/legacy");
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from links where owner_id=? and generation_value is null",
+                                Integer.class,
+                                user.userId()))
+                .isEqualTo(2);
     }
 
     static <T> T result(Future<T> future) {

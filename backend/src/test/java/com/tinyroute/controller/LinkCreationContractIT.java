@@ -177,4 +177,53 @@ class LinkCreationContractIT extends LinkHttpTestSupport {
         assertThat(retry).isBetween(1L, 3600L);
         assertThat(result.getResponse().getHeader("Retry-After")).isEqualTo(Long.toString(retry));
     }
+
+    @Test
+    void unsafeCounterReturnsSafe503WithoutAnInsert() throws Exception {
+        redis.opsForValue().set("code:global", "private-invalid-counter");
+        try {
+            mvc.perform(creation(INPUT, access))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"))
+                    .andExpect(header().doesNotExist("Location"));
+            assertThat(
+                            jdbc.queryForObject(
+                                    "select count(*) from links where owner_id=?",
+                                    Integer.class,
+                                    ownerId))
+                    .isZero();
+        } finally {
+            redis.delete("code:global");
+        }
+    }
+
+    @Test
+    void generatedCollisionRetriesConsumeOnlyOneExternalCreationAttempt() throws Exception {
+        var properties = new com.tinyroute.config.LinkProperties();
+        properties.setCodeKey("AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=");
+        properties.setCodeSalt("tinyroute-local-v1");
+        var encoder =
+                new com.tinyroute.service.ShortCodeEncoder(
+                        properties.codeKeyBytes(), properties.codeSaltBytes());
+        long floor =
+                jdbc.queryForObject(
+                        "select coalesce(max(generation_value),0) from links", Long.class);
+        redis.opsForValue().set("code:global", Long.toString(floor));
+        String conflict = encoder.encode(floor + 1).value();
+        row(conflict, "DELETED", null);
+        mvc.perform(creation(INPUT, access)).andExpect(status().isCreated());
+        assertThat(redis.opsForValue().get("rl:create:" + ownerId)).isEqualTo("1");
+        assertThat(
+                        jdbc.queryForObject(
+                                "select destination_url from links where code=?",
+                                String.class,
+                                conflict))
+                .isEqualTo("https://example.com/docs?q=java#setup");
+        assertThat(
+                        jdbc.queryForObject(
+                                "select count(*) from links where owner_id=?",
+                                Integer.class,
+                                ownerId))
+                .isEqualTo(2);
+    }
 }

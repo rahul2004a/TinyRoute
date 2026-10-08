@@ -67,15 +67,15 @@ are [ADR 0001](docs/decisions/0001-frontend-stack.md),
 
 ## Technology stack
 
-| Area                              | Choice                                                                               |
-| --------------------------------- | ------------------------------------------------------------------------------------ |
-| Frontend                          | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui on Radix UI           |
-| Frontend data and testing         | TanStack Query, React Hook Form + Zod, Vitest/RTL, Playwright                        |
-| Backend                           | Java 21, Spring Boot, Spring Web MVC, Spring Security, Spring Data JPA/Hibernate     |
-| Durable data                      | Supabase managed PostgreSQL in production; PostgreSQL with Flyway migrations          |
-| Ephemeral security and cache data | Redis for refresh sessions, JWT revocations, rate limits, and redirect cache         |
-| Security                          | Argon2id, Spring Security JOSE/Nimbus JWT, OAuth2 Client, CSRF, CORS, secure cookies |
-| Local infrastructure              | Docker Compose: PostgreSQL and Redis only                                            |
+| Area                              | Choice                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Frontend                          | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui on Radix UI                      |
+| Frontend data and testing         | TanStack Query, React Hook Form + Zod, Vitest/RTL, Playwright                                   |
+| Backend                           | Java 21, Spring Boot, Spring Web MVC, Spring Security, Spring Data JPA/Hibernate                |
+| Durable data                      | Supabase managed PostgreSQL in production; PostgreSQL with Flyway migrations                    |
+| Ephemeral security and cache data | Redis for refresh sessions, JWT revocations, rate limits, and redirect cache                    |
+| Security                          | Argon2id, Spring Security JOSE/Nimbus JWT, OAuth2 Client, CSRF, CORS, secure cookies            |
+| Local infrastructure              | Docker Compose: PostgreSQL and Redis only                                                       |
 | Production target                 | Vercel frontend; Hostinger VPS for Spring Boot, Redis, and Caddy; Supabase PostgreSQL (planned) |
 
 ## Repository guide
@@ -226,16 +226,17 @@ credentials, or a populated `.env`/`.env.local` file.
 
 The backend configuration names are explicit:
 
-| Concern | Development and production environment variables |
-| --- | --- |
-| Profile/process | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating Caddy proxy) |
-| PostgreSQL | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` |
-| Redis | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT`, and Spring's `SPRING_DATA_REDIS_PASSWORD` for the private Redis service |
-| Browser/security | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For` |
-| JWT | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
-| Mail | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI` |
-| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_SUCCESS_URI`, `GOOGLE_FAILURE_URI` |
-| Local TLS only | `DEV_TLS_CERTIFICATE`, `DEV_TLS_PRIVATE_KEY` |
+| Concern               | Development and production environment variables                                                                                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile/process       | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating Caddy proxy)                                                                                                                              |
+| PostgreSQL            | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`                                                                                                            |
+| Redis                 | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT`, and Spring's `SPRING_DATA_REDIS_PASSWORD` for the private Redis service                                                                                                                         |
+| Browser/security      | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For`                                                                                      |
+| Short-code allocation | `SHORT_LINK_BASE_URL`, `SHORT_CODE_KEY`, `SHORT_CODE_SALT`; production requires a stable secret 32-byte key in canonical Base64 and a fixed 8–64 character ASCII salt (`[A-Za-z0-9:_-]+`)                                                            |
+| JWT                   | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
+| Mail                  | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI`                                                                                      |
+| Google OAuth          | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_SUCCESS_URI`, `GOOGLE_FAILURE_URI`                                                                                                                                        |
+| Local TLS only        | `DEV_TLS_CERTIFICATE`, `DEV_TLS_PRIVATE_KEY`                                                                                                                                                                                                         |
 
 The active verification key is associated with `TINYROUTE_JWT_ACTIVE_KEY_ID`.
 During rotation, keep retired public keys until every JWT signed by them has
@@ -244,6 +245,23 @@ expired by adding the `tinyroute.jwt.verification-public-keys` map through
 `{"tinyroute":{"jwt":{"verification-public-keys":{"retired-key-id":"<base64-x509-der>"}}}}`.
 The signing private key and all verification public keys are base64-encoded DER,
 not PEM text.
+
+Generated codes use Redis `code:global` and salted AES-FF1 over eight Base62
+digits (FR-CRE-04/07). Distinct counter values produce distinct generated codes
+under fixed key/salt configuration. Keep this key separate from JWT and rate-limit
+secrets, and keep the key, salt, alphabet, width, and encoder version unchanged
+across creators and deployments. The committed development values are public
+local-only fixtures; production has no defaults. This feature provides no key
+rotation or per-link salt protocol. Public short links remain discoverable URLs.
+
+PostgreSQL stores the final code and committed numeric allocation. Normal
+allocation performs no database availability or high-water query. Missing Redis
+state or a confirmed generated-code conflict recovers from the maximum committed
+allocation, including deleted and expired rows. Aliases and legacy random codes
+have NULL allocation metadata and cannot raise that floor. Retain all code
+reservations. A malformed, expiring, or unavailable counter fails creation safely;
+there is no random or process-local fallback. Redirects do not use this allocator
+and still fall back to PostgreSQL on cache failure (NFR-REL-02).
 
 ### Local HTTPS for registration
 
@@ -364,10 +382,10 @@ The exact API and cookie rules for the active authentication feature are in
 | [Functional requirements](docs/requirements/Functional.md)                        | Product behavior, MVP scope, and requirement IDs                         |
 | [Non-functional requirements](docs/requirements/Non-Functional.md)                | Performance, security, reliability, privacy, and deployability targets   |
 | [Architecture](docs/architecture/architecture.md)                                 | System boundaries, configuration, deployment topology, and design rules  |
-| [Hostinger VPS deployment](docs/deployment/hostinger-vps.md)                       | Production prerequisites, operations, CI/CD, and release checks          |
+| [Hostinger VPS deployment](docs/deployment/hostinger-vps.md)                      | Production prerequisites, operations, CI/CD, and release checks          |
 | [Account-authentication specification](docs/spec/account-authentication/spec.md)  | Current feature intent, acceptance criteria, and implementation approach |
 | [Account-authentication contracts](docs/spec/account-authentication/contracts.md) | HTTP, cookie, JWT, CSRF, OAuth, and session semantics                    |
-| [Authentication checklist](docs/spec/account-authentication/todo.md)             | Completed tasks and acceptance checks for authentication                |
+| [Authentication checklist](docs/spec/account-authentication/todo.md)              | Completed tasks and acceptance checks for authentication                 |
 | [Design guide](DESIGN.md)                                                         | Frontend presentation rules only                                         |
 
 ## Contribution rules

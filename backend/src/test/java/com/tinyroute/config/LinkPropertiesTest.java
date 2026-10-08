@@ -33,4 +33,22 @@ class LinkPropertiesTest {
         assertThatThrownBy(() -> new LinkProperties().setShortBaseUrl(origin))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void validatesEncoderSecretsWithoutEchoingRejectedValues() {
+        var p = new LinkProperties();
+        p.setCodeKey("AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=");
+        p.setCodeSalt("tinyroute-test-v1");
+        assertThat(p.codeKeyBytes()).hasSize(32);
+        assertThat(new String(p.codeSaltBytes(), java.nio.charset.StandardCharsets.US_ASCII))
+                .isEqualTo("tinyroute-test-v1");
+        p.setCodeKey("private-invalid-key");
+        assertThatThrownBy(p::codeKeyBytes)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageNotContaining("private-invalid-key");
+        p.setCodeSalt("private invalid salt");
+        assertThatThrownBy(p::codeSaltBytes)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageNotContaining("private invalid salt");
+    }
 }

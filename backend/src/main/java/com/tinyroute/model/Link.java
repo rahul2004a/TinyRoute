@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -51,8 +50,10 @@ public class Link {
     @Column(name = "expires_at")
     private Instant expiresAt;
 
-    protected Link() {
-    }
+    @Column(name = "generation_value")
+    private Long generationValue;
+
+    protected Link() {}
 
     public String code() {
         return code;

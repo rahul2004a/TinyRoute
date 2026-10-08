@@ -648,8 +648,8 @@ user requested Redis-counter alignment on 2026-10-08. This revised specification
 architecture, and `tasks/plan.md`/`tasks/todo.md` record the proposed replacement
 as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
 plain-counter implementation was authorized. The subsequent salt/uniqueness
-request is saved as the pending AES-FF1 revision; obtain written spec/plan
-approval before changing the generator. Preserve existing commits, completed checkboxes, and
+request was approved as the AES-FF1 revision on 2026-10-08 ("done");
+Task 7A implementation and focused regression verification are complete. Preserve existing commits, completed checkboxes, and
 uncommitted Task 8 work; do not archive partially completed tasks.
 
 Final independent review must examine atomic counter allocation, recovery and
@@ -676,6 +676,6 @@ safe failure/capacity behavior, bounded candidate/quota handling, and revised
 performance evidence are explicit and mapped to Task 7A. Stack, authentication,
 UI, redirect behavior, analytics exclusion, and prior implementation evidence
 remain intact. The plain-counter revision was approved 2026-10-08 ("ok do now"). The subsequent
-salt/uniqueness revision is saved for approval: existing FF1 implementation, no
-new dependency or truncation, explicit fixed-key/salt limits. No generator code
-or new tests have changed.
+salt/uniqueness revision was approved 2026-10-08 ("done"): existing FF1
+implementation, no new dependency or truncation, explicit fixed-key/salt limits.
+Task 7A implementation and focused regression verification are complete.
