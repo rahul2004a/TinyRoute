@@ -414,7 +414,7 @@ export function LinkCreateResult(props: {
 // Shared API error schema adds ALIAS_UNAVAILABLE and CODE_ALLOCATION_FAILED.
 ```
 
-- [ ] **7.1 Read frontend guidance and installed Next.js docs for routing/client boundaries. Write failing RTL/API tests.** Session pending/signed-out/error; form fields retained on validation/conflict/rate/service failure; explicit server messages; no owner/configured short URL construction; local timezone conversion; one pending POST even on repeated click; no mutation retry after timeout/401/CSRF. A 401 rechecks session through existing renewal, then requires deliberate resubmission or sign-in; CSRF rejection clears cached bootstrap. Success copies server URL once, announces only after clipboard promise succeeds; denied/missing clipboard retains selectable URL/manual guidance. Keyboard label/error associations and live regions.
+- [x] **7.1 Read frontend guidance and installed Next.js docs for routing/client boundaries. Write failing RTL/API tests.** Session pending/signed-out/error; form fields retained on validation/conflict/rate/service failure; explicit server messages; no owner/configured short URL construction; local timezone conversion; one pending POST even on repeated click; no mutation retry after timeout/401/CSRF. A 401 rechecks session through existing renewal, then requires deliberate resubmission or sign-in; CSRF rejection clears cached bootstrap. Success copies server URL once, announces only after clipboard promise succeeds; denied/missing clipboard retains selectable URL/manual guidance. Keyboard label/error associations and live regions.
 
 ```typescript
 // RTL fixture supplies a successful API response whose shortUrl is authoritative.
@@ -426,8 +426,8 @@ expect(await screen.findByRole("status")).toHaveTextContent("Copied");
 // A separately rejected clipboard promise must never show the success message.
 ```
 
-- [ ] **7.2 Run red:** `pnpm --dir frontend test --run src/features/links src/test/api-client.test.ts src/features/auth/login-form.test.tsx`. Expected absent feature imports/UI behavior, with existing auth tests retained.
-- [ ] **7.3 Implement focused page and typed mutation.** Server page wraps client form; RHF/Zod provides format feedback, Spring remains authoritative for reserved/self-host/ownership/rate/state policy. Optional empty UI inputs are omitted; destination/alias are not trimmed. TanStack mutation sets `retry: false`. Preserve fields after failures. Present selectable full server URL and returned expiry. Native Clipboard API call occurs in click handler; await success before announcement. Reuse established theme/type/layout components, visible focus, 44 px targets and reduced-motion styles. Home and signed-in login view link to `/links`; add no analytics/management navigation.
+- [x] **7.2 Run red:** `pnpm --dir frontend test --run src/features/links src/test/api-client.test.ts src/features/auth/login-form.test.tsx`. Expected absent feature imports/UI behavior, with existing auth tests retained.
+- [x] **7.3 Implement focused page and typed mutation.** Server page wraps client form; RHF/Zod provides format feedback, Spring remains authoritative for reserved/self-host/ownership/rate/state policy. Optional empty UI inputs are omitted; destination/alias are not trimmed. TanStack mutation sets `retry: false`. Preserve fields after failures. Present selectable full server URL and returned expiry. Native Clipboard API call occurs in click handler; await success before announcement. Reuse established theme/type/layout components, visible focus, 44 px targets and reduced-motion styles. Home and signed-in login view link to `/links`; add no analytics/management navigation.
 
 ```typescript
 const mutation = useMutation({ mutationFn: createLink, retry: false });
@@ -437,8 +437,8 @@ const mutation = useMutation({ mutationFn: createLink, retry: false });
 // before trying again." Keep retry as an explicit user action.
 ```
 
-- [ ] **7.4 Run green plus frontend lint/typecheck.** Verify all existing auth tests, no new auth mechanism/token storage, no Next API route or public redirect route. Fix any installed Next API mismatch using its local docs.
-- [ ] **7.5 Record evidence and commit:** `git commit -m "feat: add accessible short link creation and copying"`.
+- [x] **7.4 Run green plus frontend lint/typecheck.** Verify all existing auth tests, no new auth mechanism/token storage, no Next API route or public redirect route. Fix any installed Next API mismatch using its local docs.
+- [x] **7.5 Record evidence and commit:** `git commit -m "feat: add accessible short link creation and copying"`.
 
 ## Task 8: Browser contracts and disposable live verification
 

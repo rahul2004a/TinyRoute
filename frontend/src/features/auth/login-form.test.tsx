@@ -75,6 +75,11 @@ describe("LoginForm", () => {
       "Signed in as person@example.com.",
     );
     expect(screen.queryByLabelText("Password")).toBeNull();
+    expect(
+      screen
+        .getByRole("link", { name: "Create a short link" })
+        .getAttribute("href"),
+    ).toBe("/links");
   });
 
   it("announces a rate limit safely, preserves the email, and clears the password", async () => {

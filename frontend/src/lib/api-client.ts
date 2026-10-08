@@ -12,6 +12,8 @@ const errorCodeSchema = z.enum([
   "SESSION_UNAVAILABLE",
   "REFRESH_CONCURRENT",
   "SERVICE_UNAVAILABLE",
+  "ALIAS_UNAVAILABLE",
+  "CODE_ALLOCATION_FAILED",
 ]);
 
 const apiErrorSchema = z.object({

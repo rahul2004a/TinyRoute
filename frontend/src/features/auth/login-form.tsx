@@ -90,6 +90,12 @@ export function LoginForm({
         </p>
         <LogoutButton />
         <Link
+          className="mt-4 flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
+          href="/links"
+        >
+          Create a short link
+        </Link>
+        <Link
           className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
           href="/settings"
         >

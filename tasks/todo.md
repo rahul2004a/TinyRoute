@@ -5,7 +5,7 @@
 - Specification: [approved spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **plan approved 2026-10-08; Tasks 1–6 verified; Task 7 in progress, frontend red observed.**
+- Current state: **plan approved 2026-10-08; Tasks 1–7 verified; Task 8 in progress, browser/disposable verification fixtures.**
 
 ## Approval gates and baseline
 
@@ -29,7 +29,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 4. Authenticated creation HTTP — real JWT/CSRF/strict JSON/body/error/committed-result contract.
 - [x] 5. Expiry-safe redirect cache/resolution — strict snapshots, original-read deadline, outage and cleanup compatibility.
 - [x] 6. Public Spring redirect boundary — exact Location, state matrix, host/path/auth isolation, GET/HEAD/no-store.
-- [ ] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
+- [x] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
 - [ ] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
 - [ ] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
 - [ ] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
@@ -82,6 +82,8 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 | 2026-10-08 | Task 5 complete | Red: missing resolver/cache types; boundary regressions observed stale-cache 302 and expiry-during-put 302 before fixes. Green: 20 unit + 5 datastore/rollback integration tests | Task 4 `bd88d82`; check time after external calls, preserve original deadline; actual creation rollback returns 503 with no row; parallel cache-outage backoff verified |
 
 | 2026-10-08 | Task 6 complete | Red: missing matcher, JWT auth-isolation failure, seven HTTP failures; encoded-namespace regression three failures. Green: 26 security unit + 20 creation/public/perimeter integration tests | Task 5 `a9e0269`; fixed double-header visitor fixture; shared raw matcher excludes decoded private namespaces; literal malformed nested paths get fixed 404; no analytics |
+
+| 2026-10-08 | Task 7 complete | Red: three absent feature suites + API-error/navigation failures; prior-result loss regression observed. Green: full Vitest 73 tests, then 26 focused feature tests after three additional checks; lint/typecheck pass | Task 6 `16e23e1`; retain last successful result after failure; local expiry conversion; no POST retry; awaited clipboard/manual fallback; corrected assertion for TanStack context |
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
