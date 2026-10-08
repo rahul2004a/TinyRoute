@@ -72,6 +72,12 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 
 ## Durable execution ledger
 
+Delivery checkpoint: pushed the reviewed feature branch and created
+[draft PR #15](https://github.com/rahul2004a/TinyRoute/pull/15). Implementation
+and review fixes are committed through `2f9bdfa`; Tasks 9–10 and AC-10 remain
+open because the required loopback alias and sustained-load report are absent.
+Active task files are retained. No merge, deletion, force-push or browser launch.
+
 | Date       | Task/state                                | Red → green / verification                                                                                                             | Commit / decision                          |
 | ---------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | 2026-10-07 | Specification approved; planning complete | Ten tasks/twelve AC mappings; interface/placeholder/local-link/whitespace review; plan/checklist Prettier pass; no application changes | `72a45d2` spec; saved plan awaits approval |
@@ -111,6 +117,12 @@ Archive/push/PR follow the completed implementation checklist, avoiding unfinish
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
 ## Material limitations to retain
+
+PR CI follow-up: frontend CI passed; backend pre-check initially stopped on the
+known public FF1 fixture in `.env.example`. Gitleaks 8.30.1 locally reproduced
+the one finding (red); an exact historical fingerprint exception for the verified
+sequential-byte fixture made the full-history scan green. No broad scan exclusions
+or production policy changes. Backend CI rerun remains required.
 
 Final-review follow-up confirmed the report preflight fix and identified one
 remaining stale Task 8 paragraph in the spec; that paragraph is now reconciled.

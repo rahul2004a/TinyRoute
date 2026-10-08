@@ -3,6 +3,9 @@
 Feature `link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`.
 Status: feature implementation and browser/live verification are complete; independent final review is complete and sustained load evidence is pending. This is not a completion or production performance claim.
 
+Delivery: [draft PR #15](https://github.com/rahul2004a/TinyRoute/pull/15).
+The active plan/checklist are retained until AC-10 and completion readiness pass.
+
 ## Counter, encoding and migration
 
 User approved the fixed-key/salt AES-FF1 revision on 2026-10-08 ("done"). The eight-character radix-62 permutation uses the existing Bouncy Castle 1.86 dependency and Redis `code:global`. Normal allocation has no PostgreSQL availability/MAX query; missing-key and confirmed-conflict recovery use committed numeric metadata. Aliases and legacy codes remain NULL and cannot poison the recovery floor. Deleted/expired allocations remain reserved (FR-CRE-04/07; FR-RED-06; NFR-REL-01/02).
@@ -32,6 +35,14 @@ The macOS benchmark source `127.0.0.2` needs a temporary loopback alias. Automat
 ## Full check results
 
 Fresh full Maven `clean verify`: 238 unit + 106 integration tests, no failures/errors/skips; JaCoCo 2,013/2,230 application lines = 90.27%, exceeding the unchanged 70% gate; SpotBugs/FindSecBugs verify passed. Spotless check passed. The first full run exposed seeded fixture rows blocking older auth cleanup and cached test pools exhausting the shared disposable database. Scoped fixture-account teardown and a test-only four-connection/zero-idle pool fixed those issues; production pools and security remain unchanged.
+
+Initial PR frontend CI passed. Backend pre-check stopped on one Gitleaks generic
+API-key finding: the explicitly public local FF1 key in `.env.example`, verified
+as Base64 of bytes `0x00..0x1f`. The pinned/checksum-verified Gitleaks 8.30.1
+reproduced the single finding locally. `.gitleaksignore` records only that exact
+historical commit/file/rule/line fingerprint, with its rationale; no rule or path
+is disabled. The same full-history scan then passed with no findings. Backend
+CI must rerun after this correction; its later jobs were initially skipped.
 
 Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Node harness self-tests (9, including final-review filesystem regressions) and CI helper tests (14) passed. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
 
