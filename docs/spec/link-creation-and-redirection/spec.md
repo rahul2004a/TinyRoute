@@ -4,8 +4,11 @@
 - Classification: architectural; creation and public resolution extend existing
   link, security, persistence, and cache interfaces.
 - Approach approved: 2026-10-07.
-- Written specification approved: 2026-10-07. Approval permits planning;
-  implementation requires separate approval of the saved plan and checklist.
+- Original written specification approved: 2026-10-07; original implementation
+  plan approved: 2026-10-08. Tasks 1–7 were implemented under those approvals.
+- Redis-counter revision requested: 2026-10-08, to match HLD.excalidraw.
+  This saved revision and its revised plan await written approval before
+  generator implementation changes. Prior completed work remains recorded.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
 - Branch: `feature/link-creation-and-redirection`, based on `origin/main`
@@ -54,20 +57,20 @@ required change to existing authentication UI.
 
 ## Acceptance criteria
 
-| ID | Observable behavior | Requirement trace |
-| --- | --- | --- |
-| AC-01 | A signed-in user creates `https://example.com/docs?q=java#setup`, receives a unique complete short URL, copies it with one action, and the next request redirects to that exact destination. | FR-CRE-01/04/05; NFR-CON-01, NFR-REL-01 |
-| AC-02 | Missing, invalid, expired, revoked, wrong-version, or deleted-user access credentials never authorize creation. The UI prompts sign-in after an authentication rejection. Missing/invalid CSRF rejects the mutation. | FR-CRE-02; NFR-SEC-06/09; architecture security contract |
-| AC-03 | Malformed, non-HTTPS, and self-host destinations produce actionable field errors and no link row. | FR-CRE-03/06; NFR-SEC-05/08 |
-| AC-04 | Available valid aliases succeed. Invalid/reserved aliases fail validation; taken aliases conflict. Concurrent alias or generated-code collisions never overwrite another row. Deleted and expired codes remain reserved. | FR-CRE-04/07; FR-RED-06; functional assumptions 5/6 |
-| AC-05 | Expiry is optional. At `now >= expiresAt`, a link never redirects, including from a previously populated cache. | FR-CRE-08, FR-RED-07 |
-| AC-06 | Anonymous GET resolves an exact, case-sensitive code to the stored destination, including its path, query, fragment, and encoding. | FR-RED-01/02/06; NFR-REL-01 |
-| AC-07 | Unknown, unallocated case variants, deleted, and expired codes return generic not-found HTML. Disabled, unexpired links return generic unavailable HTML. Neither response exposes a destination or owner or has `Location`. | FR-RED-03 through FR-RED-07; NFR-SEC-08 |
-| AC-08 | Creation over the hourly account cap and redirects over the client cap return 429 with accurate retry guidance. One client's traffic does not consume another client's redirect budget. | FR-ABS-01/03; NFR-PRV-02 |
-| AC-09 | Redis cache failure or invalid cache data falls back to PostgreSQL. Redis limiter failure activates bounded local redirect throttling. Indeterminate link state returns safe 503 without `Location`. | NFR-REL-01/02 |
-| AC-10 | Measured server-side creation p95 is below 500 ms. A complete run sustains 100 redirects/second for 600 seconds with p95 below 150 ms, p99 below 300 ms, and errors below 0.5%. | NFR-PER-01/02/03, NFR-TST-03 |
-| AC-11 | Creation and account deletion serialize correctly: deletion either tombstones a committed creation or prevents creation for the deleted owner. Existing deletion cleanup and the five-second cache bound remain effective. | Existing FR-ACC-05; NFR-SEC-09, NFR-CON-02 |
-| AC-12 | The create/copy flow works with keyboard and screen reader, both themes, reduced motion, and widths 320, 768, 1024, and 1440 px. Loading, validation, conflict, rate-limit, session, clipboard, and service failures are understandable. | FR-CRE-02/05; DESIGN.md |
+| ID    | Observable behavior                                                                                                                                                                                                                                                                                                                    | Requirement trace                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| AC-01 | A signed-in user creates `https://example.com/docs?q=java#setup`, receives a unique complete short URL, copies it with one action, and the next request redirects to that exact destination.                                                                                                                                           | FR-CRE-01/04/05; NFR-CON-01, NFR-REL-01                  |
+| AC-02 | Missing, invalid, expired, revoked, wrong-version, or deleted-user access credentials never authorize creation. The UI prompts sign-in after an authentication rejection. Missing/invalid CSRF rejects the mutation.                                                                                                                   | FR-CRE-02; NFR-SEC-06/09; architecture security contract |
+| AC-03 | Malformed, non-HTTPS, and self-host destinations produce actionable field errors and no link row.                                                                                                                                                                                                                                      | FR-CRE-03/06; NFR-SEC-05/08                              |
+| AC-04 | Available valid aliases succeed. Invalid/reserved aliases fail validation; taken aliases conflict. Redis-counter allocation is atomic; concurrent inserts, missing-key recovery, stale Redis restores, and alias/legacy collisions never overwrite another row. Deleted and expired codes remain reserved.                             | FR-CRE-04/07; FR-RED-06; functional assumptions 5/6      |
+| AC-05 | Expiry is optional. At `now >= expiresAt`, a link never redirects, including from a previously populated cache.                                                                                                                                                                                                                        | FR-CRE-08, FR-RED-07                                     |
+| AC-06 | Anonymous GET resolves an exact, case-sensitive code to the stored destination, including its path, query, fragment, and encoding.                                                                                                                                                                                                     | FR-RED-01/02/06; NFR-REL-01                              |
+| AC-07 | Unknown, unallocated case variants, deleted, and expired codes return generic not-found HTML. Disabled, unexpired links return generic unavailable HTML. Neither response exposes a destination or owner or has `Location`.                                                                                                            | FR-RED-03 through FR-RED-07; NFR-SEC-08                  |
+| AC-08 | Creation over the hourly account cap and redirects over the client cap return 429 with accurate retry guidance. One client's traffic does not consume another client's redirect budget.                                                                                                                                                | FR-ABS-01/03; NFR-PRV-02                                 |
+| AC-09 | Redis cache failure or invalid cache data falls back to PostgreSQL. Redis limiter failure activates bounded local redirect throttling. Indeterminate link state returns safe 503 without `Location`. Creation fails safely if the code counter or required recovery query cannot complete; it has no random/local generation fallback. | NFR-REL-01/02; FR-CRE-04                                 |
+| AC-10 | Measured server-side creation p95 is below 500 ms. A complete run sustains 100 redirects/second for 600 seconds with p95 below 150 ms, p99 below 300 ms, and errors below 0.5%.                                                                                                                                                        | NFR-PER-01/02/03, NFR-TST-03                             |
+| AC-11 | Creation and account deletion serialize correctly: deletion either tombstones a committed creation or prevents creation for the deleted owner. Existing deletion cleanup and the five-second cache bound remain effective.                                                                                                             | Existing FR-ACC-05; NFR-SEC-09, NFR-CON-02               |
+| AC-12 | The create/copy flow works with keyboard and screen reader, both themes, reduced motion, and widths 320, 768, 1024, and 1440 px. Loading, validation, conflict, rate-limit, session, clipboard, and service failures are understandable.                                                                                               | FR-CRE-02/05; DESIGN.md                                  |
 
 AC-01's immediate-resolution guarantee assumes the request precedes any chosen
 expiry. Expiry always wins when reached. An allocated `Abc` never falls back to
@@ -83,21 +86,24 @@ Use the existing frontend stack, HTTP client, React Hook Form/Zod, and TanStack
 Query. No Next.js route handler or Server Action proxies application APIs or
 implements public redirects. No new dependency is needed for the approach.
 
-| Component | Responsibility and dependencies |
-| --- | --- |
-| `LinkController` | Translate authenticated POST DTOs, take identity from the verified principal, call the creation rate limit and `LinkService`, and map the committed result to JSON. |
-| `LinkService` | Own creation rules and transactions; retain existing account-deletion tombstoning. Depend on repository/cache contracts and local domain values, not Redis/JPA types or `AuthService`. |
-| `RedirectController` | Translate public GET/HEAD, invoke redirect throttling and `RedirectService`, and map outcomes to a temporary redirect or static safe HTML. |
-| `RedirectService` | Own exact-code resolution, cache validation, freshness/expiry checks, PostgreSQL fallback, and state outcomes. No user/session/authentication or analytics calls. |
-| `LinkRepository` and `Jpa*` implementation | Persist without overwrite; serialize eligible-owner insertion with account deletion; fetch a minimal redirect projection by exact code. Keep existing tombstone/cleanup operations. |
-| `RedirectCache` / `RedisRedirectCache` | Extend the existing eviction contract with lookup and bounded writes. Redis access and serialization stay in the adapter. |
-| `RateLimitService` / `RateLimitStore` | Retain existing auth budgets; add separate creation and redirect namespaces and the redirect-only bounded fallback. Redis commands stay behind the store contract. |
-| Security configuration and filters | Protect creation with existing JWT/revocation/user-state and CSRF checks. Admit only the public redirect methods/path and omit authentication work on that route. |
-| Next.js `/links` | Render session/API outcomes and the focused creation form, typed mutation, and clipboard feedback. |
+| Component                                    | Responsibility and dependencies                                                                                                                                                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `LinkController`                             | Translate authenticated POST DTOs, take identity from the verified principal, call the creation rate limit and `LinkService`, and map the committed result to JSON.                                                                  |
+| `LinkService`                                | Own creation rules and transactions; retain existing account-deletion tombstoning. Depend on repository/cache contracts and local domain values, not Redis/JPA types or `AuthService`.                                               |
+| `RedirectController`                         | Translate public GET/HEAD, invoke redirect throttling and `RedirectService`, and map outcomes to a temporary redirect or static safe HTML.                                                                                           |
+| `RedirectService`                            | Own exact-code resolution, cache validation, freshness/expiry checks, PostgreSQL fallback, and state outcomes. No user/session/authentication or analytics calls.                                                                    |
+| `LinkRepository` and `Jpa*` implementation   | Persist without overwrite; serialize eligible-owner insertion with account deletion; fetch a minimal redirect projection by exact code. Keep existing tombstone/cleanup operations.                                                  |
+| `ShortCodeGenerator`                         | Obtain allocation values through `ShortCodeCounter`, recover from the committed repository high-water mark only on a missing key or confirmed collision, and return `GeneratedShortCode`. Concrete coordinator, no helper interface. |
+| `ShortCodeCounter` / `RedisShortCodeCounter` | Atomic validated increment and initialize/advance-and-increment of nonexpiring `code:global`; Redis commands and serialization stay in the adapter. No database or link-policy dependency.                                           |
+| `RedirectCache` / `RedisRedirectCache`       | Extend the existing eviction contract with lookup and bounded writes. Redis access and serialization stay in the adapter.                                                                                                            |
+| `RateLimitService` / `RateLimitStore`        | Retain existing auth budgets; add separate creation and redirect namespaces and the redirect-only bounded fallback. Redis commands stay behind the store contract.                                                                   |
+| Security configuration and filters           | Protect creation with existing JWT/revocation/user-state and CSRF checks. Admit only the public redirect methods/path and omit authentication work on that route.                                                                    |
+| Next.js `/links`                             | Render session/API outcomes and the focused creation form, typed mutation, and clipboard feedback.                                                                                                                                   |
 
-Domain values `DestinationUrl`, `ShortCode`, and `RedirectLookup` hold relevant
-invariants. Local validators/code generation remain concrete helpers; use
-deterministic injection for tests without redundant helper interfaces. Keep HTTP
+Domain values `DestinationUrl`, `ShortCode`, `GeneratedShortCode`, and
+`RedirectLookup` hold relevant invariants. The generator remains concrete and
+depends on repository/store interfaces at the PostgreSQL/Redis boundaries;
+inject those interfaces for deterministic tests. Keep HTTP
 responses out of services. Add no feature-specific Java packages or empty folders.
 
 ## Creation HTTP contract
@@ -144,17 +150,17 @@ header because no GET-by-ID API is introduced.
 Use the existing `ApiErrorResponse` envelope, extending the shared frontend
 error-code parser for the two new conflict codes:
 
-| HTTP | Error code | Meaning |
-| --- | --- | --- |
-| 400 | `VALIDATION_ERROR` | Invalid destination, alias, expiry, JSON, or unknown fields; safe `fieldErrors` identify relevant fields. |
-| 401 | `AUTHENTICATION_FAILED` | Credentials cannot authorize creation, including an owner that became ineligible before insertion. |
-| 403 | `CSRF_INVALID` | Required CSRF protection failed; do not consume creation quota or write a link. |
-| 409 | `ALIAS_UNAVAILABLE` | Exact alias already exists in any link state. Message: "This alias is already in use." |
-| 409 | `CODE_ALLOCATION_FAILED` | Generated-code allocation exhausted its bounded attempts. Message: "We couldn't allocate a short code. Please try again." |
-| 413 | `VALIDATION_ERROR` | Request body exceeds the existing API limit. |
-| 429 | `RATE_LIMITED` | Hourly creation budget exhausted; include retry guidance. |
-| 503 | `SESSION_UNAVAILABLE` | Existing authentication/revocation verification could not complete. |
-| 503 | `SERVICE_UNAVAILABLE` | Creation limiter or PostgreSQL cannot complete the operation. |
+| HTTP | Error code               | Meaning                                                                                                                                       |
+| ---- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400  | `VALIDATION_ERROR`       | Invalid destination, alias, expiry, JSON, or unknown fields; safe `fieldErrors` identify relevant fields.                                     |
+| 401  | `AUTHENTICATION_FAILED`  | Credentials cannot authorize creation, including an owner that became ineligible before insertion.                                            |
+| 403  | `CSRF_INVALID`           | Required CSRF protection failed; do not consume creation quota or write a link.                                                               |
+| 409  | `ALIAS_UNAVAILABLE`      | Exact alias already exists in any link state. Message: "This alias is already in use."                                                        |
+| 409  | `CODE_ALLOCATION_FAILED` | Generated-code allocation exhausted its bounded attempts or numeric capacity. Message: "We couldn't allocate a short code. Please try again." |
+| 413  | `VALIDATION_ERROR`       | Request body exceeds the existing API limit.                                                                                                  |
+| 429  | `RATE_LIMITED`           | Hourly creation budget exhausted; include retry guidance.                                                                                     |
+| 503  | `SESSION_UNAVAILABLE`    | Existing authentication/revocation verification could not complete.                                                                           |
+| 503  | `SERVICE_UNAVAILABLE`    | Creation limiter, code counter, or PostgreSQL cannot complete the operation, including required counter recovery.                             |
 
 Responses reveal no owner details, SQL, stack traces, exception messages, or
 tokens. If authentication and CSRF are both absent, Spring's established filter
@@ -197,17 +203,61 @@ No rejected input is interpolated into an error page or log.
 - Reserve these entire words, case-insensitively: `api`, `actuator`, `error`,
   `health`, `login`, `logout`, `register`, `links`, `settings`, `analytics`,
   `account`, and `password-reset`. Return a validation error for a reserved word.
-- Generate eight characters from `A-Z`, `a-z`, and `0-9` using `SecureRandom`.
-  Generated candidates must also pass format/reserved-word checks.
+- Generate exactly eight Base62 characters from an atomic Redis global counter,
+  using alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`
+  and left-padding with `0`. Positive values `1..218340105584895` (`62^8 - 1`)
+  map bijectively to codes: `1` → `00000001`, `61` → `0000000z`,
+  `62` → `00000010`, maximum → `zzzzzzzz`. Reject out-of-range allocations;
+  never wrap. Generated candidates also pass format/reserved-word checks.
 - Allow at most ten generated candidates per request. Retry only a confirmed
   code uniqueness conflict; other datastore failures return safe 503. A custom
-  alias conflict returns 409 immediately and is never replaced by a random code.
+  alias conflict returns 409 immediately and is never replaced by a generated code.
   Skip a reserved generated candidate within that same ten-candidate budget;
   exhaustion also returns `CODE_ALLOCATION_FAILED`.
 - PostgreSQL's existing unique constraint is the final arbiter. An availability
   precheck cannot authorize an overwrite. Use conflict-safe insertion or isolated
   insertion transactions so a conflict cannot leave later retries in an aborted
   transaction. Never use an upsert that updates an existing row.
+
+### Redis counter and recovery
+
+Use the existing private Redis instance, key `code:global`, with no TTL. On the
+normal path, one atomic Lua operation validates the initialized nonnegative
+integer and nonexpiring key, then increments. Encode that value and attempt the
+database insert; do not query code availability or the committed allocation
+high-water mark first. A custom alias makes no code-counter call.
+
+Only if the key is missing, or after a confirmed generated-code insert conflict,
+read `COALESCE(MAX(generation_value), 0)` through `LinkRepository`, over all
+retained rows regardless of state or expiry. Atomically initialize a missing key
+or advance an existing one to `max(current, committedFloor)`, then increment in
+the same Lua operation. Concurrent recovery never lowers a counter; retain the
+database unique constraint to cover allocations still in flight during recovery.
+Each conflict consumes one of the ten candidates; do not allocate an eleventh
+candidate after the final failure. Reserved candidates also consume the budget.
+
+The nullable numeric allocation is committed with the link, not before or after
+its transaction. Existing random-generated rows and aliases remain unchanged
+with NULL metadata, so they cannot incorrectly raise or exhaust the recovery
+floor. In particular, never decode all existing code strings as counter values.
+Collisions with those rows still use bounded conflict-safe insertion. Expired
+rows and permanent deletion tombstones retain their numeric metadata, preventing
+reuse after a missing or stale restored counter (FR-CRE-04; assumptions 5/6).
+
+Redis command/connection failures, malformed/noninteger/negative/out-of-range
+stored values, wrong-type values, an unexpected key TTL, or a failed recovery
+query return safe 503 without inserting a row. A valid counter at its maximum
+returns `CODE_ALLOCATION_FAILED` without incrementing or wrapping. No random or
+process-local fallback is introduced. Redis uses the existing bounded timeouts;
+the counter is not called during public redirect resolution. Rollback and skipped
+candidates may leave gaps; no published code is ever overwritten or reused.
+
+Counter codes are predictable identifiers for publicly accessible links, not
+secrets or authorization. The eight-character format preserves the existing
+generated-code length. This revision aligns allocation with
+[HLD.excalidraw](../../architecture/HLD.excalidraw); it does not remove the required
+PostgreSQL insert or unique constraint. The original random implementation
+already avoided a separate existence SELECT.
 
 ### Expiry
 
@@ -229,9 +279,12 @@ expiry. Browser checks improve feedback; Spring validation remains authoritative
 Extend the existing `links` entity/table and repository contracts. V4 already
 provides UUID identity, `code varchar(64) collate "C" UNIQUE`, owner FK,
 destination, status, timestamps, `deleted_at`, and `expires_at`; V5 supports
-bounded account-deletion cleanup. No new table or migration is expected.
-Never edit an applied migration. Any necessary schema change uses a new Flyway
-migration and must be documented before implementation proceeds.
+bounded account-deletion cleanup. Add
+`V6__add_link_generation_value.sql`: nullable `generation_value BIGINT`, a check
+restricting non-NULL values to `1..218340105584895`, and a partial index over
+non-NULL values for the recovery MAX query. Map the nullable value on the existing
+JPA entity and include it in the creation insert. Existing random rows and aliases
+retain NULL; there is no code rewrite or new table. Never edit V1–V5.
 
 New rows are ACTIVE, have no `deleted_at`, and retain the existing zero default
 for `click_count`. This feature never increments that column or writes click
@@ -286,15 +339,15 @@ revocation stores, even if an access cookie is manually supplied. It needs no
 CSRF or ownership check. Incoming query parameters are ignored and never merged
 into the stored destination. No analytics work follows a successful redirect.
 
-| Known state | HTTP and content |
-| --- | --- |
-| ACTIVE, complete destination, before optional expiry | 302 with `Location` equal to the exact stored destination. |
-| Unknown exact code | 404 HTML: "Link not found". |
-| DELETED, or `deleted_at` is set | 404 HTML: "Link not found". |
-| Expired at or before the current instant | 404 HTML: "Link not found". |
-| DISABLED and unexpired | 403 HTML: "Link unavailable"; signing in does not change this outcome. |
-| Unrecognized/inconsistent/incomplete authoritative data, or PostgreSQL unavailable on a required lookup | 503 HTML: "Service temporarily unavailable". |
-| Client redirect budget exhausted | 429 HTML: "Too many requests" with `Retry-After`. |
+| Known state                                                                                             | HTTP and content                                                       |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| ACTIVE, complete destination, before optional expiry                                                    | 302 with `Location` equal to the exact stored destination.             |
+| Unknown exact code                                                                                      | 404 HTML: "Link not found".                                            |
+| DELETED, or `deleted_at` is set                                                                         | 404 HTML: "Link not found".                                            |
+| Expired at or before the current instant                                                                | 404 HTML: "Link not found".                                            |
+| DISABLED and unexpired                                                                                  | 403 HTML: "Link unavailable"; signing in does not change this outcome. |
+| Unrecognized/inconsistent/incomplete authoritative data, or PostgreSQL unavailable on a required lookup | 503 HTML: "Service temporarily unavailable".                           |
+| Client redirect budget exhausted                                                                        | 429 HTML: "Too many requests" with `Retry-After`.                      |
 
 Deleted and expired outcomes precede the disabled outcome. An ACTIVE record must
 have a nonempty, valid stored destination; otherwise fail closed with 503.
@@ -357,9 +410,9 @@ The following are initial defaults proposed for written-spec approval. Expose
 validated positive configuration properties; changing them does not move policy
 into the frontend.
 
-| Action | Budget and key | Window |
-| --- | --- | --- |
-| Creation | 100 authorized attempts per account; `rl:create:{userId}` | One hour from the first counted request. |
+| Action          | Budget and key                                                   | Window                                     |
+| --------------- | ---------------------------------------------------------------- | ------------------------------------------ |
+| Creation        | 100 authorized attempts per account; `rl:create:{userId}`        | One hour from the first counted request.   |
 | Public GET/HEAD | 600 attempts per HMAC-derived client; `rl:redirect:{clientHash}` | One minute from the first counted request. |
 
 Use atomic Redis increment plus first-use TTL. Further attempts never extend
@@ -458,6 +511,12 @@ Required evidence covers all acceptance criteria, including:
 - Destination parsing/self-host variants; alias syntax/reserved/taken states;
   forced generated collisions and retry exhaustion; real concurrent alias
   inserts; deleted/expired code reservation; owner deletion/creation ordering.
+- Base62 padding/boundaries/capacity, concurrent atomic Redis allocation and
+  missing-key initialization, recovery from deleted/expired generated values,
+  stale restored counters, alias/legacy collisions without floor poisoning,
+  safe malformed/wrong-type/TTL/outage behavior, and no recovery SELECT on normal
+  allocation. Verify V6 against both fresh and existing schemas; no row/code
+  rewrite. Counter conflicts must not consume extra quota or bypass expiry checks.
 - Expiry just before/equal/after the boundary; capped cache TTL; stale fill
   racing a committed state change; cache reads that do not renew freshness;
   future/invalid cache deadlines and malformed payloads; Redis reads/writes
@@ -501,9 +560,11 @@ is recorded (NFR-OBS-01). Document clock/precision and percentile calculation.
 Client round-trip latency can be reported separately but cannot substitute for
 the server-side thresholds.
 
-Run at least 200 successful authenticated creation samples across enough fresh
+Run at least 200 successful authenticated counter-generated creation samples across enough fresh
 accounts to stay under the unchanged per-account limit. Include normal security
-and CSRF checks and no request retry. Report p95 below 500 ms.
+and CSRF checks, Redis allocation, PostgreSQL persistence, and no request retry.
+Report p95 below 500 ms. Measurements from the former random generator cannot
+establish the revised creation performance result.
 
 For redirects, warm up for 30 seconds separately, then issue and complete the
 600-second, 100 requests/second run against at least 100 fixture codes, without
@@ -540,12 +601,17 @@ was changed to work around that environment restriction.
 
 The existing feature branch is now checked out in the shared project workspace;
 the initial temporary worktree is detached at the same base commit. Save and
-commit this specification on the feature branch. The written specification was
-approved on 2026-10-07. The implementation plan and checklist are saved at
-`tasks/plan.md` and `tasks/todo.md`; their approval is the next gate. No
-application implementation is authorized before that gate.
+commit this specification on the feature branch. The original specification was
+approved on 2026-10-07 and original plan on 2026-10-08. Tasks 1–7 are complete;
+Task 8 has partial browser/test-fixture evidence and remains incomplete. The
+user requested Redis-counter alignment on 2026-10-08. This revised specification,
+architecture, and `tasks/plan.md`/`tasks/todo.md` record the proposed replacement
+as Task 7A. Written approval of the revised spec and plan is required before
+changing the generator. Preserve existing commits, completed checkboxes, and
+uncommitted Task 8 work; do not archive partially completed tasks.
 
-Final independent review must examine namespace/collision safety, transaction
+Final independent review must examine atomic counter allocation, recovery and
+capacity, alias/legacy compatibility, namespace/collision safety, transaction
 and deletion races, exact Location preservation, cache freshness/expiry,
 public-route security isolation, degraded throttling bounds, privacy, frontend
 error contracts, and actual performance evidence. Fix blocking findings before
@@ -560,5 +626,11 @@ and exclusions are preserved; format/reserved-word/rate/expiry decisions are
 explicit. Review clarified reserved generated-candidate exhaustion, short-host
 routing and host canonicalization, expiry checks after owner-lock waits, deletion
 markers in redirect projections, and original-read cache freshness. Local source
-links and JSON examples were validated before committing. The approved product
-contract remains unchanged while planning; saved-plan approval is the next gate.
+links and JSON examples were validated before committing.
+
+Redis-counter revision self-review completed 2026-10-08: allocation/recovery
+boundaries, V6 metadata, legacy/alias compatibility, concurrent initialization,
+safe failure/capacity behavior, bounded candidate/quota handling, and revised
+performance evidence are explicit and mapped to Task 7A. Stack, authentication,
+UI, redirect behavior, analytics exclusion, and prior implementation evidence
+remain intact. This revision is saved for written review, not implemented.

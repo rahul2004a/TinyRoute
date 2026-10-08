@@ -4,47 +4,47 @@ Portfolio URL shortener for one developer. Anyone can follow a short URL; creati
 
 ## Stack (locked)
 
-| Piece | Role |
-| --- | --- |
-| Next.js App Router + React | Browser UI on Node.js 24 LTS. HTTP client only; no ownership or redirect policy. |
-| TypeScript | Strictly typed frontend source and API contracts. |
-| Tailwind CSS + shadcn/ui | Styling and owned component source. shadcn/ui uses Radix UI primitives. |
-| Lucide React | The single interface icon family. |
-| React Hook Form + Zod | Form state and client-boundary validation. Spring Boot remains authoritative. |
-| TanStack Query | Browser-side remote data cache and request lifecycle. |
-| Recharts | Client-rendered analytics charts with accessible data-table fallbacks. |
-| next-themes | Light, dark, and system theme selection using a `data-theme` attribute. |
-| Vitest + React Testing Library | Unit and component tests. |
-| Playwright | Browser and end-to-end workflow tests. |
-| ESLint + Prettier | Static analysis and formatting. |
-| pnpm | Frontend package manager and committed lockfile owner. |
-| Java + Spring Boot | Backend runtime and application framework. Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, and rate limits. |
-| Spring Web MVC | Servlet-based HTTP controllers, filters, and request handling. |
-| Spring Security | Authentication, authorization, CSRF protection, and security filters. |
-| Spring Data JPA + Hibernate | Repository implementation and relational persistence. |
-| Jakarta Bean Validation | Authoritative request and domain-boundary validation. |
-| PostgreSQL | System of record for users and links, including tombstones. |
-| Redis | Disposable refresh sessions, JWT revocation, redirect cache (TTL ≤ 5 s), and rate-limit counters. |
-| Flyway | Versioned PostgreSQL schema migrations. |
-| Spring Security JOSE / Nimbus JWT | JWT signing and verification. |
-| Argon2id | Password hashing. |
-| Spring Security OAuth2 Client | Google OAuth 2.0 sign-in. |
-| Spring Mail | Registration and password-reset email delivery. |
-| Spring `@Async` + bounded executor | In-process asynchronous click recording without an unbounded task queue. |
-| Spring Boot Actuator | Application and datastore health endpoints. |
-| SLF4J + Logback | Application logging. |
-| JUnit 5 + Mockito | Backend unit tests and test doubles. |
-| Spring Boot Test + MockMvc | Backend integration and HTTP-layer tests. |
-| JaCoCo | Backend test coverage reporting. |
-| Maven | Backend build and dependency management. |
-| Docker | Repeatable packaging of the Spring Boot backend as a production image. |
-| Docker Compose | Local PostgreSQL/Redis; independent planned VPS production stack. |
-| Vercel | Production Next.js hosting; deployment is controlled by GitHub Actions. |
-| Hostinger VPS | One Linux host for backend and private Redis in one selected location. |
-| Supabase | Managed production PostgreSQL, accessed by Spring JDBC/JPA over verified TLS. |
-| Caddy | VPS HTTPS ingress, automatic certificate renewal, and reverse proxy. |
-| GitHub Container Registry | Private, digest-addressed backend images. |
-| GitHub Actions | CI and future approved VPS/Vercel releases. |
+| Piece                              | Role                                                                                                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js App Router + React         | Browser UI on Node.js 24 LTS. HTTP client only; no ownership or redirect policy.                                                                                                            |
+| TypeScript                         | Strictly typed frontend source and API contracts.                                                                                                                                           |
+| Tailwind CSS + shadcn/ui           | Styling and owned component source. shadcn/ui uses Radix UI primitives.                                                                                                                     |
+| Lucide React                       | The single interface icon family.                                                                                                                                                           |
+| React Hook Form + Zod              | Form state and client-boundary validation. Spring Boot remains authoritative.                                                                                                               |
+| TanStack Query                     | Browser-side remote data cache and request lifecycle.                                                                                                                                       |
+| Recharts                           | Client-rendered analytics charts with accessible data-table fallbacks.                                                                                                                      |
+| next-themes                        | Light, dark, and system theme selection using a `data-theme` attribute.                                                                                                                     |
+| Vitest + React Testing Library     | Unit and component tests.                                                                                                                                                                   |
+| Playwright                         | Browser and end-to-end workflow tests.                                                                                                                                                      |
+| ESLint + Prettier                  | Static analysis and formatting.                                                                                                                                                             |
+| pnpm                               | Frontend package manager and committed lockfile owner.                                                                                                                                      |
+| Java + Spring Boot                 | Backend runtime and application framework. Source of application policy: validation, JWT access, refresh sessions, ownership, redirects, and rate limits.                                   |
+| Spring Web MVC                     | Servlet-based HTTP controllers, filters, and request handling.                                                                                                                              |
+| Spring Security                    | Authentication, authorization, CSRF protection, and security filters.                                                                                                                       |
+| Spring Data JPA + Hibernate        | Repository implementation and relational persistence.                                                                                                                                       |
+| Jakarta Bean Validation            | Authoritative request and domain-boundary validation.                                                                                                                                       |
+| PostgreSQL                         | System of record for users and links, including tombstones.                                                                                                                                 |
+| Redis                              | Refresh sessions, JWT revocation, redirect cache (TTL ≤ 5 s), rate limits, and a recoverable global counter for generated short codes. PostgreSQL retains the committed allocation history. |
+| Flyway                             | Versioned PostgreSQL schema migrations.                                                                                                                                                     |
+| Spring Security JOSE / Nimbus JWT  | JWT signing and verification.                                                                                                                                                               |
+| Argon2id                           | Password hashing.                                                                                                                                                                           |
+| Spring Security OAuth2 Client      | Google OAuth 2.0 sign-in.                                                                                                                                                                   |
+| Spring Mail                        | Registration and password-reset email delivery.                                                                                                                                             |
+| Spring `@Async` + bounded executor | In-process asynchronous click recording without an unbounded task queue.                                                                                                                    |
+| Spring Boot Actuator               | Application and datastore health endpoints.                                                                                                                                                 |
+| SLF4J + Logback                    | Application logging.                                                                                                                                                                        |
+| JUnit 5 + Mockito                  | Backend unit tests and test doubles.                                                                                                                                                        |
+| Spring Boot Test + MockMvc         | Backend integration and HTTP-layer tests.                                                                                                                                                   |
+| JaCoCo                             | Backend test coverage reporting.                                                                                                                                                            |
+| Maven                              | Backend build and dependency management.                                                                                                                                                    |
+| Docker                             | Repeatable packaging of the Spring Boot backend as a production image.                                                                                                                      |
+| Docker Compose                     | Local PostgreSQL/Redis; independent planned VPS production stack.                                                                                                                           |
+| Vercel                             | Production Next.js hosting; deployment is controlled by GitHub Actions.                                                                                                                     |
+| Hostinger VPS                      | One Linux host for backend and private Redis in one selected location.                                                                                                                      |
+| Supabase                           | Managed production PostgreSQL, accessed by Spring JDBC/JPA over verified TLS.                                                                                                               |
+| Caddy                              | VPS HTTPS ingress, automatic certificate renewal, and reverse proxy.                                                                                                                        |
+| GitHub Container Registry          | Private, digest-addressed backend images.                                                                                                                                                   |
+| GitHub Actions                     | CI and future approved VPS/Vercel releases.                                                                                                                                                 |
 
 The frontend execution model is Server Components for layouts and static
 structure, with narrowly scoped Client Components for forms, TanStack Query,
@@ -167,7 +167,7 @@ flowchart LR
   Visitor[Public visitor] -->|HTTPS go host| Proxy
   subgraph VPS[Hostinger VPS - one location]
     Proxy[Caddy - TLS and routing] -->|Private HTTP| Backend[Spring Boot monolith]
-    Backend -->|Private data network| Redis[(Redis - security state and cache)]
+    Backend -->|Private data network| Redis[(Redis - security state, cache, and code counter)]
     BackupJob[Daily backup job - export and encrypt]
   end
   Backend -->|JDBC over verified TLS; restricted sources| PG[(Supabase PostgreSQL)]
@@ -189,6 +189,8 @@ Signed-in users hit Next.js at `app.<zone>` on Vercel; their browser calls the S
 
 Inside the monolith: Auth, URL (create/manage), Redirect, and analytics paths that are **not** on the redirect critical path. Redis is consulted first for redirects; a miss or Redis failure falls through to PostgreSQL. If PostgreSQL cannot determine link state, the service returns an error and **never** guesses a `Location` (NFR-REL-02).
 
+Generated short codes use the Redis global counter shown in [HLD.excalidraw](HLD.excalidraw), encoded as fixed-width Base62. PostgreSQL still persists every link and enforces the shared generated-code/custom-alias namespace (FR-CRE-04/07). The counter implementation is a proposed revision to the in-progress [link feature specification](../spec/link-creation-and-redirection/spec.md) and [active plan](../../tasks/plan.md), requested 2026-10-08; generator code remains unchanged pending written approval of those revisions. This feature excludes all analytics and link-management implementation.
+
 Click totals, 30-day trends, and aggregated referrer/device/OS/browser/country/city analytics are MVP (FR-ANA-01..04). A separate analytics worker, API keys, and blocklists are growth/V1 work.
 
 ## Layers (LLD)
@@ -200,21 +202,23 @@ controller   RedirectController, AuthController, LinkController, AnalyticsContro
              HealthController
 dto          HTTP request and response DTOs
 security     JwtAuthenticationFilter, CsrfProtection, OwnershipGuard
-service      AuthService, LinkService, RedirectService, RateLimitService,
+service      AuthService, LinkService, ShortCodeGenerator, RedirectService, RateLimitService,
              ClickCountService (async), AnalyticsService
 client       AuthProvider map (PasswordAuthProvider, GoogleAuthProvider),
              OtpSender map (EmailOtpSender), GoogleOAuthClient, PasswordHasher,
              JwtTokenService, PasswordResetMailer
-model        User, AuthIdentity, PendingRegistration, Link, LinkStatus, ShortCode,
+model        User, AuthIdentity, PendingRegistration, Link, LinkStatus, ShortCode, GeneratedShortCode,
              DestinationUrl, RefreshSession, AccessToken, RedirectLookup, GoogleProfile,
              ClickEvent, AnalyticsRange, AnalyticsResponse, PasswordResetToken
 repository   UserRepository, AuthIdentityRepository, PendingRegistrationRepository,
              LinkRepository, ClickEventRepository, PasswordResetTokenRepository  (interfaces)
 repository/jpa
              Jpa* repository interfaces (including JpaClickEventRepository)
-cache        RedirectCache, RefreshSessionStore, JwtRevocationStore, RateLimitStore  (interfaces)
+cache        RedirectCache, ShortCodeCounter, RefreshSessionStore, JwtRevocationStore,
+             RateLimitStore  (interfaces)
+cache/redis
              RedisRedirectCache, RedisRefreshSessionStore, RedisJwtRevocationStore,
-             RedisRateLimitStore  (implementations)
+             RedisRateLimitStore, RedisShortCodeCounter  (implementations)
 config       Spring configuration classes
 exception    application exceptions and HTTP exception handling
 ```
@@ -290,6 +294,24 @@ Next.js → HTTPS ingress → **JwtAuthenticationFilter** (required) → **CsrfP
 
 Next.js never checks `owner_id`. Link path does **not** call AuthService, RedirectService, ClickCountService, or UserRepository (user id comes from the verified JWT `sub`).
 
+### Generated short-code allocation
+
+After authentication, CSRF, the account quota, the active-owner row lock, and destination/alias/expiry validation:
+
+1. For a custom alias, LinkService attempts one conflict-safe PostgreSQL insert without calling the code counter. A taken alias returns 409; it is never replaced with a generated code (FR-CRE-07).
+2. Otherwise LinkService → **ShortCodeGenerator** → **ShortCodeCounter** → **RedisShortCodeCounter**. One atomic Lua operation validates the existing nonexpiring `code:global` value and increments it. There is no PostgreSQL availability lookup on this normal allocation path.
+3. Encode the positive allocation value using alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`, left-padded with `0` to exactly eight characters: `1` → `00000001`, `62` → `00000010`. Supported values are `1..218340105584895` (`62^8 - 1`). Preserve case; generated identifiers are predictable and are not access credentials (FR-RED-01/06).
+4. LinkService rechecks expiry, then inserts the code and its numeric `generation_value` in the same transaction using `INSERT ... ON CONFLICT (code) DO NOTHING`. The existing case-sensitive unique constraint remains the final authority; no existing row is updated (FR-CRE-04, NFR-REL-01).
+5. A confirmed generated-code conflict consumes a candidate and requests recovery before the next candidate. This covers aliases, legacy random codes, and stale Redis restores. At most ten candidates, including reserved candidates, are considered per external request, with one creation-quota charge. Exhaustion returns `CODE_ALLOCATION_FAILED`; success is returned only after commit (FR-ABS-01, NFR-CON-01).
+
+**Recovery:** Only when the key is missing or after a confirmed generated-code conflict, read `COALESCE(MAX(generation_value), 0)` from all retained links, including disabled, deleted, and expired rows. An atomic recovery script initializes a missing key or advances an existing key to `max(current, committedFloor)`, then increments. It never lowers an existing value. Simultaneous initialization and in-flight inserts remain protected by Redis atomic allocation and the PostgreSQL unique constraint. Gaps from failed transactions or skipped candidates are permitted; published codes are never reused.
+
+V6 adds nullable, range-checked, indexed `links.generation_value`. Custom aliases and pre-existing random-generated rows retain NULL; do not derive the recovery floor by decoding arbitrary code strings. An alias such as `zzzzzzzz` must not exhaust the generator. Keep allocation metadata with permanent tombstones and expired rows. Redis loss therefore requires recovery, not code reuse; Redis is not the system of record.
+
+Missing-key recovery is distinct from an unavailable, malformed, wrong-type, or expiring counter. Those failures return safe 503 without creating a link or falling back to random/process-local generation; numeric capacity exhaustion returns the bounded allocation 409. Creation performance measurements must include allocation and persistence (NFR-PER-02). Redirects do not consult this counter and retain their PostgreSQL fallback (NFR-REL-02).
+
+This design does not eliminate the required database insert or unique constraint. The previous random implementation already used conflict-safe insertion without a separate existence SELECT. The counter provides deterministic allocation and normally avoids generated-code collisions; alias and recovery collisions still require safe handling. Redis provides the [increment primitive](https://redis.io/docs/latest/commands/incr/); PostgreSQL provides [conflict-safe insertion](https://www.postgresql.org/docs/current/sql-insert.html).
+
 ### Owner analytics
 
 Next.js → HTTPS ingress → **JwtAuthenticationFilter** (required) → **AnalyticsController** → **AnalyticsService**.
@@ -307,14 +329,14 @@ Health does **not** call Auth/Link/Redirect services, rate limits, CSRF, JWTs, o
 
 ### Cross-flow coupling (same beans)
 
-| Writer                          | Shared component             | Reader                                        |
-| ------------------------------- | ---------------------------- | --------------------------------------------- |
-| LinkService (after commit)      | RedirectCache                | RedirectService (cache-aside)                 |
-| AuthService                     | RefreshSessionStore          | AuthService.refresh; delete on logout         |
-| AuthService / JwtAuthenticationFilter | JwtRevocationStore     | JwtAuthenticationFilter on later requests     |
-| RateLimitService                | RateLimitStore               | the same RateLimitService on the next request |
-| ClickCountService (async)       | LinkRepository `click_count` | LinkService.list (informational; may lag)     |
-| ClickCountService (async)       | ClickEventRepository          | AnalyticsService (totals, trends, breakdowns) |
+| Writer                                | Shared component             | Reader                                        |
+| ------------------------------------- | ---------------------------- | --------------------------------------------- |
+| LinkService (after commit)            | RedirectCache                | RedirectService (cache-aside)                 |
+| AuthService                           | RefreshSessionStore          | AuthService.refresh; delete on logout         |
+| AuthService / JwtAuthenticationFilter | JwtRevocationStore           | JwtAuthenticationFilter on later requests     |
+| RateLimitService                      | RateLimitStore               | the same RateLimitService on the next request |
+| ClickCountService (async)             | LinkRepository `click_count` | LinkService.list (informational; may lag)     |
+| ClickCountService (async)             | ClickEventRepository         | AnalyticsService (totals, trends, breakdowns) |
 
 Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or RedirectService.
 
@@ -326,11 +348,11 @@ Next.js never talks to PostgreSQL, Redis, repositories, OwnershipGuard, or Redir
 
 **PendingRegistration** — password signup before OTP succeeds: hashed password, hashed OTP, and email. Found via `pending_registration` cookie token, not via email on `VerifyOtpRequest`.
 
-**Link** — `id`, `code` (ShortCode), `owner`, `destinationUrl`, `status`, timestamps, optional `expiresAt` and `deletedAt`, informational `clickCount` (may lag ≤ 1 min). Expiry is an MVP creation option: once `expiresAt` is past, the link stops redirecting without owner action (FR-CRE-08, FR-RED-07). Destination is **https-only and owner-editable** (FR-CRE-03, FR-MGT-07). Codes are case-sensitive, unique, and never reused (FR-CRE-04, FR-RED-06, FR-MGT-05).
+**Link** — `id`, `code` (ShortCode), `owner`, `destinationUrl`, `status`, timestamps, optional `expiresAt`, `deletedAt`, and internal `generationValue`, informational `clickCount` (may lag ≤ 1 min). `generationValue` is committed with a counter-generated code and remains NULL for custom aliases and legacy random rows; it is never returned in the creation API or redirect cache. Expiry is an MVP creation option: once `expiresAt` is past, the link stops redirecting without owner action (FR-CRE-08, FR-RED-07). Destination is **https-only and owner-editable** (FR-CRE-03, FR-MGT-07). Codes are case-sensitive, unique, and never reused (FR-CRE-04, FR-RED-06, FR-MGT-05).
 
 **LinkStatus** — `ACTIVE` | `DISABLED` | `DELETED`. Delete writes a tombstone; the row stays so the code cannot be issued again.
 
-**ShortCode** — generate or parse; uniqueness is the database unique constraint plus bounded retry on conflict. Never overwrite an existing code.
+**ShortCode** — case-sensitive code syntax and reserved-word invariants. **GeneratedShortCode** couples a positive counter value to its exact eight-character Base62 encoding. ShortCodeGenerator obtains values through ShortCodeCounter; PostgreSQL uniqueness and bounded conflict retries protect the shared namespace. Never overwrite an existing code.
 
 **DestinationUrl** — well-formed `https`; reject destinations that point at TinyRoute’s own host (FR-CRE-06 Should).
 
@@ -364,7 +386,7 @@ Out of the class model: destination blocklist, public API keys, admin console, s
 - `auth_identities(id, user_id FK, provider, subject, secret_hash NULL, created_at)` UNIQUE `(provider, subject)`
 - `pending_registrations(id, token_hash UNIQUE, email_normalized, password_hash, otp_hash, expires_at, attempts)`
 - `password_reset_tokens(id, user_id FK, token_hash UNIQUE, expires_at, created_at)`; raw tokens are never stored and the row is deleted when consumed
-- `links(id, code UNIQUE case-sensitive, owner_id FK, destination_url, status, click_count, created_at, updated_at, deleted_at, expires_at?)`
+- `links(id, code UNIQUE case-sensitive, owner_id FK, destination_url, status, click_count, created_at, updated_at, deleted_at, expires_at?, generation_value BIGINT NULL)`; V6 range check `1..218340105584895` and partial index for committed allocation recovery; aliases and legacy rows retain NULL
 - `click_events(id, link_id FK, clicked_at, referrer_domain, device, operating_system, browser, country, city)`; it stores normalized aggregate dimensions only, never IPs, visitor identifiers, raw user agents, or raw referrer URLs.
 - Index `(owner_id, created_at DESC, id DESC)` for cursor pagination.
 - Index `(link_id, clicked_at DESC)` for the 30-day trend and analytics snapshots.
@@ -372,23 +394,24 @@ Out of the class model: destination blocklist, public API keys, admin console, s
 
 **Redis**
 
-| Key                          | Value                    | TTL / notes                                                   |
-| ---------------------------- | ------------------------ | ------------------------------------------------------------- |
-| `redirect:{code}`            | RedirectLookup           | `min(5 s, remaining expiry)`; evict after commit of create/status/destination/delete |
-| `refresh:{tokenHash}`        | `{userId, lastAccessAt}` | sliding 30 days; delete on logout; delete-all on reset/delete |
-| `refresh-user:{userId}`      | set of token hashes      | supports delete-all on password reset or account deletion; expires with its last session |
-| `revoked-access:{jti}`       | marker                   | remaining access-token lifetime plus clock skew; checked by JwtAuthenticationFilter |
-| `rl:auth:{clientHash}`       | counter                  | auth cap (FR-ABS-02)                                          |
-| `rl:create:{userId}`         | counter                  | create cap (FR-ABS-01)                                        |
-| `rl:redirect:{clientHash}`   | counter                  | redirect throttle (FR-ABS-03 Should)                          |
+| Key                        | Value                    | TTL / notes                                                                                                                        |
+| -------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `code:global`              | last allocated integer   | no TTL; atomic increment; initialize/advance from committed PostgreSQL generation values only on missing key or confirmed conflict |
+| `redirect:{code}`          | RedirectLookup           | `min(5 s, remaining expiry)`; evict after commit of create/status/destination/delete                                               |
+| `refresh:{tokenHash}`      | `{userId, lastAccessAt}` | sliding 30 days; delete on logout; delete-all on reset/delete                                                                      |
+| `refresh-user:{userId}`    | set of token hashes      | supports delete-all on password reset or account deletion; expires with its last session                                           |
+| `revoked-access:{jti}`     | marker                   | remaining access-token lifetime plus clock skew; checked by JwtAuthenticationFilter                                                |
+| `rl:auth:{clientHash}`     | counter                  | auth cap (FR-ABS-02)                                                                                                               |
+| `rl:create:{userId}`       | counter                  | create cap (FR-ABS-01)                                                                                                             |
+| `rl:redirect:{clientHash}` | counter                  | redirect throttle (FR-ABS-03 Should)                                                                                               |
 
 Client IP is hashed for rate-limit keys and not retained beyond 24 hours (NFR-PRV-02). Click analytics stores no visitor IP or identifier; request metadata is reduced to normalized aggregate dimensions before persistence (FR-ANA-01..04, NFR-PRV-03).
 
-**Consistency:** commit to PostgreSQL, then evict the redirect cache. Stale cache cannot outlive the ≤ 5 s TTL or a link's expiry, whichever comes first (NFR-CON-01/02, FR-RED-07). Redis loss blocks new login and refresh and fail-closes revocation checks; it does not change the database truth. Unexpired access JWTs whose `jti` cannot be checked are rejected.
+**Consistency:** commit to PostgreSQL, then evict the redirect cache. Stale cache cannot outlive the ≤ 5 s TTL or a link's expiry, whichever comes first (NFR-CON-01/02, FR-RED-07). Redis loss blocks new login, refresh, and creation and fail-closes revocation checks; it does not change the database truth. Unexpired access JWTs whose `jti` cannot be checked are rejected. Counter reset/recovery cannot authorize overwriting or reusing a committed code; retain its PostgreSQL row and allocation metadata permanently.
 
 ## Flows
 
-**Register / sign-in / create** — Rate-limit auth. Password register stores a pending row, emails an OTP, and sets a pending cookie. Verify OTP (cookie + `{otp}` only) creates `User` + `AuthIdentity(PASSWORD)`, an access JWT, and a refresh session. Login uses the provider map and issues the same two cookies. Google uses `GoogleOAuthClient.exchangeCode` then the same cookies (no OTP, no stored Google tokens). Create requires a valid access JWT + CSRF, `rl:create:{userId}`, https + self-host checks, optional `expiresAt`, and a new code (retry only on unique conflict), then evicts `redirect:{code}`.
+**Register / sign-in / create** — Rate-limit auth. Password register stores a pending row, emails an OTP, and sets a pending cookie. Verify OTP (cookie + `{otp}` only) creates `User` + `AuthIdentity(PASSWORD)`, an access JWT, and a refresh session. Login uses the provider map and issues the same two cookies. Google uses `GoogleOAuthClient.exchangeCode` then the same cookies (no OTP, no stored Google tokens). Create requires a valid access JWT + CSRF, `rl:create:{userId}`, active-owner lock/version check, https + self-host validation, and optional future `expiresAt`. Use the requested alias or Redis counter → eight-character Base62, then conflict-safe PostgreSQL insertion; recover the counter only on missing key or confirmed generated conflict. Commit before responding and evict `redirect:{code}` afterwards.
 
 **Public redirect** — Validate code + optional redirect throttle → cache-aside → on miss, case-sensitive DB lookup. Redirect only when state is **known ACTIVE, unexpired, and has a destination**; cache TTL is capped by remaining expiry. DISABLED → unavailable (no owner details). UNKNOWN/DELETED/EXPIRED → not-found. Uncertain datastore → safe 5xx, no `Location`. After a successful 3xx, `ClickCountService` runs asynchronously to increment the total and record a normalized analytics event; a capture failure may undercount but never changes the redirect.
 
@@ -414,4 +437,4 @@ Redirect p95 &lt; 150 ms / p99 &lt; 300 ms at ~100 rps (NFR-PER-01/03). Create/l
 
 ## Growth (documentation only)
 
-Keep the app stateless except shared Redis refresh sessions, JWT revocation, and rate limits; add instances behind the same ingress; tune pools and indexes from load tests before adding Redis HA or a read replica. Move asynchronous analytics capture to a separate worker only when the MVP in-process path no longer meets redirect targets. No multi-region or active/active for this project (NFR-SCL-03).
+Keep the app stateless except shared Redis refresh sessions, JWT revocation, rate limits, and the recoverable code counter; add instances behind the same ingress using that same allocator; tune pools and indexes from load tests before adding Redis HA or a read replica. Move asynchronous analytics capture to a separate worker only when the MVP in-process path no longer meets redirect targets. No multi-region or active/active for this project (NFR-SCL-03).
