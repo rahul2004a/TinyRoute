@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Feature and branch: `link-creation-and-redirection`, `feature/link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`. Check branch, status, and active tasks before every resumed execution. Stop for unrelated changes or another feature's incomplete tasks.
-- Current gate: approach and written specification approved; **saved plan/checklist approval pending. Do not implement until approved.**
+- Current gate: approach, written specification and saved plan/checklist approved (plan approval 2026-10-08). Inline implementation authorized.
 - Keep the locked stack, layer-first Java packages, repository/store interfaces, and existing authentication contract. Never put ownership, redirect policy, or API proxies in Next.js.
 - Exclude all analytics, click increments/events, link-management endpoints/UI, auth implementation, blocklists, safe browsing, API keys, and admin tools. Existing `click_count` remains zero for new links.
 - PostgreSQL is authoritative. Do not change applied migrations or remove expired/deleted rows. V4/V5 already support this feature; no migration is planned.
@@ -107,7 +107,7 @@ LinkCreationValidator(LinkProperties properties);
 Map<String, String> LinkValidationException.fieldErrors();
 ```
 
-- [ ] **1.1 Write domain/config tests first.** Use `now = 2026-10-07T12:00:00Z`, configured origin `https://go.tinyroute.test`. Include exact preservation, HTTPS scheme case, ports, DNS dot/case, punycode, bracketed IPv6 and equivalent self-IP spelling; reject whitespace/controls/user-info/invalid escapes, bad ports, octal/hex/short/integer IPv4, encoded authority, Unicode and oversized values. Test all alias bounds/reservations and deterministic base62 length. Test omitted/null expiry, offsets, millisecond precision, years, equality/past and owner-wait expiry through `requireFutureExpiry`.
+- [x] **1.1 Write domain/config tests first.** Use `now = 2026-10-07T12:00:00Z`, configured origin `https://go.tinyroute.test`. Include exact preservation, HTTPS scheme case, ports, DNS dot/case, punycode, bracketed IPv6 and equivalent self-IP spelling; reject whitespace/controls/user-info/invalid escapes, bad ports, octal/hex/short/integer IPv4, encoded authority, Unicode and oversized values. Test all alias bounds/reservations and deterministic base62 length. Test omitted/null expiry, offsets, millisecond precision, years, equality/past and owner-wait expiry through `requireFutureExpiry`.
 
 ```java
 assertThat(DestinationUrl.parse("https://example.com/docs?q=java#setup", "go.tinyroute.test").value())
@@ -118,8 +118,8 @@ assertThat(ShortCode.forAlias("Abc").value()).isEqualTo("Abc");
 assertThatThrownBy(() -> ShortCode.forAlias("API")).isInstanceOf(LinkValidationException.class);
 ```
 
-- [ ] **1.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=DestinationUrlTest,ShortCodeTest,LinkCreationValidatorTest,ShortCodeGeneratorTest,LinkPropertiesTest,ProfileConfigurationTest`. Expected absent-type compilation failure, then behavioral failures as classes appear. Record the actual failure.
-- [ ] **1.3 Implement the values/config/helpers.** Parse with `URI` and explicit ASCII authority/port rules; canonicalize only validated IP literals without DNS. Keep `DestinationUrl.value()` unchanged. Parse expiry with explicit offset, reject fractional precision over three digits and UTC instants outside the stated years. Generate using `SecureRandom.nextInt(62)` for each of eight characters. `LinkConfiguration` provides `Clock linkClock()` returning `Clock.systemUTC()` and `ShortCodeGenerator shortCodeGenerator()` using a fresh SecureRandom; link services/adapters consume the injectable Clock. Bind dev `${SHORT_LINK_BASE_URL:https://localhost:8443}` and prod `${SHORT_LINK_BASE_URL}`; fail startup for invalid origins.
+- [x] **1.2 Run red:** `./backend/mvnw -f backend/pom.xml -B -ntp test -Dtest=DestinationUrlTest,ShortCodeTest,LinkCreationValidatorTest,ShortCodeGeneratorTest,LinkPropertiesTest,ProfileConfigurationTest`. Expected absent-type compilation failure, then behavioral failures as classes appear. Record the actual failure.
+- [x] **1.3 Implement the values/config/helpers.** Parse with `URI` and explicit ASCII authority/port rules; canonicalize only validated IP literals without DNS. Keep `DestinationUrl.value()` unchanged. Parse expiry with explicit offset, reject fractional precision over three digits and UTC instants outside the stated years. Generate using `SecureRandom.nextInt(62)` for each of eight characters. `LinkConfiguration` provides `Clock linkClock()` returning `Clock.systemUTC()` and `ShortCodeGenerator shortCodeGenerator()` using a fresh SecureRandom; link services/adapters consume the injectable Clock. Bind dev `${SHORT_LINK_BASE_URL:https://localhost:8443}` and prod `${SHORT_LINK_BASE_URL}`; fail startup for invalid origins.
 
 ```text
 validated = { destination: DestinationUrl.parse(raw, configuredShortHost),
@@ -129,8 +129,8 @@ requireFutureExpiry(validated.expiry, now)
 shortUrl = validatedOriginWithoutTerminalSlash + "/" + code.value()
 ```
 
-- [ ] **1.4 Run the same focused command green, refactor, and run Spotless on touched Java.** Expected domain/config cases pass, existing profile assumptions updated without hard-coded active profile.
-- [ ] **1.5 Record evidence and commit:** stage only the listed files plus `tasks/todo.md`; `git commit -m "feat: define link creation invariants and configuration"`.
+- [x] **1.4 Run the same focused command green, refactor, and run Spotless on touched Java.** Expected domain/config cases pass, existing profile assumptions updated without hard-coded active profile.
+- [x] **1.5 Record evidence and commit:** stage only the listed files plus `tasks/todo.md`; `git commit -m "feat: define link creation invariants and configuration"`.
 
 ## Task 2: Atomic creation and the account-deletion fence
 
