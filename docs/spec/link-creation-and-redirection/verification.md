@@ -41,8 +41,11 @@ API-key finding: the explicitly public local FF1 key in `.env.example`, verified
 as Base64 of bytes `0x00..0x1f`. The pinned/checksum-verified Gitleaks 8.30.1
 reproduced the single finding locally. `.gitleaksignore` records only that exact
 historical commit/file/rule/line fingerprint, with its rationale; no rule or path
-is disabled. The same full-history scan then passed with no findings. Backend
-CI must rerun after this correction; its later jobs were initially skipped.
+is disabled. The same full-history scan then passed with no findings. The rerun
+at `22f241b` passed all backend and frontend gates, including CodeQL and
+dependency/image scans: [backend run](https://github.com/rahul2004a/TinyRoute/actions/runs/37777646191)
+and [frontend run](https://github.com/rahul2004a/TinyRoute/actions/runs/37777646123).
+The initial skipped jobs are superseded by these successful results.
 
 Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Node harness self-tests (9, including final-review filesystem regressions) and CI helper tests (14) passed. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
 

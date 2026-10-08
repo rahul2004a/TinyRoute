@@ -757,7 +757,7 @@ Keep CI integration narrow: classify `tools/link-performance.mjs` and `tools/lin
 
 **Interfaces:** Consumes AC evidence, task commits, full verification results and independent review findings; produces fully completed implementation/task records ready for the post-completion archive and PR sequence below. User owns merge.
 
-- [ ] **10.1 Reconcile acceptance matrix and run fresh relevant full checks.** Read `verification-before-completion`; read current branch/status and inspect diff for scope/secrets. Run:
+- [x] **10.1 Reconcile acceptance matrix and run fresh relevant full checks.** Read `verification-before-completion`; read current branch/status and inspect diff for scope/secrets. Run:
 
 ```sh
 ./backend/mvnw -f backend/pom.xml -B -ntp clean verify
@@ -775,6 +775,15 @@ git diff --check
 ```
 
 Expected: all pass, full backend line coverage ≥70%, complete critical-path cases, all browser journeys pass. Record exact counts/durations/coverage and attach runtime/load/UI evidence. Dependency/CI checks remain enabled; do not rerun ten-minute load without a relevant change or unresolved performance concern. Backend Mockito attachment/Docker or network restrictions may require the ordinary permission escalation, never a source workaround.
+
+Recorded outcome: all listed full checks passed, including 344 backend tests,
+90.27% line coverage, 77 frontend tests, 27 browser contracts, two live journeys,
+nine Node harness tests and 14 CI helper tests. Independent review fixes and
+documentation links are verified. Backend and frontend PR CI passed at `22f241b`,
+including CodeQL and dependency/image scans. The acceptance matrix correctly
+leaves AC-10 open: the actual load report belongs to Task 9 and remains required
+before readiness (10.3) and final task completion (10.4). Checking this step does
+not claim performance acceptance or authorize archival.
 
 - [x] **10.2 Request one independent final review using `requesting-code-review`.** Delegate review only, supply base/current commit IDs, approved spec/plan, diff and evidence. Reviewer must inspect Review Focus below and report concrete severity/file/line findings, including missing verification. Apply `receiving-code-review`; verify findings, write a regression red test for behavioral fixes, implement minimally, run affected checks green, and record follow-up commits. No new implementation delegation. Repeat only the checks made stale by changes; rerun full affected backend/frontend gates if fixes alter that side. A load-affecting fix requires new full load evidence.
 - [ ] **10.3 Complete documentation and readiness audit.** All implementation/AC checks and required evidence must be done, blocking review findings resolved, production limitations explicit. If required local work cannot finish, leave tasks active, describe the exact blocker and create/update a draft PR; do not mark it ready or archive. Record approved status/timestamps in spec without changing its substantive contract.

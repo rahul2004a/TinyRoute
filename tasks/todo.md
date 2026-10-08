@@ -122,7 +122,14 @@ PR CI follow-up: frontend CI passed; backend pre-check initially stopped on the
 known public FF1 fixture in `.env.example`. Gitleaks 8.30.1 locally reproduced
 the one finding (red); an exact historical fingerprint exception for the verified
 sequential-byte fixture made the full-history scan green. No broad scan exclusions
-or production policy changes. Backend CI rerun remains required.
+or production policy changes. The rerun at `22f241b` passed all backend and
+frontend CI gates, including CodeQL and dependency/image scans.
+
+Checklist reconciliation: Step 10.1 is complete because its full checks and
+acceptance mapping are verified. Task 9's actual load/evidence steps (9.4/9.5),
+final readiness (10.3) and task finalization (10.4) remain open. AC-10 has no
+measured report yet; this dependency prevents marking Task 10 complete or
+archiving the active task files.
 
 Final-review follow-up confirmed the report preflight fix and identified one
 remaining stale Task 8 paragraph in the spec; that paragraph is now reconciled.
@@ -134,4 +141,4 @@ no sustained-load completion is claimed.
 - Redis limiter outages use one backend process's bounded, best-effort redirect window; recovery/restart can start a fresh window. Auth/creation remain fail-closed.
 - Link state changes have the approved maximum five-second snapshot bound; expiry is checked at the exact instant without grace.
 - Ambiguous creation network failures require deliberate resubmission and may already have committed; no idempotency-key contract is introduced.
-- Proposed salted FF1 codes hide the counter sequence but remain finite public identifiers. The generated-code bijection requires fixed key/salt/alphabet/width; rotation is outside this feature. Alias/legacy conflicts still require PostgreSQL uniqueness. Missing/stale counters recover from committed numeric metadata; malformed/unavailable counters fail creation safely. Allocation/rollback gaps are permitted; published codes are never reused.
+- Implemented salted FF1 codes hide the counter sequence but remain finite public identifiers. The generated-code bijection requires fixed key/salt/alphabet/width; rotation is outside this feature. Alias/legacy conflicts still require PostgreSQL uniqueness. Missing/stale counters recover from committed numeric metadata; malformed/unavailable counters fail creation safely. Allocation/rollback gaps are permitted; published codes are never reused.
