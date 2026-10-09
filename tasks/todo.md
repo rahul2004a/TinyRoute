@@ -68,11 +68,11 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 
 ## Post-completion delivery record
 
-Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks and independent review complete; sustained-load verification blocked by the unavailable temporary loopback source. Keep Tasks 9–10 active and publish a draft PR if that local gate remains blocked; do not archive or mark ready. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, create/update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
+Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks and independent review complete; sustained-load acceptance incomplete after five dropped arrivals in the best full run. Keep Tasks 9–10 active and PR #15 draft until the strict protocol passes; do not archive or mark ready. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, create/update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
 
 ## Durable execution ledger
 
-Delivery checkpoint: pushed the reviewed feature branch and created
+Historical delivery checkpoint (2026-10-08): pushed the reviewed feature branch and created
 [draft PR #15](https://github.com/rahul2004a/TinyRoute/pull/15). Implementation
 and review fixes are committed through `2f9bdfa`; Tasks 9–10 and AC-10 remain
 open because the required loopback alias and sustained-load report are absent.
@@ -165,7 +165,7 @@ frontend CI gates, including CodeQL and dependency/image scans.
 Checklist reconciliation: Step 10.1 is complete because its full checks and
 acceptance mapping are verified. Task 9's actual load/evidence steps (9.4/9.5),
 final readiness (10.3) and task finalization (10.4) remain open. AC-10 has no
-measured report yet; this dependency prevents marking Task 10 complete or
+passing complete report yet; this dependency prevents marking Task 10 complete or
 archiving the active task files.
 
 Final-review follow-up confirmed the report preflight fix and identified one
@@ -179,3 +179,18 @@ no sustained-load completion is claimed.
 - Link state changes have the approved maximum five-second snapshot bound; expiry is checked at the exact instant without grace.
 - Ambiguous creation network failures require deliberate resubmission and may already have committed; no idempotency-key contract is introduced.
 - Implemented salted FF1 codes hide the counter sequence but remain finite public identifiers. The generated-code bijection requires fixed key/salt/alphabet/width; rotation is outside this feature. Alias/legacy conflicts still require PostgreSQL uniqueness. Missing/stale counters recover from committed numeric metadata; malformed/unavailable counters fail creation safely. Allocation/rollback gaps are permitted; published codes are never reused.
+
+2026-10-09 native-host full attempt failed strict issuance: 200 creates p95
+23.30 ms, 59,995/60,000 redirects, five late drops (max 125.26 ms), zero HTTP/
+transport errors; server p95/p99 8.29/69.63 ms. The failed raw report and runtime/
+relay setup are retained explicitly as failed evidence. A worker-pool experiment
+performed worse and was discarded; no worker implementation or TLS-option
+experiment remains in the working tree. The committed driver remains `d3124b7`
+(bounded retention and local pass-through support), with 11 passing self-tests.
+A quiet uninterrupted host or isolated test machine is needed for a new full run;
+the user has been asked. Tasks 9–10/AC-10 stay active, PR stays draft, no archive.
+Independent follow-up review recomputed the failed report's percentiles, counts
+and checksums, checked the saved setup and confirmed no private data leakage;
+no findings. This review approves recording progress, not feature completion.
+The two owned verification containers were stopped and removed after the run;
+the owner's Compose services were left untouched.

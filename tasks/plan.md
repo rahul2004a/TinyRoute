@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Feature and branch: `link-creation-and-redirection`, `feature/link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`. Check branch, status, and active tasks before every resumed execution. Stop for unrelated changes or another feature's incomplete tasks.
-- Current gate: original approach/spec/plan approved (plan approval 2026-10-08); Tasks 1–8, including Task 7A, complete; Task 9 sustained-load execution pending. User-requested Redis-counter spec/plan revision approved 2026-10-08 ("ok do now"). The salted AES-FF1 spec/plan revision was approved 2026-10-08 ("done"). Independent final review is complete; retain Tasks 9–10 until the full load protocol passes.
+- Current gate: original approach/spec/plan approved (plan approval 2026-10-08); Tasks 1–8, including Task 7A, complete; Task 9 sustained-load acceptance incomplete. User-requested Redis-counter spec/plan revision approved 2026-10-08 ("ok do now"). The salted AES-FF1 spec/plan revision was approved 2026-10-08 ("done"). Independent final review is complete; retain Tasks 9–10 until the full load protocol passes.
 - Keep the locked stack, layer-first Java packages, repository/store interfaces, and existing authentication contract. Never put ownership, redirect policy, or API proxies in Next.js.
 - Exclude all analytics, click increments/events, link-management endpoints/UI, auth implementation, blocklists, safe browsing, API keys, and admin tools. Existing `click_count` remains zero for new links.
 - PostgreSQL is authoritative. Do not change applied migrations or remove expired/deleted rows. Add V6 for nullable, indexed, range-checked `generation_value`; retain NULL on aliases/legacy random rows. Commit metadata in the same insert as the generated code.
@@ -52,7 +52,7 @@ Paths below are exact planned files, not new feature packages. Java main paths h
 
 ## Dependencies and execution rules
 
-Tasks **1–8, including 7A, are complete under the recorded approvals**; their checked steps below retain the actual implementation history. The fixed-key/salt FF1 generator and browser/live evidence are committed. Task 9 timing support is verified, but the sustained-load run remains pending. Independent final review is complete; Task 10 readiness and archival depend on the missing load evidence. No implementation agents or routine checkpoint approval pauses are required.
+Tasks **1–8, including 7A, are complete under the recorded approvals**; their checked steps below retain the actual implementation history. The fixed-key/salt FF1 generator and browser/live evidence are committed. Task 9 timing support is verified, but full runs have failed strict issuance; sustained-load acceptance remains incomplete. Independent final review is complete; Task 10 readiness and archival depend on the missing load evidence. No implementation agents or routine checkpoint approval pauses are required.
 
 Every task follows red → observed expected failure → minimal implementation → green/refactor → focused verification → commit. A compile failure caused by a deliberately absent new type is acceptable initial red evidence; an infrastructure failure is not a behavioral red. Use `systematic-debugging` for unexpected failures. Record command/result, red/green evidence, commits, decisions, and unresolved issues in `tasks/todo.md` before moving on or context compaction. Do not claim passes without executing commands.
 

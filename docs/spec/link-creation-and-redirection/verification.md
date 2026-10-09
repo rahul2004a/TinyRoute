@@ -30,7 +30,36 @@ TDD red: missing timing filter and load module; CI harness classification failed
 
 Planned measured protocol: 200 successful counter-generated creates across three disposable accounts; 30-second redirect warm-up; 100 requests/second for 600 seconds across 100 codes/clients, with default limits enabled. Built-in HTTPS never follows redirects and validates the local certificate chain. Open-loop arrivals allow at most 100 ms scheduling lateness; any dropped or excessively late arrival fails the run. Complete issuance/completion/server samples are required. All non-302 and transport failures remain in the denominator. Server nearest-rank p95/p99 are separate from client round trips. Achieved throughput must be at least 99.5 rps; strict latency/error thresholds remain <150/<300 ms/<0.5%, creation p95 <500 ms.
 
-The macOS benchmark source `127.0.0.2` needs a temporary loopback alias. Automated `sudo -n` could not add it because an administrator password is required; the user has been asked to enable it. Load evidence remains incomplete until the address is available and the full protocol passes. No cap bypass, spoof-header trust broadening, or production setup is used.
+Two complete-duration local attempts did not pass the strict issuance gate.
+The direct Linux driver issued 59,954/60,000 requests (46 late drops, max 203.26 ms),
+with server p95/p99 5.68/18.41 ms and zero request errors. The native macOS driver
+through a local TCP pass-through issued 59,995/60,000 requests (five late drops,
+max 125.26 ms), with server p95/p99 8.29/69.63 ms and zero request errors. Its 200
+creates all succeeded with server p95 23.30 ms. These latency observations do
+**not** establish AC-10 because complete issuance is mandatory.
+
+The explicitly [failed raw report](failed-local-load.json.gz),
+[runtime/hardware metadata](performance-environment.json), and
+[reproducible relay setup/source](performance-setup.md) retain the actual result.
+The native driver validated certificates and hostname end-to-end; health and
+source-guarded bootstrap returned 200. Wrong-hostname and untrusted-certificate
+probes were rejected. Backend trust stayed exactly `127.0.0.2/32`, with default
+100 creations/hour/account and 600 redirects/minute/client. The proxy changed no
+TLS bytes or HTTP headers. No production configuration changed.
+
+Diagnostics localized Linux-client stalls to native TLS setup. Context, CA,
+group and session-cache experiments did not fix sustained issuance and were not
+adopted. Independent review identified unnecessary settled-promise retention;
+checkpoint `d3124b7` fixes it and supports the byte relay. Eleven harness tests and
+14 CI helper tests pass. Both the relay and driver changes were independently
+reviewed without findings. A later transport-worker experiment performed worse
+and was discarded. The underlying host/runtime scheduling problem is unresolved.
+A quiet uninterrupted session or isolated test machine is needed for another
+full run; the user has been asked. Tasks 9–10 remain active and the PR remains draft.
+Independent follow-up review recomputed the raw report's percentiles, counts and
+checksums and checked its privacy and reproducible setup; no findings. This does
+not approve AC-10 completion. The owned backend and relay verification containers
+were stopped and removed after measurement.
 
 ## Full check results
 
@@ -64,8 +93,10 @@ and no private details (NFR-CON-01; NFR-REL-02). The deferred timing follows the
 Without the fault the regression failed 503 versus 201; with it, four handler
 unit tests and the commit integration test pass. Full `spotless:check clean verify` passed with 238 unit + 106 integration tests,
 zero failures/errors/skips, 90.27% line coverage and zero SpotBugs findings.
-Independent follow-up review found no issues. PR CI will rerun after the fix is
-pushed; frontend/product code and dependency versions are unchanged.
+Independent follow-up review found no issues. All eight CI checks passed at
+`4864ecc`: [backend](https://github.com/rahul2004a/TinyRoute/actions/runs/37894704771)
+and [frontend](https://github.com/rahul2004a/TinyRoute/actions/runs/37894704649).
+Frontend/product code and dependency versions are unchanged.
 
 One independent reviewer inspected base `ecffb917a489cd18770127ede3b1a96f3a0debfb`
 through `26dfcdaa47999a07bbc53507ce45bf3b215bbf9f`, the approved spec/plan,
@@ -86,7 +117,7 @@ and frontend results remain applicable (NFR-PER-01–03; NFR-TST-01/02).
 ## Outstanding completion gates and limitations
 
 - Independent final review is complete; its minor report preflight and stale-status findings are fixed and affected checks pass.
-- Run and save the complete sustained-load report; no measured load claim yet.
+- Save a passing complete sustained-load report; existing failed reports do not satisfy AC-10.
 - Keep fixed FF1 key/salt configuration; rotation requires a future namespace/recovery design. Short links are public URLs, not authorization tokens.
 - Local benchmarks do not establish latency or availability on Hostinger/nearby Supabase/Vercel. Verify the production topology before release.
 - Cache changes may converge within the bounded five-second snapshot window; expiry is enforced at its exact instant, including cached results. Redis cache failure falls back to PostgreSQL; unknown authoritative state never produces Location.

@@ -654,8 +654,10 @@ as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
 plain-counter implementation was authorized. The subsequent salt/uniqueness
 request was approved as the AES-FF1 revision on 2026-10-08 ("done");
 Independent final review is complete; its minor report-output and stale-status
-findings are resolved. Sustained-load acceptance remains blocked by the unavailable
-temporary loopback source. Preserve existing commits and completed checkboxes;
+findings are resolved. Sustained-load acceptance remains incomplete: the native-host full run met
+latency/error thresholds but missed five of 60,000 scheduled arrivals. The local
+pass-through preserves exact backend trust and TLS verification. A quiet host
+or isolated test machine is needed to rerun the strict protocol. Preserve existing commits and completed checkboxes;
 keep Tasks 9–10 active and any PR in draft until the full protocol passes. Do not
 archive partially completed tasks.
 
