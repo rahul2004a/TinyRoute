@@ -116,6 +116,19 @@ Active task files are retained. No merge, deletion, force-push or browser launch
 
 Add rows during approved execution with exact command outcomes, test counts, failure cause/fix, review findings and commit IDs. Do not record credentials, cookies, raw client addresses/hashes, or real destination/owner data. Before compaction, record current task/step, completed commits, outstanding failures and the next concrete action.
 
+2026-10-09 PR CI follow-up: run `37782401827` at `1cf4e04` failed before the
+creation request with `UnfinishedStubbingException` while spying on the final
+transaction-manager commit method. Backend source was identical to the previous
+successful CI run. Replacing the spy with an owner-scoped deferred PostgreSQL
+failure preserves the real commit-boundary contract (NFR-CON-01; NFR-REL-02).
+Observed regression red without the fault fixture: expected 503, received 201.
+Focused green: four handler units and one commit integration test, with no row,
+Location, destination, owner or private cause leakage. Full coverage-enabled
+`spotless:check clean verify` passed: 238 unit + 106 integration tests, zero
+failures/errors/skips, 90.27% line coverage, zero SpotBugs findings. Independent
+review found no issues in the test-only change. PR CI rerun follows the fix commit. No production
+code, schema migration, dependencies or acceptance scope changed.
+
 ## Material limitations to retain
 
 PR CI follow-up: frontend CI passed; backend pre-check initially stopped on the

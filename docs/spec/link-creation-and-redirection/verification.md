@@ -51,6 +51,22 @@ Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), producti
 
 ## Independent final review
 
+PR follow-up on 2026-10-09: [backend run at `1cf4e04`](https://github.com/rahul2004a/TinyRoute/actions/runs/37782401827)
+failed during `LinkCreationCommitFailureIT` setup with Mockito
+`UnfinishedStubbingException` on the final transaction-manager commit method,
+before any creation request. The previous CI run passed with identical backend
+source. The fixture now uses a real PostgreSQL constraint trigger with
+`DEFERRABLE INITIALLY DEFERRED`, scoped to the synthetic test owner and removed
+after the test. A calibration transaction proves the insert finishes before
+commit fails; the HTTP contract still requires 503, no Location, no stored row,
+and no private details (NFR-CON-01; NFR-REL-02). The deferred timing follows the
+[PostgreSQL 17 trigger contract](https://www.postgresql.org/docs/17/sql-createtrigger.html).
+Without the fault the regression failed 503 versus 201; with it, four handler
+unit tests and the commit integration test pass. Full `spotless:check clean verify` passed with 238 unit + 106 integration tests,
+zero failures/errors/skips, 90.27% line coverage and zero SpotBugs findings.
+Independent follow-up review found no issues. PR CI will rerun after the fix is
+pushed; frontend/product code and dependency versions are unchanged.
+
 One independent reviewer inspected base `ecffb917a489cd18770127ede3b1a96f3a0debfb`
 through `26dfcdaa47999a07bbc53507ce45bf3b215bbf9f`, the approved spec/plan,
 verification record and representative UI evidence. No critical implementation
