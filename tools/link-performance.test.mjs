@@ -15,6 +15,7 @@ import {
   evaluateRun,
   requestOptions,
   prepareReportOutput,
+  arrivals,
 } from "./link-performance.mjs";
 
 const good = () => ({
@@ -136,4 +137,76 @@ test("report preflight preserves previous evidence until replacement is ready", 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("open-loop arrivals cap active requests and drain outstanding responses", async () => {
+  let clock = 0;
+  const responses = [];
+  let drainStarted;
+  const waitingForDrain = new Promise((resolve) => {
+    drainStarted = resolve;
+  });
+  const run = arrivals(
+    () =>
+      new Promise((resolve) => {
+        responses.push(resolve);
+      }),
+    {
+      rate: 1000,
+      duration: 1,
+      clients: 100,
+      codes: ["fixture"],
+      apiBase: new URL("https://localhost:8444"),
+    },
+    {
+      now: () => clock,
+      wait: async (ms) => {
+        clock += ms;
+        if (clock >= 1000) drainStarted();
+      },
+    },
+  );
+  await waitingForDrain;
+  assert.equal(responses.length, 256);
+  for (const resolve of responses) resolve({ status: 302 });
+  const result = await run;
+  assert.equal(result.offered, 1000);
+  assert.equal(result.issued, 256);
+  assert.equal(result.completed, 256);
+  assert.equal(result.dropped, 744);
+  assert.equal(result.late, 0);
+  assert.equal(result.clientDurationsMs.length, 256);
+  assert.deepEqual(result.statuses, { 302: 256 });
+});
+
+test("settled arrivals retain complete status and failure evidence", async () => {
+  let clock = 0,
+    count = 0;
+  const result = await arrivals(
+    async () => {
+      count++;
+      if (count % 3 === 0) throw new Error("transport failure");
+      return { status: count % 3 === 1 ? 302 : 503 };
+    },
+    {
+      rate: 100,
+      duration: 1,
+      clients: 100,
+      codes: ["fixture"],
+      apiBase: new URL("https://localhost:8444"),
+    },
+    {
+      now: () => clock,
+      wait: async (ms) => {
+        clock += ms;
+      },
+    },
+  );
+  assert.equal(result.issued, 100);
+  assert.equal(result.completed, 100);
+  assert.equal(result.dropped, 0);
+  assert.equal(result.timeouts, 33);
+  assert.equal(result.non302, 33);
+  assert.equal(result.clientDurationsMs.length, 100);
+  assert.deepEqual(result.statuses, { 302: 34, 503: 33 });
 });

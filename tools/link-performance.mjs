@@ -130,10 +130,17 @@ function transport(agent, localAddress) {
     });
 }
 
-async function arrivals(send, { rate, duration, clients, codes, apiBase }) {
+export async function arrivals(
+  send,
+  { rate, duration, clients, codes, apiBase },
+  {
+    now = () => performance.now(),
+    wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  } = {},
+) {
   const offered = Math.round(rate * duration),
-    started = performance.now();
-  const pending = [],
+    started = now();
+  const pending = new Set(),
     clientDurationsMs = [],
     statuses = {};
   let issued = 0,
@@ -147,11 +154,9 @@ async function arrivals(send, { rate, duration, clients, codes, apiBase }) {
   for (let slot = 0; slot < offered; slot++) {
     const deadline = started + (slot * 1000) / rate;
     let remaining;
-    while ((remaining = deadline - performance.now()) > 0)
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.max(1, Math.min(10, remaining))),
-      );
-    const lateness = Math.max(0, performance.now() - deadline);
+    while ((remaining = deadline - now()) > 0)
+      await wait(Math.max(1, Math.min(10, remaining)));
+    const lateness = Math.max(0, now() - deadline);
     maximumLatenessMs = Math.max(maximumLatenessMs, lateness);
     if (lateness > 100 || inFlight >= 256) {
       dropped++;
@@ -160,36 +165,39 @@ async function arrivals(send, { rate, duration, clients, codes, apiBase }) {
     }
     issued++;
     inFlight++;
-    const requestStart = performance.now();
-    pending.push(
-      send(new URL(`/${codes[slot % codes.length]}`, apiBase), "GET", {
+    const requestStart = now();
+    const request = send(
+      new URL(`/${codes[slot % codes.length]}`, apiBase),
+      "GET",
+      {
         "X-Forwarded-For": `198.51.100.${1 + (slot % clients)}`,
-      })
-        .then(
-          (response) => {
-            statuses[response.status] = (statuses[response.status] ?? 0) + 1;
-            if (response.status !== 302) non302++;
-          },
-          () => {
-            timeouts++;
-          },
-        )
-        .finally(() => {
-          completed++;
-          inFlight--;
-          clientDurationsMs.push(performance.now() - requestStart);
-        }),
-    );
+      },
+    )
+      .then(
+        (response) => {
+          statuses[response.status] = (statuses[response.status] ?? 0) + 1;
+          if (response.status !== 302) non302++;
+        },
+        () => {
+          timeouts++;
+        },
+      )
+      .finally(() => {
+        completed++;
+        inFlight--;
+        clientDurationsMs.push(now() - requestStart);
+        pending.delete(request);
+      });
+    pending.add(request);
   }
-  const remaining = started + duration * 1000 - performance.now();
-  if (remaining > 0)
-    await new Promise((resolve) => setTimeout(resolve, remaining));
+  const remaining = started + duration * 1000 - now();
+  if (remaining > 0) await wait(remaining);
   await Promise.all(pending);
   return {
     offered,
     issued,
     completed,
-    elapsedSeconds: (performance.now() - started) / 1000,
+    elapsedSeconds: (now() - started) / 1000,
     non302,
     timeouts,
     dropped,
@@ -209,6 +217,7 @@ async function main() {
       warmup: { type: "string", default: "30" },
       "create-samples": { type: "string", default: "200" },
       clients: { type: "string", default: "100" },
+      "via-local-proxy": { type: "boolean", default: false },
       output: {
         type: "string",
         default: ".local-verification/link-performance.json",
@@ -244,7 +253,10 @@ async function main() {
     throw new Error("Private fixture token is required");
   await prepareReportOutput(values.output);
   const agent = new https.Agent({ keepAlive: true, maxSockets: 256 });
-  const send = transport(agent, "127.0.0.2");
+  const send = transport(
+    agent,
+    values["via-local-proxy"] ? "127.0.0.1" : "127.0.0.2",
+  );
   const fixtureHeaders = { "X-Verification-Token": token };
   const fixture = async (path, method = "GET") => {
     const response = await send(
@@ -381,6 +393,9 @@ async function main() {
       environment:
         "local disposable PostgreSQL/Redis; production topology unverified",
       nodeVersion: process.version,
+      transportMode: values["via-local-proxy"]
+        ? "local TLS pass-through proxy"
+        : "direct trusted loopback",
       protocol: numbers,
       acceptanceProtocol,
       creation: {

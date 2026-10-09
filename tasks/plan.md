@@ -742,6 +742,21 @@ node tools/link-performance.mjs --api-base https://localhost:8443 --rate 100 --d
 
 Use trusted local certificate validation, e.g. `NODE_EXTRA_CA_CERTS` pointing to the local CA; do not globally disable TLS verification. Run creation and redirect measurements in separately reset timing phases. Document sample clock, nearest-rank computation and collection boundaries.
 
+Execution environment option: the same protocol can run inside a native Linux
+Docker namespace when the host cannot bind `127.0.0.2`. The test-only Java app
+and Node driver share that namespace, with read-only project/classpath mounts,
+disposable PostgreSQL/Redis and a private writable report directory. Keep the
+exact proxy source, TLS validation, normal limits and thresholds. Record image
+IDs, runtime versions and resource limits; this is a local measurement and does
+not establish production topology performance.
+
+If native Linux TLS-client initialization prevents accurate scheduling, use the
+native host Node driver through an owned localhost-only TCP pass-through proxy.
+`--via-local-proxy` changes the client's bind address to host loopback; the proxy
+connects to Java from the original exact trusted source `127.0.0.2`. TLS remains
+end-to-end, headers unchanged, limits and protocol identical. Verify fixture
+access and record the extra hop. This changes the test transport only.
+
 Keep CI integration narrow: classify `tools/link-performance.mjs` and `tools/link-performance.test.mjs` as frontend-verification inputs; add `node --test ../tools/link-performance.test.mjs` to the existing Node 24 verification job. This runs pure harness tests in CI, not the ten-minute load or credentialed live browser suite; record those full runs locally.
 
 - [ ] **9.4 Run focused tests green, then execute the actual protocol.** Record offered/issued/completed, achieved throughput/elapsed time, server p95/p99, client latency separately, statuses/timeouts/error rate, runtime versions, hardware and datastore placement, cache refill behavior and exact command. Passing requires complete offered issuance and samples, creation p95 <500 ms, redirect p95 <150 ms/p99 <300 ms/errors <0.5%. Keep cap defaults enabled. Under-issuance, missing data or failed thresholds keeps this task incomplete; debug and rerun only after a justified fix.

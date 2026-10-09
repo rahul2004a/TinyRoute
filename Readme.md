@@ -347,6 +347,22 @@ with `sudo /sbin/ifconfig lo0 -alias 127.0.0.2`. On systems where 127/8 binding 
 without an alias, no administrator setup is needed. The driver validates local TLS:
 point `NODE_EXTRA_CA_CERTS` at the mkcert root CA, without disabling TLS validation.
 
+An isolated Linux Docker network namespace also supports this protocol without a
+macOS loopback alias. Run the test-only Java entry point there, and attach the
+Node driver with `--network container:<verification-backend>`. Load the verified
+test/runtime classpath and project from read-only mounts; use disposable
+Testcontainers datastores. The driver still binds `127.0.0.2`, validates TLS,
+and uses the unchanged caps and trust settings. Record runtime images, hardware
+and datastore placement alongside the report; this establishes local performance.
+
+A native host driver may instead use `--via-local-proxy`. Publish only
+`127.0.0.1:8444` to a separate TCP listener in the backend's Linux namespace;
+that listener forwards bytes to the loopback-bound Java port with source
+`127.0.0.2`. The driver binds host loopback `127.0.0.1`. Keep TLS end-to-end,
+without terminating TLS or changing headers, and verify guarded fixture access
+before traffic. Record this extra network hop; the backend's exact trust entry,
+CSRF, normal caps and collection boundaries stay unchanged.
+
 ```sh
 node --test tools/link-performance.test.mjs
 node tools/link-performance.mjs --api-base https://localhost:8444 --rate 100 --duration 600 --warmup 30 --create-samples 200 --clients 100 --output .local-verification/link-performance.json
@@ -354,7 +370,9 @@ node tools/link-performance.mjs --api-base https://localhost:8444 --rate 100 --d
 
 The driver creates missing output directories and a private report file before sending
 traffic, rejecting unusable output paths immediately. Existing evidence is preserved
-until a replacement report is ready.
+until a replacement report is ready. Completed request promises are released
+immediately; only the bounded active set is drained. Certificate and hostname
+validation remain enabled.
 
 Run against freshly restarted disposable data if creation quotas were consumed by
 a prior measurement. The driver obtains CSRF for each creation, omits aliases,

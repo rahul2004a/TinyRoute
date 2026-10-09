@@ -131,6 +131,30 @@ code, schema migration, dependencies or acceptance scope changed.
 
 ## Material limitations to retain
 
+2026-10-09 completion run: the macOS alias remained absent. The approved protocol
+is executing in an isolated native Linux Docker namespace, using Java
+21.0.12.1/Node 24.21.0 and disposable PostgreSQL 17.2/Redis 7.4.2. All normal
+limits, TLS verification and the exact trusted source are unchanged. The first
+cold Redis health connection timed out; a later health request returned 200 UP
+without configuration changes. All 200 creates succeeded (server p95 16.24 ms).
+The first full measured run failed: 60,000 offered, 59,954 issued/completed;
+46 scheduling drops, maximum lateness 203.26 ms. Issued requests all returned
+302, server p95/p99 5.68/18.41 ms, zero errors. This report does not satisfy AC-10.
+A 120-second diagnostic reproduced scheduling stalls; measured GC pauses did
+not account for them. Separate idle Linux and host timers had no >50 ms stalls.
+The reviewer identified unnecessary retention of completed driver promises.
+The driver now keeps only active promises, with deterministic cap/drain and
+outcome-accounting tests: missing-export red, 11 green harness tests, 14 green
+CI helper tests, independent follow-up review without findings. CPU/TLS tracing localized pauses to native handshake initialization. Context,
+trust-store, group and session-cache experiments did not fix sustained issuance
+and were not adopted. The native host driver will use an owned local TCP
+pass-through proxy: end-to-end TLS, exact backend proxy source and all caps/
+thresholds unchanged. The native-host 60-second diagnostic passed 6,000/6,000 requests at 100 rps,
+zero errors/drops/late arrivals, maximum lateness 15.67 ms. Health and guarded
+fixture preflight passed; the independent reviewer inspected the byte-only
+relay and found no issues. The fresh full run remains required. No completion
+claim is based on the rejected diagnostics.
+
 PR CI follow-up: frontend CI passed; backend pre-check initially stopped on the
 known public FF1 fixture in `.env.example`. Gitleaks 8.30.1 locally reproduced
 the one finding (red); an exact historical fingerprint exception for the verified
