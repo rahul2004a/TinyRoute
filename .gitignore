@@ -2,5 +2,6 @@
 .env.*
 !.env.example
 .local-certs/
+.local-verification/
 .pnpm-store/
 __pycache__/

@@ -13,7 +13,8 @@ def classify(paths):
     shared_files = {"AGENTS.md", "DESIGN.md", "compose.yml", ".env.example", ".gitattributes"}
     shared_prefixes = (".github/", "docs/requirements/", "docs/architecture/", "docs/decisions/")
     shared = any(path in shared_files or path.startswith(shared_prefixes) for path in paths)
-    return (shared or any(path.startswith("frontend/") for path in paths),
+    frontend_verification = {"tools/link-performance.mjs", "tools/link-performance.test.mjs"}
+    return (shared or any(path.startswith("frontend/") or path in frontend_verification for path in paths),
             shared or any(path.startswith("backend/") for path in paths))
 
 

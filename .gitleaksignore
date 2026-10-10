@@ -1,0 +1,4 @@
+# Public local-only FF1 fixture: Base64 of the sequential bytes 0x00 through 0x1f.
+# This exact historical finding is not a production credential. Keep all other
+# findings, including any new key or commit, subject to the normal secret scan.
+ec6eb36e58d0a845f33024eeafee9a83fa99cf08:.env.example:generic-api-key:54

@@ -1,8 +1,8 @@
 package com.tinyroute.dto.error;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 
 public record ApiErrorResponse(Error error) {
 
@@ -11,83 +11,95 @@ public record ApiErrorResponse(Error error) {
     }
 
     public static ApiErrorResponse authenticationFailed(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "AUTHENTICATION_FAILED",
-                "Authentication is invalid or expired.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error(
+                        "AUTHENTICATION_FAILED",
+                        "Authentication is invalid or expired.",
+                        requestId));
     }
 
     public static ApiErrorResponse refreshConcurrent(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "REFRESH_CONCURRENT",
-                "Another refresh is in progress. Please retry with the current session.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error(
+                        "REFRESH_CONCURRENT",
+                        "Another refresh is in progress. Please retry with the current session.",
+                        requestId));
     }
 
     public static ApiErrorResponse csrfInvalid(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "CSRF_INVALID",
-                "CSRF validation failed.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error("CSRF_INVALID", "CSRF validation failed.", requestId));
     }
 
     public static ApiErrorResponse sessionUnavailable(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "SESSION_UNAVAILABLE",
-                "Session validation is temporarily unavailable.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error(
+                        "SESSION_UNAVAILABLE",
+                        "Session validation is temporarily unavailable.",
+                        requestId));
     }
 
     public static ApiErrorResponse rateLimited(String requestId, long retryAfterSeconds) {
-        return new ApiErrorResponse(new Error(
-                "RATE_LIMITED",
-                "Too many attempts. Please try again later.",
-                null,
-                retryAfterSeconds,
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error(
+                        "RATE_LIMITED",
+                        "Too many attempts. Please try again later.",
+                        null,
+                        retryAfterSeconds,
+                        requestId));
     }
 
     public static ApiErrorResponse otpInvalid(String requestId) {
-        return new ApiErrorResponse(new Error("OTP_INVALID", "The verification code is invalid.", requestId));
+        return new ApiErrorResponse(
+                new Error("OTP_INVALID", "The verification code is invalid.", requestId));
     }
 
     public static ApiErrorResponse otpExpired(String requestId) {
-        return new ApiErrorResponse(new Error("OTP_EXPIRED", "The verification code has expired.", requestId));
+        return new ApiErrorResponse(
+                new Error("OTP_EXPIRED", "The verification code has expired.", requestId));
     }
 
     public static ApiErrorResponse resetTokenInvalid(String requestId) {
-        return new ApiErrorResponse(new Error("RESET_TOKEN_INVALID", "The password reset token is invalid.", requestId));
+        return new ApiErrorResponse(
+                new Error(
+                        "RESET_TOKEN_INVALID", "The password reset token is invalid.", requestId));
     }
 
-    public static ApiErrorResponse validationError(String requestId, Map<String, String> fieldErrors) {
-        return new ApiErrorResponse(new Error(
-                "VALIDATION_ERROR",
-                "The request is invalid.",
-                fieldErrors,
-                null,
-                requestId
-        ));
+    public static ApiErrorResponse validationError(
+            String requestId, Map<String, String> fieldErrors) {
+        return new ApiErrorResponse(
+                new Error(
+                        "VALIDATION_ERROR",
+                        "The request is invalid.",
+                        fieldErrors,
+                        null,
+                        requestId));
     }
 
     public static ApiErrorResponse requestBodyTooLarge(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "VALIDATION_ERROR",
-                "The request body is too large.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error("VALIDATION_ERROR", "The request body is too large.", requestId));
     }
 
     public static ApiErrorResponse serviceUnavailable(String requestId) {
-        return new ApiErrorResponse(new Error(
-                "SERVICE_UNAVAILABLE",
-                "The service is temporarily unavailable.",
-                requestId
-        ));
+        return new ApiErrorResponse(
+                new Error(
+                        "SERVICE_UNAVAILABLE",
+                        "The service is temporarily unavailable.",
+                        requestId));
+    }
+
+    public static ApiErrorResponse aliasUnavailable(String requestId) {
+        return new ApiErrorResponse(
+                new Error("ALIAS_UNAVAILABLE", "This alias is already in use.", requestId));
+    }
+
+    public static ApiErrorResponse codeAllocationFailed(String requestId) {
+        return new ApiErrorResponse(
+                new Error(
+                        "CODE_ALLOCATION_FAILED",
+                        "We couldn't allocate a short code. Please try again.",
+                        requestId));
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -96,8 +108,7 @@ public record ApiErrorResponse(Error error) {
             String message,
             Map<String, String> fieldErrors,
             Long retryAfterSeconds,
-            String requestId
-    ) {
+            String requestId) {
 
         public Error(String code, String message, String requestId) {
             this(code, message, null, null, requestId);

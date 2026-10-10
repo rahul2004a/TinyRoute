@@ -30,6 +30,11 @@ spring:
       ddl-auto: validate
 
 tinyroute:
+  links:
+    short-base-url: ${SHORT_LINK_BASE_URL:https://localhost:8443}
+    # Public local-only fixtures; production must supply independent random key material.
+    code-key: ${SHORT_CODE_KEY:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=}
+    code-salt: ${SHORT_CODE_SALT:tinyroute-local-v1}
   security:
     allowed-origins: ${ALLOWED_FRONTEND_ORIGINS:https://localhost:3000}
   rate-limit:

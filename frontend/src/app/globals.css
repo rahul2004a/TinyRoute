@@ -266,3 +266,62 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), sans-serif;
 }
+
+.link-input {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  color: var(--ink);
+  padding: 8px 12px;
+  font-size: 1rem;
+}
+.link-input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.link-input::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+.link-action,
+.link-secondary {
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-action {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.link-action:hover {
+  background: var(--primary-hover);
+}
+.link-secondary {
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--ink);
+}
+.link-secondary:hover {
+  border-color: var(--border-strong);
+}
+.link-action:disabled,
+.link-secondary:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.link-input:focus-visible,
+.link-action:focus-visible,
+.link-secondary:focus-visible,
+.link-navigation:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.link-navigation {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

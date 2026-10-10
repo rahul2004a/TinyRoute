@@ -67,15 +67,15 @@ are [ADR 0001](docs/decisions/0001-frontend-stack.md),
 
 ## Technology stack
 
-| Area                              | Choice                                                                               |
-| --------------------------------- | ------------------------------------------------------------------------------------ |
-| Frontend                          | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui on Radix UI           |
-| Frontend data and testing         | TanStack Query, React Hook Form + Zod, Vitest/RTL, Playwright                        |
-| Backend                           | Java 21, Spring Boot, Spring Web MVC, Spring Security, Spring Data JPA/Hibernate     |
-| Durable data                      | Supabase managed PostgreSQL in production; PostgreSQL with Flyway migrations          |
-| Ephemeral security and cache data | Redis for refresh sessions, JWT revocations, rate limits, and redirect cache         |
-| Security                          | Argon2id, Spring Security JOSE/Nimbus JWT, OAuth2 Client, CSRF, CORS, secure cookies |
-| Local infrastructure              | Docker Compose: PostgreSQL and Redis only                                            |
+| Area                              | Choice                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Frontend                          | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui on Radix UI                      |
+| Frontend data and testing         | TanStack Query, React Hook Form + Zod, Vitest/RTL, Playwright                                   |
+| Backend                           | Java 21, Spring Boot, Spring Web MVC, Spring Security, Spring Data JPA/Hibernate                |
+| Durable data                      | Supabase managed PostgreSQL in production; PostgreSQL with Flyway migrations                    |
+| Ephemeral security and cache data | Redis for refresh sessions, JWT revocations, rate limits, and redirect cache                    |
+| Security                          | Argon2id, Spring Security JOSE/Nimbus JWT, OAuth2 Client, CSRF, CORS, secure cookies            |
+| Local infrastructure              | Docker Compose: PostgreSQL and Redis only                                                       |
 | Production target                 | Vercel frontend; Hostinger VPS for Spring Boot, Redis, and Caddy; Supabase PostgreSQL (planned) |
 
 ## Repository guide
@@ -226,16 +226,17 @@ credentials, or a populated `.env`/`.env.local` file.
 
 The backend configuration names are explicit:
 
-| Concern | Development and production environment variables |
-| --- | --- |
-| Profile/process | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating Caddy proxy) |
-| PostgreSQL | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` |
-| Redis | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT`, and Spring's `SPRING_DATA_REDIS_PASSWORD` for the private Redis service |
-| Browser/security | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For` |
-| JWT | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
-| Mail | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI` |
-| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_SUCCESS_URI`, `GOOGLE_FAILURE_URI` |
-| Local TLS only | `DEV_TLS_CERTIFICATE`, `DEV_TLS_PRIVATE_KEY` |
+| Concern               | Development and production environment variables                                                                                                                                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile/process       | `SPRING_PROFILES_ACTIVE`; production may also set `SERVER_PORT` (default `8080` behind the TLS-terminating Caddy proxy)                                                                                                                              |
+| PostgreSQL            | Dev: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`; prod: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`                                                                                                            |
+| Redis                 | Dev: `REDIS_PORT`; prod: `REDIS_HOST`, `REDIS_PORT`, and Spring's `SPRING_DATA_REDIS_PASSWORD` for the private Redis service                                                                                                                         |
+| Browser/security      | `ALLOWED_FRONTEND_ORIGINS`, `RATE_LIMIT_HMAC_SECRET`; production also requires `TRUSTED_PROXY_CIDRS` for the exact ingress ranges that append `X-Forwarded-For`                                                                                      |
+| Short-code allocation | `SHORT_LINK_BASE_URL`, `SHORT_CODE_KEY`, `SHORT_CODE_SALT`; production requires a stable secret 32-byte key in canonical Base64 and a fixed 8–64 character ASCII salt (`[A-Za-z0-9:_-]+`)                                                            |
+| JWT                   | `TINYROUTE_JWT_ISSUER`, `TINYROUTE_JWT_AUDIENCE`, `TINYROUTE_JWT_ACTIVE_KEY_ID`, `TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64`, `TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64`; optional retired verification keys use `SPRING_APPLICATION_JSON` |
+| Mail                  | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `REGISTRATION_MAIL_FROM`, `PASSWORD_RESET_CONFIRMATION_URI`                                                                                      |
+| Google OAuth          | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_SUCCESS_URI`, `GOOGLE_FAILURE_URI`                                                                                                                                        |
+| Local TLS only        | `DEV_TLS_CERTIFICATE`, `DEV_TLS_PRIVATE_KEY`                                                                                                                                                                                                         |
 
 The active verification key is associated with `TINYROUTE_JWT_ACTIVE_KEY_ID`.
 During rotation, keep retired public keys until every JWT signed by them has
@@ -244,6 +245,23 @@ expired by adding the `tinyroute.jwt.verification-public-keys` map through
 `{"tinyroute":{"jwt":{"verification-public-keys":{"retired-key-id":"<base64-x509-der>"}}}}`.
 The signing private key and all verification public keys are base64-encoded DER,
 not PEM text.
+
+Generated codes use Redis `code:global` and salted AES-FF1 over eight Base62
+digits (FR-CRE-04/07). Distinct counter values produce distinct generated codes
+under fixed key/salt configuration. Keep this key separate from JWT and rate-limit
+secrets, and keep the key, salt, alphabet, width, and encoder version unchanged
+across creators and deployments. The committed development values are public
+local-only fixtures; production has no defaults. This feature provides no key
+rotation or per-link salt protocol. Public short links remain discoverable URLs.
+
+PostgreSQL stores the final code and committed numeric allocation. Normal
+allocation performs no database availability or high-water query. Missing Redis
+state or a confirmed generated-code conflict recovers from the maximum committed
+allocation, including deleted and expired rows. Aliases and legacy random codes
+have NULL allocation metadata and cannot raise that floor. Retain all code
+reservations. A malformed, expiring, or unavailable counter fails creation safely;
+there is no random or process-local fallback. Redirects do not use this allocator
+and still fall back to PostgreSQL on cache failure (NFR-REL-02).
 
 ### Local HTTPS for registration
 
@@ -293,6 +311,78 @@ port `1025` free and configure the backend mail settings shown above:
 ```sh
 pnpm --dir frontend exec playwright test --config playwright.live.config.ts
 ```
+
+### Disposable link verification and load protocol
+
+The link feature's live gate requires the test-only verification application,
+not an ordinary development database. It launches PostgreSQL/Redis Testcontainers,
+seeds three disposable accounts and 100 links, and exposes loopback/token-guarded
+fixtures only on the test classpath. It is never packaged in the backend image.
+Use existing local TLS certificates and externally activate `dev`. Supply a fresh
+random `TINYROUTE_VERIFICATION_TOKEN` through the environment; keep it private and
+use the same token in the browser/load terminals. Do not put it in command arguments
+or tracked files. No production JWT keys are needed by this test entry point.
+
+```sh
+./backend/mvnw -f backend/pom.xml -B -ntp test-compile
+SPRING_PROFILES_ACTIVE=dev ./backend/mvnw -f backend/pom.xml -B -ntp spring-boot:test-run -Dspring-boot.run.main-class=com.tinyroute.LinkVerificationApplication
+pnpm --dir frontend exec playwright test --config playwright.live.config.ts
+```
+
+Defaults are frontend/backend/SMTP ports 3000/8443/1025. If occupied, use an
+isolated frontend checkout/copy with its own build output, and set
+`TINYROUTE_E2E_FRONTEND_PORT=3001`, `TINYROUTE_VERIFICATION_PORT=8444`,
+`TINYROUTE_E2E_SMTP_PORT=1026`, backend `MAIL_PORT=1026`, and
+`NEXT_PUBLIC_API_BASE_URL=https://localhost:8444`. Match backend
+`ALLOWED_FRONTEND_ORIGINS=https://localhost:3001` and
+`PASSWORD_RESET_CONFIRMATION_URI=https://localhost:3001/password-reset/confirm`.
+Keep certificate references valid in that checkout. Never stop another developer's
+server or point state fixtures at their datastores. The backend test pool is bounded
+to four connections with zero minimum idle; production pool settings are unchanged.
+
+The driver binds source `127.0.0.2`, trusted only by this disposable application;
+ordinary browser `127.0.0.1` traffic stays untrusted. On macOS, add a temporary
+loopback alias with `sudo /sbin/ifconfig lo0 alias 127.0.0.2` and remove it afterwards
+with `sudo /sbin/ifconfig lo0 -alias 127.0.0.2`. On systems where 127/8 binding works
+without an alias, no administrator setup is needed. The driver validates local TLS:
+point `NODE_EXTRA_CA_CERTS` at the mkcert root CA, without disabling TLS validation.
+
+An isolated Linux Docker network namespace also supports this protocol without a
+macOS loopback alias. Run the test-only Java entry point there, and attach the
+Node driver with `--network container:<verification-backend>`. Load the verified
+test/runtime classpath and project from read-only mounts; use disposable
+Testcontainers datastores. The driver still binds `127.0.0.2`, validates TLS,
+and uses the unchanged caps and trust settings. Record runtime images, hardware
+and datastore placement alongside the report; this establishes local performance.
+
+A native host driver may instead use `--via-local-proxy`. Publish only
+`127.0.0.1:8444` to a separate TCP listener in the backend's Linux namespace;
+that listener forwards bytes to the loopback-bound Java port with source
+`127.0.0.2`. The driver binds host loopback `127.0.0.1`. Keep TLS end-to-end,
+without terminating TLS or changing headers, and verify guarded fixture access
+before traffic. Record this extra network hop; the backend's exact trust entry,
+CSRF, normal caps and collection boundaries stay unchanged.
+
+```sh
+node --test tools/link-performance.test.mjs
+node tools/link-performance.mjs --api-base https://localhost:8444 --rate 100 --duration 600 --warmup 30 --create-samples 200 --clients 100 --output .local-verification/link-performance.json
+```
+
+The driver creates missing output directories and a private report file before sending
+traffic, rejecting unusable output paths immediately. Existing evidence is preserved
+until a replacement report is ready. Completed request promises are released
+immediately; only the bounded active set is drained. Certificate and hostname
+validation remain enabled.
+
+Run against freshly restarted disposable data if creation quotas were consumed by
+a prior measurement. The driver obtains CSRF for each creation, omits aliases,
+never retries POST, and never follows a redirect. It retains all statuses and transport
+failures, checks complete issuance/server timing samples, and fails on dropped arrivals
+or scheduling lateness above 100 ms. Server percentiles wrap the full Spring chain;
+client round trips are separate. Operational logs/metrics contain only fixed route,
+method, status and duration, with no link or owner identifiers. See the
+[feature verification record](docs/spec/link-creation-and-redirection/verification.md)
+for the passing local results and production verification limitation (NFR-PER-01–03).
 
 Open `https://localhost:3000/register`. The frontend calls
 `https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
@@ -364,10 +454,10 @@ The exact API and cookie rules for the active authentication feature are in
 | [Functional requirements](docs/requirements/Functional.md)                        | Product behavior, MVP scope, and requirement IDs                         |
 | [Non-functional requirements](docs/requirements/Non-Functional.md)                | Performance, security, reliability, privacy, and deployability targets   |
 | [Architecture](docs/architecture/architecture.md)                                 | System boundaries, configuration, deployment topology, and design rules  |
-| [Hostinger VPS deployment](docs/deployment/hostinger-vps.md)                       | Production prerequisites, operations, CI/CD, and release checks          |
+| [Hostinger VPS deployment](docs/deployment/hostinger-vps.md)                      | Production prerequisites, operations, CI/CD, and release checks          |
 | [Account-authentication specification](docs/spec/account-authentication/spec.md)  | Current feature intent, acceptance criteria, and implementation approach |
 | [Account-authentication contracts](docs/spec/account-authentication/contracts.md) | HTTP, cookie, JWT, CSRF, OAuth, and session semantics                    |
-| [Authentication checklist](docs/spec/account-authentication/todo.md)             | Completed tasks and acceptance checks for authentication                |
+| [Authentication checklist](docs/spec/account-authentication/todo.md)              | Completed tasks and acceptance checks for authentication                 |
 | [Design guide](DESIGN.md)                                                         | Frontend presentation rules only                                         |
 
 ## Contribution rules

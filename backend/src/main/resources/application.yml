@@ -6,6 +6,8 @@ spring:
       - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   data:
     redis:
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:100ms}
+      timeout: ${REDIS_COMMAND_TIMEOUT:100ms}
       repositories:
         enabled: false
   jpa:

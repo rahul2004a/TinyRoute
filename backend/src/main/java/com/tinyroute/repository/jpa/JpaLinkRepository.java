@@ -1,20 +1,63 @@
 package com.tinyroute.repository.jpa;
 
 import com.tinyroute.model.Link;
+import com.tinyroute.model.RedirectLinkState;
 import com.tinyroute.repository.LinkRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-
 public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkRepository {
     @Override
+    @Query(
+            value =
+                    "select token_version from users where id = :ownerId and deleted_at is null for update",
+            nativeQuery = true)
+    Optional<Integer> lockActiveOwnerTokenVersion(@Param("ownerId") UUID ownerId);
+
+    @Override
+    @Modifying
+    @Query(
+            value =
+                    """
+        insert into links (id,code,owner_id,destination_url,status,click_count,created_at,updated_at,expires_at,generation_value)
+        values (:id,:code,:ownerId,:destinationUrl,'ACTIVE',0,:createdAt,:createdAt,:expiresAt,:generationValue)
+        on conflict (code) do nothing
+        """,
+            nativeQuery = true)
+    int insertIfCodeAvailable(
+            @Param("id") UUID id,
+            @Param("code") String code,
+            @Param("ownerId") UUID ownerId,
+            @Param("destinationUrl") String destinationUrl,
+            @Param("createdAt") Instant createdAt,
+            @Param("expiresAt") Instant expiresAt,
+            @Param("generationValue") Long generationValue);
+
+    @Override
+    @Query(
+            value =
+                    "select coalesce(max(generation_value),0) from links where generation_value is not null",
+            nativeQuery = true)
+    long findMaxGenerationValue();
+
+    @Override
+    @Query(
+            """
+        select new com.tinyroute.model.RedirectLinkState(link.code,link.status,link.destinationUrl,link.deletedAt,link.expiresAt)
+          from Link link where link.code = :code
+        """)
+    Optional<RedirectLinkState> findRedirectStateByCode(@Param("code") String code);
+
+    @Override
     @Modifying(flushAutomatically = true)
-    @Query("""
+    @Query(
+            """
             update Link link
                set link.status = com.tinyroute.model.LinkStatus.DELETED,
                    link.deletedAt = coalesce(link.deletedAt, :now),
@@ -24,16 +67,17 @@ public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkReposi
     int tombstoneAllByOwnerId(@Param("ownerId") UUID ownerId, @Param("now") Instant now);
 
     @Override
-    @Query(value = """
+    @Query(
+            value =
+                    """
             select code
               from links
              where owner_id = :ownerId
                and code > :afterCode
              order by code asc
              limit 100
-            """, nativeQuery = true)
+            """,
+            nativeQuery = true)
     List<String> findDeletionCleanupCodes(
-            @Param("ownerId") UUID ownerId,
-            @Param("afterCode") String afterCode
-    );
+            @Param("ownerId") UUID ownerId, @Param("afterCode") String afterCode);
 }

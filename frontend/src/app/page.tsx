@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl items-center px-6 py-16">
@@ -9,9 +11,14 @@ export default function HomePage() {
           Short links, with a clear path back to you.
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-8 text-(--muted-text)">
-          The client foundation is ready for secure account access and link
-          management.
+          Turn an HTTPS destination into a short link you can copy and share.
         </p>
+        <Link
+          href="/links"
+          className="link-action mt-8 inline-flex items-center justify-center"
+        >
+          Create a short link
+        </Link>
       </div>
     </main>
   );

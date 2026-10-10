@@ -1,5 +1,10 @@
 package com.tinyroute.exception;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -7,23 +12,34 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class GlobalExceptionHandlerTest {
+    @Test
+    void aCommitFailureReturnsASafeServiceError() throws Exception {
+        mockMvc.perform(get("/test/commit"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"));
+    }
 
-    private final MockMvc mockMvc = MockMvcBuilders
-            .standaloneSetup(new ThrowingController())
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .build();
+    @Test
+    void roundsRetryGuidanceUpAndMatchesTheResponseHeader() throws Exception {
+        mockMvc.perform(get("/test/rate"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string("Retry-After", "61"))
+                .andExpect(jsonPath("$.error.retryAfterSeconds").value(61));
+    }
+
+    private final MockMvc mockMvc =
+            MockMvcBuilders.standaloneSetup(new ThrowingController())
+                    .setControllerAdvice(new GlobalExceptionHandler())
+                    .build();
 
     @Test
     void returnsASafeAuthenticationErrorForAnInvalidAccessToken() throws Exception {
         mockMvc.perform(get("/test/protected").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("AUTHENTICATION_FAILED"))
-                .andExpect(jsonPath("$.error.message").value("Authentication is invalid or expired."))
+                .andExpect(
+                        jsonPath("$.error.message").value("Authentication is invalid or expired."))
                 .andExpect(jsonPath("$.error.requestId").isNotEmpty());
     }
 
@@ -37,6 +53,16 @@ class GlobalExceptionHandlerTest {
 
     @RestController
     static final class ThrowingController {
+        @GetMapping("/test/commit")
+        void commit() {
+            throw new org.springframework.transaction.TransactionSystemException(
+                    "private database details");
+        }
+
+        @GetMapping("/test/rate")
+        void rate() {
+            throw new RateLimitExceededException(java.time.Duration.ofMillis(60001));
+        }
 
         @GetMapping("/test/protected")
         void protectedEndpoint() {

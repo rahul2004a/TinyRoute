@@ -79,6 +79,8 @@ jobs:
         run: pnpm typecheck
       - name: Vitest unit and component tests
         run: pnpm test --run
+      - name: Link load harness self-tests
+        run: node --test ../tools/link-performance.test.mjs
       - name: Next.js production build
         run: pnpm build
 

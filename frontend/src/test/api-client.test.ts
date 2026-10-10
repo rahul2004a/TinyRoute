@@ -78,6 +78,26 @@ describe("apiRequest", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it.each(["ALIAS_UNAVAILABLE", "CODE_ALLOCATION_FAILED"])(
+    "preserves the documented link error %s",
+    async (code) => {
+      const apiError = {
+        error: { code, message: "Safe link error", requestId: "fixture" },
+      };
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response(JSON.stringify(apiError), { status: 409 }),
+          ),
+      );
+      await expect(
+        apiRequest("/api/links", { responseSchema }),
+      ).rejects.toMatchObject({ status: 409, apiError });
+    },
+  );
+
   it("rejects an HTTP API base URL before sending credentials", async () => {
     process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8080";
     const fetchMock = vi.fn();

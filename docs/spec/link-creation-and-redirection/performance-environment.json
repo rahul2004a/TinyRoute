@@ -1,0 +1,39 @@
+{
+  "environment": "local native macOS driver and native Linux verification backend on Docker Desktop; not production topology",
+  "javaVersion": "Temurin 21.0.12.1+1 LTS linux/arm64",
+  "nodeVersion": "v24.21.0 darwin/arm64",
+  "postgresqlImage": "postgres:17.2-alpine",
+  "redisImage": "redis:7.4.2-alpine",
+  "backendRuntimeImage": "sha256:dd0f8893ef28263c4698aa8c0af3f1bda09720728d4c2684f583e5a3778ee695",
+  "driverRuntimeImage": null,
+  "dockerVersion": "29.8.0",
+  "dockerCpus": 8,
+  "dockerMemoryBytes": 4106604544,
+  "testConnectionPool": {
+    "maximumPoolSize": 4,
+    "minimumIdle": 0
+  },
+  "hostCpu": "Apple M2",
+  "hostMemoryBytes": 8589934592,
+  "macOSVersion": "26.6.2",
+  "featureCommit": "a44929dc5cbee4c5fdee9e669b1e3cf14fe85991",
+  "measurementBoundary": "System.nanoTime around the complete Spring filter chain; warm-up excluded; client round trips retained separately",
+  "rateLimits": "unchanged defaults, 100 creates per hour per account and 600 redirects per minute per client",
+  "topology": "native macOS Node driver -> localhost-only Docker TCP pass-through -> loopback Java TLS endpoint; relay upstream is the exact existing trusted source; PostgreSQL/Redis are disposable Docker Desktop containers",
+  "harnessSha256": "d5ba8165d8b64d5d8b847f7b5c87f1c992daa2860f9737a5819583849fe7b229",
+  "proxyRuntimeImage": "sha256:81afb84edcc18a694854a92496ec01345ea30cd2d0a40366b5b41fd584bb0ed5",
+  "transportMode": "local TLS pass-through proxy",
+  "acceptanceStatus": "PASSED: full local protocol; production topology unverified",
+  "reportFile": "link-performance.json.gz",
+  "reportSha256": "10c5e21db64391f97de304777f49ea53bd167982936ce66432e48413e9531456",
+  "tlsNegativeChecks": {
+    "wrongHostname": "ERR_TLS_CERT_ALTNAME_INVALID",
+    "untrustedCertificate": "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
+  },
+  "powerHistory": {
+    "source": "macOS pmset sleep history",
+    "sleepEventsDuringAttempt": [],
+    "lidOpenAndAcPowerVerifiedBeforeAttempt": true
+  },
+  "recordedAt": "2026-10-10T10:25:37.216Z"
+}
