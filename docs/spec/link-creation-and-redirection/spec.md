@@ -10,13 +10,14 @@
   This revision and its revised plan were approved 2026-10-08 ("ok do now").
   A subsequent request adds salt and rejects truncated HMAC to avoid generated
   collisions. The AES-FF1 written spec/plan was approved 2026-10-08 ("done");
-  Task 7A is implemented and verified. Tasks 1–9 are complete, including the
-  passing local sustained-load run on 2026-10-10. Independent feature review is
-  complete; final evidence/readiness follow-up remains before archival.
+  Task 7A is implemented and verified. Tasks 1–10 are complete, including the
+  passing local sustained-load run on 2026-10-10. Independent feature/evidence
+  review and the final readiness audit are complete.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
 - Branch: `feature/link-creation-and-redirection`, based on `origin/main`
   commit `ecffb917a489cd18770127ede3b1a96f3a0debfb`.
+- Completed implementation records: [plan](plan.md) and [checklist](todo.md).
 
 ## Authority and outcome
 
@@ -648,9 +649,9 @@ was changed to work around that environment restriction.
 The existing feature branch is now checked out in the shared project workspace;
 the initial temporary worktree is detached at the same base commit. The saved
 specification was approved on 2026-10-07 and original plan on 2026-10-08.
-Tasks 1–9, including Task 7A, are implemented and verified. The
+Tasks 1–10, including Task 7A, are complete and verified. The
 user requested Redis-counter alignment on 2026-10-08. This revised specification,
-architecture, and `tasks/plan.md`/`tasks/todo.md` record the approved replacement
+architecture, and the archived [plan](plan.md)/[checklist](todo.md) record the approved replacement
 as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
 plain-counter implementation was authorized. The subsequent salt/uniqueness
 request was approved as the AES-FF1 revision on 2026-10-08 ("done");
@@ -660,9 +661,9 @@ findings are resolved. The full local sustained-load protocol passed on
 p95/p99 8.48/40.59 ms and creation p95 35.78 ms. Earlier failed reports remain
 rejected; a lid-closed sleep interruption was identified and the passing session
 had no overlapping sleep events. The local pass-through preserves exact backend
-trust and TLS verification. Preserve existing commits and completed checkboxes;
-keep Task 10 active and the PR in draft until final evidence/readiness review
-passes. Do not archive partially completed tasks.
+trust and TLS verification. Final evidence/readiness review is complete; its
+minor status reconciliation is resolved. The completed task files are archived
+beside this specification with checked boxes and corrected local links.
 
 Final independent review must examine atomic counter allocation, recovery and
 capacity, alias/legacy compatibility, namespace/collision safety, transaction

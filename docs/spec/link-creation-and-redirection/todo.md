@@ -2,10 +2,10 @@
 
 - Feature: `link-creation-and-redirection`
 - Branch: `feature/link-creation-and-redirection`
-- Specification: [approved feature spec](../docs/spec/link-creation-and-redirection/spec.md)
+- Specification: [approved feature spec](spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **Tasks 1–9, including 7A, complete; the full local load protocol passed 2026-10-10. Original plan approved 2026-10-08; plain-counter revision approved 2026-10-08 ("ok do now"), and salted FF1 revision approved 2026-10-08 ("done"). Independent feature review is complete; Task 10 final evidence/readiness follow-up remains active before archival and PR readiness.**
+- Current state: **all Tasks 1–10 (including 7A), acceptance criteria and review/check gates complete on 2026-10-10. Full local load protocol passed; independent final feature/evidence review complete with minor status findings resolved. Evidence commit `5244944`. Completed task records are archived beside the approved specification.**
 
 ## Approval gates and baseline
 
@@ -37,7 +37,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 7A. HLD Redis-counter generation — fixed-key/salt FF1 Base62 encoding, V6 metadata, atomic allocation/recovery, alias/legacy compatibility, bounded safe failures, and affected regressions.
 - [x] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
 - [x] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
-- [ ] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
+- [x] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
 
 ## Acceptance checklist
 
@@ -61,14 +61,14 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] Full contract and live Playwright suites pass with disposable accounts/datastores.
 - [x] Complete local load protocol and harness self-tests pass; raw report summarized in verification.md.
 - [x] Sanitized UI evidence reviewed for layout, keyboard, focus, contrast and target sizes.
-- [x] One independent final review completed; minor findings fixed and affected checks rerun. Final evidence/readiness follow-up is pending.
+- [x] One independent final review completed; minor findings fixed and affected checks rerun. Final evidence/readiness follow-up is complete.
 - [x] No analytics/events/click increments, extra production endpoints, secrets, unrelated changes or production provisioning.
 - [x] Documentation and acceptance mapping reflect actual results and material limitations.
-- [ ] Every implementation task/AC complete; documentation links checked and records ready for archive.
+- [x] Every implementation task/AC complete; documentation links checked and records ready for archive.
 
 ## Post-completion delivery record
 
-Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks, independent feature review and local sustained-load acceptance complete; Task 10 final evidence/readiness follow-up remains active. Keep PR #15 draft until that audit passes. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
+All implementation tasks, acceptance criteria, independent review, relevant checks and documentation audits are complete. The fully checked plan/checklist are archived beside the specification. Evidence commit: `5244944`; archive delivery follows on the same feature branch. Push without force and update PR #15 using its template. The user owns merge; no branch deletion or browser launch.
 
 ## Durable execution ledger
 
@@ -231,3 +231,5 @@ pass. Backend/frontend product source is unchanged from the fully verified
 Compose services were untouched. Local AC-10 is supported; production topology
 performance remains a release limitation. Finalize the task records and archive
 after the final readiness/link audit.
+
+2026-10-10 Task 10 complete: independent evidence review and status reconciliation finished; fresh 11 harness/14 CI helper tests and documentation formatting/link/whitespace checks pass. All twelve acceptance criteria and every implementation/review checkbox are complete. Evidence commit `5244944`; the fully completed plan/checklist are archived under this feature, with relative links corrected. No application, harness, dependency, production configuration or scope change after the passing measurement. Production topology performance remains unverified. Authorized delivery is commit, push and update PR #15; no merge, branch deletion or force-push.

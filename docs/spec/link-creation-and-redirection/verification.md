@@ -1,10 +1,10 @@
 # Link creation and redirection verification
 
 Feature `link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`.
-Status: implementation, browser/live verification and the full local sustained-load protocol pass. Independent feature review is complete; final evidence/readiness follow-up is pending. Local measurements do not establish production performance.
+Status: implementation, browser/live verification, the full local sustained-load protocol and final evidence/readiness review pass. All feature tasks and acceptance criteria are complete. Local measurements do not establish production performance.
 
-Delivery: [draft PR #15](https://github.com/rahul2004a/TinyRoute/pull/15).
-The active plan/checklist are retained until final evidence review and completion readiness pass.
+Delivery: [PR #15](https://github.com/rahul2004a/TinyRoute/pull/15).
+Completed task records: [plan](plan.md) and [checklist](todo.md), archived on 2026-10-10.
 
 ## Counter, encoding and migration
 
@@ -146,8 +146,8 @@ and frontend results remain applicable (NFR-PER-01–03; NFR-TST-01/02).
 ## Outstanding completion gates and limitations
 
 - Independent final review is complete; its minor report preflight and stale-status findings are fixed and affected checks pass.
-- Complete final evidence/readiness follow-up; the passing local report above satisfies AC-10.
+- All local acceptance, independent review and task-archive gates are complete; the passing report above satisfies AC-10.
 - Keep fixed FF1 key/salt configuration; rotation requires a future namespace/recovery design. Short links are public URLs, not authorization tokens.
 - Local benchmarks do not establish latency or availability on Hostinger/nearby Supabase/Vercel. Verify the production topology before release.
 - Cache changes may converge within the bounded five-second snapshot window; expiry is enforced at its exact instant, including cached results. Redis cache failure falls back to PostgreSQL; unknown authoritative state never produces Location.
-- Archive active tasks only when all local acceptance and review gates pass; never merge/delete branches or force-push.
+- Completed plan/checklist are archived beside this record. Merge and branch deletion remain the user's decision; no force-push.

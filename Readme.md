@@ -382,7 +382,7 @@ or scheduling lateness above 100 ms. Server percentiles wrap the full Spring cha
 client round trips are separate. Operational logs/metrics contain only fixed route,
 method, status and duration, with no link or owner identifiers. See the
 [feature verification record](docs/spec/link-creation-and-redirection/verification.md)
-for current results and outstanding local/production gates (NFR-PER-01–03).
+for the passing local results and production verification limitation (NFR-PER-01–03).
 
 Open `https://localhost:3000/register`. The frontend calls
 `https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
