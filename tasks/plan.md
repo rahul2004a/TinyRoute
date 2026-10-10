@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Feature and branch: `link-creation-and-redirection`, `feature/link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`. Check branch, status, and active tasks before every resumed execution. Stop for unrelated changes or another feature's incomplete tasks.
-- Current gate: original approach/spec/plan approved (plan approval 2026-10-08); Tasks 1–8, including Task 7A, complete; Task 9 sustained-load acceptance incomplete. User-requested Redis-counter spec/plan revision approved 2026-10-08 ("ok do now"). The salted AES-FF1 spec/plan revision was approved 2026-10-08 ("done"). Independent final review is complete; retain Tasks 9–10 until the full load protocol passes.
+- Current gate: Tasks 1–9, including Task 7A, complete; the full local sustained-load protocol passed 2026-10-10. Original plan approved 2026-10-08; Redis-counter revision approved 2026-10-08 ("ok do now"), and salted AES-FF1 revision approved 2026-10-08 ("done"). Independent feature review is complete; Task 10 final evidence/readiness follow-up remains active before archival.
 - Keep the locked stack, layer-first Java packages, repository/store interfaces, and existing authentication contract. Never put ownership, redirect policy, or API proxies in Next.js.
 - Exclude all analytics, click increments/events, link-management endpoints/UI, auth implementation, blocklists, safe browsing, API keys, and admin tools. Existing `click_count` remains zero for new links.
 - PostgreSQL is authoritative. Do not change applied migrations or remove expired/deleted rows. Add V6 for nullable, indexed, range-checked `generation_value`; retain NULL on aliases/legacy random rows. Commit metadata in the same insert as the generated code.
@@ -52,7 +52,7 @@ Paths below are exact planned files, not new feature packages. Java main paths h
 
 ## Dependencies and execution rules
 
-Tasks **1–8, including 7A, are complete under the recorded approvals**; their checked steps below retain the actual implementation history. The fixed-key/salt FF1 generator and browser/live evidence are committed. Task 9 timing support is verified, but full runs have failed strict issuance; sustained-load acceptance remains incomplete. Independent final review is complete; Task 10 readiness and archival depend on the missing load evidence. No implementation agents or routine checkpoint approval pauses are required.
+Tasks **1–9, including 7A, are complete under the recorded approvals**; their checked steps below retain the actual implementation history. The fixed-key/salt FF1 generator and browser/live evidence are committed. The full local load protocol passed 2026-10-10; earlier failed runs remain rejected. Independent feature review is complete; Task 10 final evidence/readiness follow-up remains before archival. No implementation agents or routine checkpoint approval pauses are required.
 
 Every task follows red → observed expected failure → minimal implementation → green/refactor → focused verification → commit. A compile failure caused by a deliberately absent new type is acceptable initial red evidence; an infrastructure failure is not a behavioral red. Use `systematic-debugging` for unexpected failures. Record command/result, red/green evidence, commits, decisions, and unresolved issues in `tasks/todo.md` before moving on or context compaction. Do not claim passes without executing commands.
 
@@ -759,8 +759,8 @@ access and record the extra hop. This changes the test transport only.
 
 Keep CI integration narrow: classify `tools/link-performance.mjs` and `tools/link-performance.test.mjs` as frontend-verification inputs; add `node --test ../tools/link-performance.test.mjs` to the existing Node 24 verification job. This runs pure harness tests in CI, not the ten-minute load or credentialed live browser suite; record those full runs locally.
 
-- [ ] **9.4 Run focused tests green, then execute the actual protocol.** Record offered/issued/completed, achieved throughput/elapsed time, server p95/p99, client latency separately, statuses/timeouts/error rate, runtime versions, hardware and datastore placement, cache refill behavior and exact command. Passing requires complete offered issuance and samples, creation p95 <500 ms, redirect p95 <150 ms/p99 <300 ms/errors <0.5%. Keep cap defaults enabled. Under-issuance, missing data or failed thresholds keeps this task incomplete; debug and rerun only after a justified fix.
-- [ ] **9.5 Update reproducible docs/evidence and commit:** `git commit -m "perf: verify sustained redirect and creation latency"`. Label local results local; Hostinger/nearby Supabase remains an explicit production release verification limitation, not a production claim.
+- [x] **9.4 Run focused tests green, then execute the actual protocol.** Record offered/issued/completed, achieved throughput/elapsed time, server p95/p99, client latency separately, statuses/timeouts/error rate, runtime versions, hardware and datastore placement, cache refill behavior and exact command. Passing requires complete offered issuance and samples, creation p95 <500 ms, redirect p95 <150 ms/p99 <300 ms/errors <0.5%. Keep cap defaults enabled. Under-issuance, missing data or failed thresholds keeps this task incomplete; debug and rerun only after a justified fix.
+- [x] **9.5 Update reproducible docs/evidence and commit:** `git commit -m "perf: verify sustained redirect and creation latency"`. Label local results local; Hostinger/nearby Supabase remains an explicit production release verification limitation, not a production claim.
 
 ## Task 10: Independent review and completion readiness
 
@@ -792,13 +792,13 @@ git diff --check
 Expected: all pass, full backend line coverage ≥70%, complete critical-path cases, all browser journeys pass. Record exact counts/durations/coverage and attach runtime/load/UI evidence. Dependency/CI checks remain enabled; do not rerun ten-minute load without a relevant change or unresolved performance concern. Backend Mockito attachment/Docker or network restrictions may require the ordinary permission escalation, never a source workaround.
 
 Recorded outcome: all listed full checks passed, including 344 backend tests,
-90.27% line coverage, 77 frontend tests, 27 browser contracts, two live journeys,
-nine Node harness tests and 14 CI helper tests. Independent review fixes and
-documentation links are verified. Backend and frontend PR CI passed at `22f241b`,
-including CodeQL and dependency/image scans. The acceptance matrix correctly
-leaves AC-10 open: the actual load report belongs to Task 9 and remains required
-before readiness (10.3) and final task completion (10.4). Checking this step does
-not claim performance acceptance or authorize archival.
+90.27% line coverage, 77 frontend tests, 27 browser contracts and two live journeys.
+Current harness/CI helper reruns pass 11/14 tests. Independent review fixes and
+documentation links are verified. All eight backend/frontend CI checks passed at
+source checkpoint `a44929d`, including CodeQL and dependency/image scans. The
+separate Task 9 load gate passed on 2026-10-10 with 60,000/60,000 requests, complete
+timing samples and strict latency/error targets. AC-10 is now complete; final
+evidence/readiness follow-up remains before Task 10 completion and archival.
 
 - [x] **10.2 Request one independent final review using `requesting-code-review`.** Delegate review only, supply base/current commit IDs, approved spec/plan, diff and evidence. Reviewer must inspect Review Focus below and report concrete severity/file/line findings, including missing verification. Apply `receiving-code-review`; verify findings, write a regression red test for behavioral fixes, implement minimally, run affected checks green, and record follow-up commits. No new implementation delegation. Repeat only the checks made stale by changes; rerun full affected backend/frontend gates if fixes alter that side. A load-affecting fix requires new full load evidence.
 - [ ] **10.3 Complete documentation and readiness audit.** All implementation/AC checks and required evidence must be done, blocking review findings resolved, production limitations explicit. If required local work cannot finish, leave tasks active, describe the exact blocker and create/update a draft PR; do not mark it ready or archive. Record approved status/timestamps in spec without changing its substantive contract.
@@ -833,4 +833,4 @@ Final reviewer checks: fixed-key/salt FF1 bijection, thread safety, validated se
 
 ## Planning self-review
 
-Original self-review completed 2026-10-07; original plan approved 2026-10-08 and Tasks 1–7 executed. Redis-counter revision self-review completed 2026-10-08: Task 7A replaces the generator/insert interfaces, adds V6 and an external-store boundary, covers atomic initialization/recovery/alias/legacy failures, and updates acceptance/performance mappings. Completed history remains checked; Task 8 is now complete and Tasks 9/10 remain active until sustained-load acceptance passes. No new dependency, authentication/UI policy, analytics, or production provisioning change is planned. The plain-counter revision was approved 2026-10-08 ("ok do now"). The salted FF1 revision was self-reviewed and approved 2026-10-08 ("done"): FF1 retains a one-to-one mapping and eight-character length, uses the existing dependency, and explicitly requires fixed key/salt configuration. Tasks 7A and 8 are implemented and verified; independent review is complete and its minor harness/documentation findings are resolved. Sustained-load evidence remains pending.
+Original self-review completed 2026-10-07; original plan approved 2026-10-08 and Tasks 1–7 executed. Redis-counter revision self-review completed 2026-10-08: Task 7A replaces the generator/insert interfaces, adds V6 and an external-store boundary, covers atomic initialization/recovery/alias/legacy failures, and updates acceptance/performance mappings. Completed history remains checked; Task 8 is now complete and Tasks 9/10 remain active until sustained-load acceptance passes. No new dependency, authentication/UI policy, analytics, or production provisioning change is planned. The plain-counter revision was approved 2026-10-08 ("ok do now"). The salted FF1 revision was self-reviewed and approved 2026-10-08 ("done"): FF1 retains a one-to-one mapping and eight-character length, uses the existing dependency, and explicitly requires fixed key/salt configuration. Tasks 7A and 8 are implemented and verified; independent review is complete and its minor harness/documentation findings are resolved. Completion update 2026-10-10: the full local sustained-load protocol now passes; Task 10 final evidence/readiness follow-up remains before archival.

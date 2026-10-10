@@ -1,10 +1,10 @@
 # Link creation and redirection verification
 
 Feature `link-creation-and-redirection`; base `ecffb917a489cd18770127ede3b1a96f3a0debfb`.
-Status: feature implementation and browser/live verification are complete; independent final review is complete and sustained load evidence is pending. This is not a completion or production performance claim.
+Status: implementation, browser/live verification and the full local sustained-load protocol pass. Independent feature review is complete; final evidence/readiness follow-up is pending. Local measurements do not establish production performance.
 
 Delivery: [draft PR #15](https://github.com/rahul2004a/TinyRoute/pull/15).
-The active plan/checklist are retained until AC-10 and completion readiness pass.
+The active plan/checklist are retained until final evidence review and completion readiness pass.
 
 ## Counter, encoding and migration
 
@@ -22,44 +22,67 @@ Disposable backend fixture/isolation integration: four tests passed. `/__verific
 
 Both live journeys passed on isolated frontend/backend ports 3001/8444, including actual clipboard copying, anonymous GET/HEAD, case mismatch, custom-alias conflict, cached disabled/deleted convergence, exact cached expiry and account-deletion redirects. Initial live link journey correctly failed on a repeated submission with stale CSRF: a private diagnostic confirmed that the existing authenticated request flow rotates its CSRF cookie. The new regression failed first, then link creation was changed to bootstrap CSRF before each manual mutation and clear the cache afterward. No backend authentication policy changes or POST retries. Full live rerun passed: both authentication and link journeys, 2 tests in 1.1 minutes (FR-CRE-02; NFR-SEC-09).
 
-## Operational timing and pending load protocol
+## Operational timing and sustained-load results
 
 Timing uses `System.nanoTime` around the complete application filter chain, including authentication, CSRF, limits, allocation, FF1, PostgreSQL commit and redirect resolution. Fixed route/method/status/duration fields only; no code, destination, owner, cookie, client address or hash. The bounded test-only collector holds 100,000 records and fails evidence on overflow. No click counting/events/analytics are implemented (NFR-PER-01/02/03; NFR-OBS-01).
 
 TDD red: missing timing filter and load module; CI harness classification failed. Green: three timing-filter tests, six Node harness self-tests and 14 CI helper tests. Guarded timing-fixture read/reset and production-isolation tests passed.
 
-Planned measured protocol: 200 successful counter-generated creates across three disposable accounts; 30-second redirect warm-up; 100 requests/second for 600 seconds across 100 codes/clients, with default limits enabled. Built-in HTTPS never follows redirects and validates the local certificate chain. Open-loop arrivals allow at most 100 ms scheduling lateness; any dropped or excessively late arrival fails the run. Complete issuance/completion/server samples are required. All non-302 and transport failures remain in the denominator. Server nearest-rank p95/p99 are separate from client round trips. Achieved throughput must be at least 99.5 rps; strict latency/error thresholds remain <150/<300 ms/<0.5%, creation p95 <500 ms.
+Measured protocol: 200 successful counter-generated creates across three disposable accounts; 30-second redirect warm-up; 100 requests/second for 600 seconds across 100 codes/clients, with default limits enabled. Built-in HTTPS never follows redirects and validates the local certificate chain. Open-loop arrivals allow at most 100 ms scheduling lateness; any dropped or excessively late arrival fails the run. Complete issuance/completion/server samples are required. All non-302 and transport failures remain in the denominator. Server nearest-rank p95/p99 are separate from client round trips. Achieved throughput must be at least 99.5 rps; strict latency/error thresholds remain <150/<300 ms/<0.5%, creation p95 <500 ms.
 
-Two complete-duration local attempts did not pass the strict issuance gate.
-The direct Linux driver issued 59,954/60,000 requests (46 late drops, max 203.26 ms),
-with server p95/p99 5.68/18.41 ms and zero request errors. The native macOS driver
-through a local TCP pass-through issued 59,995/60,000 requests (five late drops,
-max 125.26 ms), with server p95/p99 8.29/69.63 ms and zero request errors. Its 200
-creates all succeeded with server p95 23.30 ms. These latency observations do
-**not** establish AC-10 because complete issuance is mandatory.
-
-The explicitly [failed raw report](failed-local-load.json.gz),
+The full local protocol passed on 2026-10-10 at source checkpoint `a44929d`.
+The [compressed raw numeric report](link-performance.json.gz),
 [runtime/hardware metadata](performance-environment.json), and
-[reproducible relay setup/source](performance-setup.md) retain the actual result.
-The native driver validated certificates and hostname end-to-end; health and
-source-guarded bootstrap returned 200. Wrong-hostname and untrusted-certificate
-probes were rejected. Backend trust stayed exactly `127.0.0.2/32`, with default
-100 creations/hour/account and 600 redirects/minute/client. The proxy changed no
-TLS bytes or HTTP headers. No production configuration changed.
+[reproducible relay setup/source](performance-setup.md) retain the evidence.
+A separate local audit recomputed every reported percentile and verified
+counts, protocol, status distributions, finite samples and the harness hash
+before saving it (NFR-PER-01–03; NFR-TST-03).
 
-Diagnostics localized Linux-client stalls to native TLS setup. Context, CA,
-group and session-cache experiments did not fix sustained issuance and were not
-adopted. Independent review identified unnecessary settled-promise retention;
-checkpoint `d3124b7` fixes it and supports the byte relay. Eleven harness tests and
-14 CI helper tests pass. Both the relay and driver changes were independently
-reviewed without findings. A later transport-worker experiment performed worse
-and was discarded. The underlying host/runtime scheduling problem is unresolved.
-A quiet uninterrupted session or isolated test machine is needed for another
-full run; the user has been asked. Tasks 9–10 remain active and the PR remains draft.
-Independent follow-up review recomputed the raw report's percentiles, counts and
-checksums and checked its privacy and reproducible setup; no findings. This does
-not approve AC-10 completion. The owned backend and relay verification containers
-were stopped and removed after measurement.
+| Measurement                                            | Result                                  | Required            |
+| ------------------------------------------------------ | --------------------------------------- | ------------------- |
+| Successful creates / server samples                    | 200 / 200                               | ≥200                |
+| Creation server p95                                    | 35.78 ms                                | <500 ms             |
+| Redirect offered / issued / completed / server samples | 60,000 / 60,000 / 60,000 / 60,000       | Complete            |
+| Measured elapsed / achieved throughput                 | 600.003 s / 99.999 rps                  | 600 s / ≥99.5 rps   |
+| Redirect server p95 / p99                              | 8.48 / 40.59 ms                         | <150 / <300 ms      |
+| Redirect client p95 / p99, including relay             | 17.81 / 115.36 ms                       | Reported separately |
+| HTTP outcomes                                          | 200 creates: 201; 60,000 redirects: 302 | Successful outcomes |
+| Non-302 / transport failures / error rate              | 0 / 0 / 0%                              | <0.5%               |
+| Dropped / excessively late / collector overflow        | 0 / 0 / false                           | None                |
+| Maximum scheduling lateness                            | 77.42 ms                                | ≤100 ms             |
+
+The native macOS driver validated certificates and hostname end-to-end; health
+and source-guarded bootstrap returned 200. Fresh negative probes rejected a wrong
+hostname (`ERR_TLS_CERT_ALTNAME_INVALID`) and an untrusted certificate
+(`UNABLE_TO_VERIFY_LEAF_SIGNATURE`). Backend trust stayed exactly `127.0.0.2/32`,
+with default 100 creations/hour/account and 600 redirects/minute/client. The
+localhost-only relay changed no TLS bytes or HTTP headers. The Mac was on AC
+power with the lid open; power history contains no sleep event during this
+attempt. No application configuration, limits, thresholds or production settings
+changed to obtain the pass. Normal five-second cache snapshots expired and
+refilled throughout the 600-second phase.
+
+Earlier failed attempts remain rejected. The direct Linux driver issued
+59,954/60,000 requests (46 late drops, max 203.26 ms); the first native macOS run
+issued 59,995/60,000 (five late drops, max 125.26 ms). The explicitly
+[failed raw report](failed-local-load.json.gz) and its
+[separate metadata](failed-performance-environment.json) retain that native run.
+A subsequent retry issued 55,998/60,000 with 4,002 late drops, maximum lateness
+39,843.27 ms and two transport failures. macOS logged `Clamshell Sleep` from
+15:34:16 to 15:34:56 IST on 2026-10-10, matching the large gap. It was rejected;
+fresh disposable data and an open-lid session were used for the passing attempt.
+
+Diagnostics localized earlier Linux-client stalls to native TLS setup. Context,
+CA, group and session-cache experiments did not fix issuance and were not adopted.
+Checkpoint `d3124b7` releases settled promises and supports the byte relay;
+11 harness tests and 14 CI helper tests pass. Both changes were independently
+reviewed without findings. A transport-worker experiment was discarded. The
+shorter stalls in older runs are not attributed to lid sleep without evidence.
+Independent final evidence review recomputed the passing result, checked both
+report/metadata hashes, harness identity, privacy, setup syntax and local links.
+No critical or important findings; minor stale spec/architecture/plan status text
+was reconciled. The owned backend/relay containers were stopped and removed after
+measurement and TLS checks; the owner's Compose services were untouched.
 
 ## Full check results
 
@@ -76,7 +99,7 @@ dependency/image scans: [backend run](https://github.com/rahul2004a/TinyRoute/ac
 and [frontend run](https://github.com/rahul2004a/TinyRoute/actions/runs/37777646123).
 The initial skipped jobs are superseded by these successful results.
 
-Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Node harness self-tests (9, including final-review filesystem regressions) and CI helper tests (14) passed. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
+Frontend lint/format/typecheck, full Vitest (77 tests across 16 files), production webpack build and full contract Playwright (27 tests in 31.7 seconds) passed after the CSRF regression fix. Full live suite passed 2 journeys in 1.1 minutes. Current Node harness self-tests (11, including filesystem and scheduler regressions) and CI helper tests (14) passed again on 2026-10-10. Frozen dependencies were restored after sandbox DNS restrictions interrupted checks; no dependency versions changed.
 
 ## Independent final review
 
@@ -98,6 +121,12 @@ Independent follow-up review found no issues. All eight CI checks passed at
 and [frontend](https://github.com/rahul2004a/TinyRoute/actions/runs/37894704649).
 Frontend/product code and dependency versions are unchanged.
 
+All eight CI checks also passed at the measured source checkpoint `a44929d`:
+[backend](https://github.com/rahul2004a/TinyRoute/actions/runs/38030909201) and
+[frontend](https://github.com/rahul2004a/TinyRoute/actions/runs/38030909208).
+The completion changes after that checkpoint contain documentation and sanitized
+numeric evidence only; application and harness source are unchanged.
+
 One independent reviewer inspected base `ecffb917a489cd18770127ede3b1a96f3a0debfb`
 through `26dfcdaa47999a07bbc53507ce45bf3b215bbf9f`, the approved spec/plan,
 verification record and representative UI evidence. No critical implementation
@@ -106,7 +135,7 @@ and 90.27% coverage, and checked counter recovery, permanent uniqueness,
 owner fencing, exact cache expiry, public authentication isolation, throttling,
 privacy and absence of analytics.
 
-The sustained-load gate remains incomplete and keeps the PR in draft. Minor
+At the original review checkpoint the sustained-load gate kept the PR in draft. Minor
 findings were resolved: report output is prepared before measurement, and current
 approval/Task 8 status records are reconciled. The report preflight tests first
 failed on the missing exported helper, then all nine Node tests passed, including
@@ -117,7 +146,7 @@ and frontend results remain applicable (NFR-PER-01–03; NFR-TST-01/02).
 ## Outstanding completion gates and limitations
 
 - Independent final review is complete; its minor report preflight and stale-status findings are fixed and affected checks pass.
-- Save a passing complete sustained-load report; existing failed reports do not satisfy AC-10.
+- Complete final evidence/readiness follow-up; the passing local report above satisfies AC-10.
 - Keep fixed FF1 key/salt configuration; rotation requires a future namespace/recovery design. Short links are public URLs, not authorization tokens.
 - Local benchmarks do not establish latency or availability on Hostinger/nearby Supabase/Vercel. Verify the production topology before release.
 - Cache changes may converge within the bounded five-second snapshot window; expiry is enforced at its exact instant, including cached results. Redis cache failure falls back to PostgreSQL; unknown authoritative state never produces Location.

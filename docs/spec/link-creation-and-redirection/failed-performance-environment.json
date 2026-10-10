@@ -16,24 +16,18 @@
   "hostCpu": "Apple M2",
   "hostMemoryBytes": 8589934592,
   "macOSVersion": "26.6.2",
-  "featureCommit": "a44929dc5cbee4c5fdee9e669b1e3cf14fe85991",
+  "featureCommit": "d3124b7465717ea8e13215e002a499cda79b980e",
   "measurementBoundary": "System.nanoTime around the complete Spring filter chain; warm-up excluded; client round trips retained separately",
   "rateLimits": "unchanged defaults, 100 creates per hour per account and 600 redirects per minute per client",
   "topology": "native macOS Node driver -> localhost-only Docker TCP pass-through -> loopback Java TLS endpoint; relay upstream is the exact existing trusted source; PostgreSQL/Redis are disposable Docker Desktop containers",
   "harnessSha256": "d5ba8165d8b64d5d8b847f7b5c87f1c992daa2860f9737a5819583849fe7b229",
   "proxyRuntimeImage": "sha256:81afb84edcc18a694854a92496ec01345ea30cd2d0a40366b5b41fd584bb0ed5",
   "transportMode": "local TLS pass-through proxy",
-  "acceptanceStatus": "PASSED: full local protocol; production topology unverified",
-  "reportFile": "link-performance.json.gz",
-  "reportSha256": "10c5e21db64391f97de304777f49ea53bd167982936ce66432e48413e9531456",
+  "acceptanceStatus": "FAILED: five dropped late arrivals; AC-10 incomplete",
+  "reportFile": "failed-local-load.json.gz",
+  "reportSha256": "ab3de371ee923844e7bf01e5b7c5b07bc6150a22d806a9a351d225c245bf0bc0",
   "tlsNegativeChecks": {
     "wrongHostname": "ERR_TLS_CERT_ALTNAME_INVALID",
     "untrustedCertificate": "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
-  },
-  "powerHistory": {
-    "source": "macOS pmset sleep history",
-    "sleepEventsDuringAttempt": [],
-    "lidOpenAndAcPowerVerifiedBeforeAttempt": true
-  },
-  "recordedAt": "2026-10-10T10:25:37.216Z"
+  }
 }

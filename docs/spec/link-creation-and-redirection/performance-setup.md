@@ -1,7 +1,10 @@
 # Reproducing the local performance run
 
-The saved load report is **failed evidence**, not acceptance. AC-10 and Tasks 9–10
-remain open until a complete passing protocol run is saved.
+The complete local protocol passed on 2026-10-10. Its
+[raw numeric report](link-performance.json.gz) and
+[verification summary](verification.md) establish local AC-10 evidence only.
+The earlier [failed report](failed-local-load.json.gz) retains its separate
+[failed-run metadata](failed-performance-environment.json).
 
 This is disposable verification infrastructure for NFR-PER-01–03 and FR-ABS-01/03.
 It is not a deployment definition. The measured runtime images and hardware are
@@ -161,7 +164,11 @@ node tools/link-performance.mjs --via-local-proxy --api-base https://localhost:8
 ```
 
 On macOS the measured process was wrapped with `caffeinate -i` to prevent idle
-sleep. Creation samples use three fixture accounts, omit aliases, obtain fresh
+sleep. Keep the laptop on AC power with its **lid open** throughout setup and
+measurement. `caffeinate -i` did not prevent lid-closed sleep: an earlier retry
+recorded `Clamshell Sleep` for about 40 seconds and failed strict issuance.
+The passing attempt had no overlapping sleep events in macOS power history.
+Creation samples use three fixture accounts, omit aliases, obtain fresh
 CSRF and never retry POST. Redirects use 100 codes and 100 independent forwarded
 client identities, with default caps enabled. Preserve every server/client sample,
 status, failure and issuance count. Do not reuse consumed creation quotas: stop

@@ -10,8 +10,9 @@
   This revision and its revised plan were approved 2026-10-08 ("ok do now").
   A subsequent request adds salt and rejects truncated HMAC to avoid generated
   collisions. The AES-FF1 written spec/plan was approved 2026-10-08 ("done");
-  Task 7A is implemented and verified. Tasks 1–8 are complete; independent
-  review is complete and sustained-load acceptance remains pending.
+  Task 7A is implemented and verified. Tasks 1–9 are complete, including the
+  passing local sustained-load run on 2026-10-10. Independent feature review is
+  complete; final evidence/readiness follow-up remains before archival.
 - Execution: inline with `superpowers:executing-plans`, TDD, and one independent
   final reviewer when supported. Delegated implementation is not authorized.
 - Branch: `feature/link-creation-and-redirection`, based on `origin/main`
@@ -647,19 +648,21 @@ was changed to work around that environment restriction.
 The existing feature branch is now checked out in the shared project workspace;
 the initial temporary worktree is detached at the same base commit. The saved
 specification was approved on 2026-10-07 and original plan on 2026-10-08.
-Tasks 1–8, including Task 7A, are implemented, committed and verified. The
+Tasks 1–9, including Task 7A, are implemented and verified. The
 user requested Redis-counter alignment on 2026-10-08. This revised specification,
 architecture, and `tasks/plan.md`/`tasks/todo.md` record the approved replacement
 as Task 7A. The revised spec and plan were approved 2026-10-08 ("ok do now");
 plain-counter implementation was authorized. The subsequent salt/uniqueness
 request was approved as the AES-FF1 revision on 2026-10-08 ("done");
-Independent final review is complete; its minor report-output and stale-status
-findings are resolved. Sustained-load acceptance remains incomplete: the native-host full run met
-latency/error thresholds but missed five of 60,000 scheduled arrivals. The local
-pass-through preserves exact backend trust and TLS verification. A quiet host
-or isolated test machine is needed to rerun the strict protocol. Preserve existing commits and completed checkboxes;
-keep Tasks 9–10 active and any PR in draft until the full protocol passes. Do not
-archive partially completed tasks.
+Independent feature review is complete; its minor report-output and stale-status
+findings are resolved. The full local sustained-load protocol passed on
+2026-10-10: 60,000/60,000 redirects, zero errors/drops/late arrivals, server
+p95/p99 8.48/40.59 ms and creation p95 35.78 ms. Earlier failed reports remain
+rejected; a lid-closed sleep interruption was identified and the passing session
+had no overlapping sleep events. The local pass-through preserves exact backend
+trust and TLS verification. Preserve existing commits and completed checkboxes;
+keep Task 10 active and the PR in draft until final evidence/readiness review
+passes. Do not archive partially completed tasks.
 
 Final independent review must examine atomic counter allocation, recovery and
 capacity, alias/legacy compatibility, namespace/collision safety, transaction

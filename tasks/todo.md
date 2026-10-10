@@ -5,7 +5,7 @@
 - Specification: [approved feature spec](../docs/spec/link-creation-and-redirection/spec.md)
 - Plan: [implementation plan](plan.md)
 - Execution: inline `superpowers:executing-plans` with TDD; one independent final reviewer. No delegated implementation.
-- Current state: **original plan approved 2026-10-08; Tasks 1–8 (including 7A) implemented and verified; Task 9 timing support verified, sustained load pending. Plain-counter revision approved 2026-10-08 ("ok do now"); subsequent salt/uniqueness request rejects truncated HMAC. Salted FF1 revision approved 2026-10-08 ("done"); Task 7A and Task 8 complete; independent final review complete and sustained load pending.**
+- Current state: **Tasks 1–9, including 7A, complete; the full local load protocol passed 2026-10-10. Original plan approved 2026-10-08; plain-counter revision approved 2026-10-08 ("ok do now"), and salted FF1 revision approved 2026-10-08 ("done"). Independent feature review is complete; Task 10 final evidence/readiness follow-up remains active before archival and PR readiness.**
 
 ## Approval gates and baseline
 
@@ -36,7 +36,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] 7. Accessible create/copy frontend — session/errors/timezone/no retry/clipboard/theme behavior.
 - [x] 7A. HLD Redis-counter generation — fixed-key/salt FF1 Base62 encoding, V6 metadata, atomic allocation/recovery, alias/legacy compatibility, bounded safe failures, and affected regressions.
 - [x] 8. Browser/live verification — disposable datastores, real flow, state/expiry/deletion, visual evidence.
-- [ ] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
+- [x] 9. Server timing/load evidence — ≥200 creates and complete 100 rps/600-second measured run.
 - [ ] 10. Independent review/full checks/completion readiness — all readiness conditions verified before archive and PR delivery.
 
 ## Acceptance checklist
@@ -50,7 +50,7 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] AC-07: Unknown/case-mismatched/deleted/expired 404; disabled 403; no details or Location.
 - [x] AC-08: Hourly creation cap and client redirect cap, accurate retry guidance, independent visitors.
 - [x] AC-09: Redis cache fallback, bounded limiter fallback, counter/recovery safe failure, safe indeterminate-state error.
-- [ ] AC-10: Creation p95 <500 ms; complete 100 rps/600-second redirect run p95 <150/p99 <300 ms/errors <0.5%.
+- [x] AC-10: Creation p95 <500 ms; complete 100 rps/600-second redirect run p95 <150/p99 <300 ms/errors <0.5%.
 - [x] AC-11: Creation/deletion race fence and compatible bounded deletion cleanup.
 - [x] AC-12: Keyboard/screen-reader/clipboard/error flow; both themes, reduced motion, all four widths.
 
@@ -59,16 +59,16 @@ Each completion requires the plan's red evidence, green checks, recorded decisio
 - [x] All relevant critical-path tests and full Maven clean verify pass; ≥70% line coverage.
 - [x] Backend formatting/static analysis, frontend lint/format/typecheck/unit/build checks pass.
 - [x] Full contract and live Playwright suites pass with disposable accounts/datastores.
-- [ ] Complete local load protocol and harness self-tests pass; raw report summarized in verification.md.
+- [x] Complete local load protocol and harness self-tests pass; raw report summarized in verification.md.
 - [x] Sanitized UI evidence reviewed for layout, keyboard, focus, contrast and target sizes.
-- [x] One independent final review completed; minor findings fixed and affected checks rerun. Sustained-load readiness gate remains pending.
+- [x] One independent final review completed; minor findings fixed and affected checks rerun. Final evidence/readiness follow-up is pending.
 - [x] No analytics/events/click increments, extra production endpoints, secrets, unrelated changes or production provisioning.
 - [x] Documentation and acceptance mapping reflect actual results and material limitations.
 - [ ] Every implementation task/AC complete; documentation links checked and records ready for archive.
 
 ## Post-completion delivery record
 
-Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks and independent review complete; sustained-load acceptance incomplete after five dropped arrivals in the best full run. Keep Tasks 9–10 active and PR #15 draft until the strict protocol passes; do not archive or mark ready. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, create/update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
+Archive/push/PR follow the completed implementation checklist, avoiding unfinished shipping checkboxes inside an archived task file. Current delivery state: implementation, browser/full checks, independent feature review and local sustained-load acceptance complete; Task 10 final evidence/readiness follow-up remains active. Keep PR #15 draft until that audit passes. The authorized sequence is archive the fully completed files with adjusted links, commit, push without force, update the template-based PR, then return its URL and evidence/limitations. No merge, branch deletion or browser launch. Record any delivery blocker accurately.
 
 ## Durable execution ledger
 
@@ -194,3 +194,40 @@ and checksums, checked the saved setup and confirmed no private data leakage;
 no findings. This review approves recording progress, not feature completion.
 The two owned verification containers were stopped and removed after the run;
 the owner's Compose services were left untouched.
+
+2026-10-10 quiet-host retry: creation passed (200 successes, server p95 23.37 ms),
+but measured redirects failed: 55,998/60,000 issued/completed, 4,002 late drops,
+maximum scheduling lateness 39,843.27 ms, two transport failures, server p95/p99
+5.59/27.39 ms and incomplete server-sample accounting. macOS power history records
+`Clamshell Sleep` at 15:34:16 IST and wake at 15:34:56 IST, matching the large stall.
+The failed private report and sanitized sleep correlation are retained. The Mac
+is now on AC power with the lid open; the user was told to keep it open throughout
+the fresh-data retry. `caffeinate -i` and all protocol/limit/TLS thresholds remain
+unchanged. No acceptance completion or archival is claimed before a passing report.
+
+2026-10-10 Task 9 complete at source checkpoint `a44929d`: all 200 counter-generated
+creates returned 201 (server p95 35.78 ms); all 60,000 redirects were issued,
+completed and timed over 600.003 seconds (99.999 rps), each returning 302.
+Server p95/p99 8.48/40.59 ms; client p95/p99 17.81/115.36 ms; zero transport/
+HTTP errors, dropped or excessively late arrivals, no collector overflow; maximum
+lateness 77.42 ms. A separate Python audit recomputed percentiles and checked all
+counts, finite samples, status distributions and the harness hash before saving
+compressed numeric evidence and refreshed runtime/hardware metadata. TLS health
+passed and wrong-hostname/untrusted-certificate probes were rejected. No sleep
+event overlapped the passing attempt. Default caps, trust, TLS, cache policy and
+thresholds stayed unchanged. Eleven harness tests pass; prior source-identical
+full backend/frontend checks remain applicable. Final evidence/readiness review
+and Task 10 completion follow before archival.
+
+2026-10-10 independent final evidence review: the reviewer recomputed all server/
+client percentiles, counts, throughput and lateness; checked passing/failed report
+hashes, harness identity, gzip metadata, privacy, setup syntax and local links.
+No critical/important/product/harness findings. Minor stale status text in spec,
+architecture and plan was reconciled. Fresh checks: 11 Node harness tests and
+14 CI helper tests pass; touched-file Prettier, local links and whitespace checks
+pass. Backend/frontend product source is unchanged from the fully verified
+`4864ecc`; harness is unchanged from `d3124b7`; all eight CI checks passed on
+`a44929d`. Passing-attempt backend/relay containers were removed; the owner's
+Compose services were untouched. Local AC-10 is supported; production topology
+performance remains a release limitation. Finalize the task records and archive
+after the final readiness/link audit.
