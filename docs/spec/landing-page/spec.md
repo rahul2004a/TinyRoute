@@ -5,8 +5,9 @@
   extending the existing home route and shared theme-control presentation.
 - Approach approved: 2026-10-11 ("yes"), including `Planned` labels for link
   management and analytics.
-- Written specification: awaiting user approval. Approval permits planning;
-  coding requires separate approval of the saved plan and checklist.
+- Written specification approved: 2026-10-11 after user review and edits.
+  Planning is authorized; coding requires separate approval of the saved plan
+  and checklist.
 - Execution preference: inline with `superpowers:executing-plans`, TDD, and one
   independent final reviewer when supported. Reviewer delegation is authorized;
   delegated implementation is not authorized.
@@ -33,8 +34,8 @@ Follow [AGENTS.md](../../../AGENTS.md),
 [DESIGN.md](../../../DESIGN.md).
 
 The [Codex Feature Development Workflow](https://www.notion.com/p/rahultsx/Codex-Feature-Development-Workflow-3db1dfa233d181c5825feeeae73c7ce5)
-was read through the connected Notion integration on 2026-10-11. Its AWS
-backend-hosting sentence is stale. AGENTS.md and ADR 0003 govern deployment:
+was read and rechecked through the connected Notion integration on 2026-10-11.
+It now names Hostinger as the backend target. AGENTS.md and ADR 0003 govern deployment:
 Hostinger runs Spring Boot and Redis, Supabase supplies PostgreSQL, and Vercel
 hosts Next.js. This feature includes no provisioning or deployment.
 
@@ -225,9 +226,11 @@ content must still reflow at shorter heights without cropping or overlap.
 
 ## Verification and delivery
 
-The unchanged frontend baseline passed on 2026-10-11: `pnpm --dir frontend test
---run`, 16 test files and 77 tests. This establishes the starting point, not
-verification of the new feature.
+The unchanged frontend baseline passed on 2026-10-11:
+
+- `pnpm --dir frontend test --run`: 16 test files and 77 tests passed.
+
+This establishes the starting point, not verification of the new feature.
 
 After written-spec and plan approvals, use TDD for disclosure behavior, theme
 placement, and navigation contracts. Cover keyboard open/traversal/Escape/focus,
@@ -248,9 +251,17 @@ contrast against WCAG AA, focus visibility/order, heading names, and console
 errors. Check long content and expanded navigation at the smallest width. A
 screenshot alone does not prove target sizes or overflow; measure DOM geometry.
 
-Required frontend commands are `pnpm --dir frontend lint`, `pnpm --dir frontend
-format:check`, `pnpm --dir frontend typecheck`, `pnpm --dir frontend test --run`,
-`pnpm --dir frontend build`, and `pnpm --dir frontend exec playwright test`.
+Required frontend commands:
+
+```sh
+pnpm --dir frontend lint
+pnpm --dir frontend format:check
+pnpm --dir frontend typecheck
+pnpm --dir frontend test --run
+pnpm --dir frontend build
+pnpm --dir frontend exec playwright test
+```
+
 Read the installed Next.js guides before coding, as frontend/AGENTS.md requires.
 Backend tests, load tests, and database setup are not required for this
 frontend-only change unless implementation reveals an approved dependency on
@@ -270,4 +281,5 @@ Reviewed on 2026-10-11 for scope, consistency, missing decisions, and ambiguity.
 The specification fixes route targets, content availability labels, mobile
 navigation semantics, theme placement, session-neutral behavior, and viewport
 dimensions. Requirement links resolve locally. No implementation tasks or code
-are authorized by approach approval alone; written-spec approval is next.
+are authorized by approach approval alone. User review and written-spec approval
+are now complete; approval of the saved implementation plan is the next gate.
