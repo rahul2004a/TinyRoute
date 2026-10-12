@@ -25,12 +25,12 @@ Execution: inline; one independent final reviewer. Implementation approved on 20
 
 ## Task 2: Header and mobile navigation
 
-- [ ] Add shared section/account route data and focused behavior tests first.
-- [ ] Observe missing behavior before implementing navigation.
-- [ ] Implement brand, desktop links, header theme toggle, skip link, and disclosure.
-- [ ] Verify keyboard opening, Tab/Shift+Tab, hidden links, and Escape/focus return.
-- [ ] Verify link close/section focus, modified clicks, and resize/focus transfer.
-- [ ] Pass focused header/provider tests, lint, and typecheck; record evidence and commit.
+- [x] Add shared section/account route data and focused behavior tests first.
+- [x] Observe missing behavior before implementing navigation.
+- [x] Implement brand, desktop links, header theme toggle, skip link, and disclosure.
+- [x] Verify keyboard opening, Tab/Shift+Tab, hidden links, and Escape/focus return.
+- [x] Verify link close/section focus, modified clicks, and resize/focus transfer.
+- [x] Pass focused header/provider tests, lint, and typecheck; record evidence and commit.
 
 ## Task 3: Public page and browser acceptance
 

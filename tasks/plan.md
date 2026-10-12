@@ -198,7 +198,7 @@ No new session or query behavior. **Acceptance:** AC-01/09/11.
 Use stable accessible names: trigger `Menu`, desktop region `Primary
 navigation`, mobile region `Mobile navigation`. **Acceptance:** AC-02/03/07/09/10.
 
-- [ ] Write header tests using RTL/user-event, cleanup, and a matchMedia fixture
+- [x] Write header tests using RTL/user-event, cleanup, and a matchMedia fixture
       that can dispatch a real change from mobile to desktop. Assert exact hrefs and
       that hidden panel links are not accessible. Assert opening leaves focus on the
       trigger, Tab reaches Features, Shift+Tab returns, and Escape closes/restores
@@ -217,24 +217,24 @@ navigation`, mobile region `Mobile navigation`. **Acceptance:** AC-02/03/07/09/1
   expect(document.activeElement).toBe(trigger);
   ```
 
-- [ ] Run `pnpm --dir frontend test --run src/features/landing/landing-header.test.tsx`.
+- [x] Run `pnpm --dir frontend test --run src/features/landing/landing-header.test.tsx`.
       Confirm the new behavior is absent before implementing the components.
-- [ ] Implement the shared data, brand link, and compact client header. Use a
+- [x] Implement the shared data, brand link, and compact client header. Use a
       native button, `aria-expanded`, `aria-controls`, `hidden` on the closed panel,
       and ordinary links. React owns disclosure state; refs own focus targets.
       Use a `(min-width: 1024px)` matchMedia change listener with cleanup, not a raw
       resize/scroll listener. Escape handling must cover focus in the trigger or
       open panel without intercepting unrelated controls elsewhere on the page.
-- [ ] Use real section URLs. For plain in-page activation, close the panel and
+- [x] Use real section URLs. For plain in-page activation, close the panel and
       focus the destination heading without preventing normal fragment navigation.
       Preserve modified-click/new-tab behavior. Account links use Next.js Link;
       disable their prefetch to keep loading deliberate. Desktop resize transfers
       focus from a disappearing panel link to its visible matching desktop link.
-- [ ] Style the header with Tailwind semantic variables, 56px height, 44px hit
+- [x] Style the header with Tailwind semantic variables, 56px height, 44px hit
       areas, visible focus, and desktop/mobile visibility. No modal behavior,
       animation library, or additional dependency. Include the skip link to
       `#main-content`; its visible focused position must fit the viewport.
-- [ ] Rerun the header and provider tests, then lint/typecheck. Expect all to
+- [x] Rerun the header and provider tests, then lint/typecheck. Expect all to
       pass. Record evidence and commit the four files and active records as
       `feat: add accessible landing navigation`.
 
@@ -474,3 +474,5 @@ landing page. Inline implementation is authorized; reviewer dispatch follows fin
 
 | 2026-10-11 | Plan approved | User replied "done"; continuous inline execution authorized. |
 | 2026-10-11 | Task 1 complete | Provider test RED: expected 1 toggle, got 2. GREEN: 3/3 provider tests; typecheck passed. Theme placement only; provider configuration unchanged. |
+
+| 2026-10-12 | Task 2 complete | RED: four tests missing Menu control. GREEN: 7/7 focused tests; lint and typecheck passed. Resize fixture now reflects visible desktop CSS; real-browser focus checks follow. |
