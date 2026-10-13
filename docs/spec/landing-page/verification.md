@@ -2,7 +2,9 @@
 
 Status: implementation, acceptance checks, and independent review completed on
 2026-10-13. Task 3 implementation commit: `57c9fd5`. All completed task files are
-archived alongside this record. Push and PR delivery follow the archive commit.
+archived alongside this record in `f4d02cd`.
+The branch is pushed and [PR #16](https://github.com/rahul2004a/TinyRoute/pull/16)
+is open for review.
 
 ## Scope and decisions
 
@@ -143,5 +145,9 @@ explicit user instruction; reduced motion disables them.
 ## Delivery
 
 Product source committed as `57c9fd5`; completed task/evidence archive is included
-in this documentation commit. Remote push and PR outcome will be recorded after delivery.
+in `f4d02cd`. The branch is pushed to `origin/feature/landing-page` and
+[PR #16](https://github.com/rahul2004a/TinyRoute/pull/16) targets `main`, with the
+repository template, requirements, verification, screenshots, and limitations.
+GitHub's checks on the latest commit remain authoritative for merge readiness;
+their live results are available on the PR. The workspace is retained for review.
 No merge, branch deletion, force-push, or production deployment is authorized.
