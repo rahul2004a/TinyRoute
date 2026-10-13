@@ -319,7 +319,9 @@ The specification fixes route targets, content availability labels, mobile
 navigation semantics, theme placement, session-neutral behavior, and viewport
 dimensions. Requirement links resolve locally. No implementation tasks or code
 are authorized by approach approval alone. User review and written-spec approval
-are now complete; approval of the saved implementation plan is the next gate.
+were followed by saved-plan approval before implementation. The completed
+[plan](plan.md) and [checklist](todo.md) are now archived; final evidence is in
+[verification.md](verification.md).
 
 Visual revision approved and inline implementation explicitly authorized on
 2026-10-12 (user: "implementation starts") after the saved

@@ -1,5 +1,8 @@
 # Landing Page Implementation Plan
 
+Status: fully completed and archived on 2026-10-13. Product implementation:
+`57c9fd5`; acceptance/review evidence: [verification.md](verification.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans`
 > to implement this plan task by task, with `superpowers:test-driven-development`.
 > Implementation is inline. Only the independent final reviewer is delegated.
@@ -22,11 +25,11 @@ Tailwind CSS, existing Radix-based shadcn configuration, Lucide, next-themes,
 pnpm, Vitest/RTL, and Playwright. The user's 2026-10-13 supplied typewriter
 component explicitly authorizes Motion for the closing CTA; add no other dependency.
 
-**Spec:** [Approved landing-page specification](../docs/spec/landing-page/spec.md).
+**Spec:** [Approved landing-page specification](spec.md).
 Written-spec approval and user edits were committed as `5cae563` on 2026-10-11.
 Plan and checklist approved by the user ("done") on 2026-10-11; inline execution authorized.
 
-**Checklist:** [tasks/todo.md](todo.md).
+**Checklist:** [Archived checklist](todo.md).
 
 ## Global Constraints
 
@@ -357,7 +360,7 @@ browser acceptance suite. **Acceptance:** AC-01 through AC-11.
       backgrounds through ancestors. Inspect focus visibility and control contrast;
       do not claim a full accessibility certification from these focused checks.
       Assert no unexpected page or console errors during the landing journeys.
-- [ ] Rerun focused component/browser checks and fix failures through
+- [x] Rerun focused component/browser checks and fix failures through
       `superpowers:systematic-debugging`; add a failing regression test before each
       behavior correction. Record passing viewport/contrast measurements and
       decisions. Commit the listed implementation/test files and active records as
@@ -412,7 +415,7 @@ and all preceding ACs.
       completed checkbox in todo.md. Link screenshots and record the fixture-based
       integration limitation. This change does not prove live backend integration,
       latency, production availability, or the planned capabilities.
-- [ ] Check documentation links, formatting, final diff, whitespace, and intended
+- [x] Check documentation links, formatting, final diff, whitespace, and intended
       staged paths. Confirm every task and acceptance checkbox is complete. Record
       that implementation, review, and evidence are finished and ready for the
       delivery sequence below.
@@ -485,7 +488,7 @@ checkboxes that would require archiving partially completed task files.
 
 ## Authorized visual revision within Task 3
 
-[The saved visual decision](../docs/spec/landing-page/redesign-proposal.md) and
+[The saved visual decision](redesign-proposal.md) and
 updated DESIGN.md record the user's latest instructions. Product scope and
 acceptance criteria are unchanged except explicitly requested header contents
 and decorative motion. Keep implementation inline.
@@ -508,7 +511,7 @@ and decorative motion. Keep implementation inline.
       links, mobile columns, contrast, and touch target size. RED: missing Pages
       heading before implementation; focused test verifies semantic grouping.
 - [x] Pass focused component/browser checks and refresh/inspect ten screenshots.
-- [ ] Record final revision evidence and commit Task 3, then continue Task 4.
+- [x] Record final revision evidence and commit Task 3, then continue Task 4.
 
 Footer visual revision requested on 2026-10-12; preserve existing destinations and refresh final viewport evidence after implementation.
 

@@ -1,12 +1,13 @@
 # Landing page checklist
 
 Feature: `landing-page`. Specification:
-[spec.md](../docs/spec/landing-page/spec.md). Active plan: [plan.md](plan.md).
+[spec.md](spec.md). Archived plan: [plan.md](plan.md).
+Status: fully completed and archived on 2026-10-13; implementation `57c9fd5`.
 Execution: inline; one independent final reviewer. Implementation approved on 2026-10-11 (user: "done").
 Modern SaaS visual revision approved on 2026-10-12 (user: "implementation starts");
 latest reference selects account-only header and independently looping lights,
 with no illustration box or playback controls. See
-[redesign proposal](../docs/spec/landing-page/redesign-proposal.md). Keep incomplete work active.
+[redesign proposal](redesign-proposal.md). Evidence: [verification.md](verification.md).
 
 ## Approvals and setup
 
@@ -51,7 +52,7 @@ with no illustration box or playback controls. See
 - [x] Measure all eight viewport/theme combinations: overflow, 44px targets, H1, CTA.
 - [x] Measure expanded mobile-menu geometry and text/background contrast in both themes.
 - [x] Check console/page errors and inspect visual/focus behavior.
-- [ ] Pass focused component/browser tests; record evidence/decisions and commit.
+- [x] Pass focused component/browser tests; record evidence/decisions and commit.
 - [x] Approve and implement the requested modern visual revision, then refresh visual evidence.
 
 ## Task 4: Review and verification
@@ -67,8 +68,8 @@ with no illustration box or playback controls. See
 - [x] Verify feedback; resolve blocking findings and record any deferred minor findings.
 - [x] Rerun affected checks and refresh evidence after review fixes.
 - [x] Record commands/results, all acceptance evidence, decisions, and limitations.
-- [ ] Confirm documentation and links are current and every required checkbox is complete.
-- [ ] Review final diff/staged paths and confirm technical work is ready for delivery.
+- [x] Confirm documentation and links are current and every required checkbox is complete.
+- [x] Review final diff/staged paths and confirm technical work is ready for delivery.
 
 After every technical and acceptance checkbox is complete, follow the plan's
 delivery sequence: archive completed task files, commit evidence/archive, push
