@@ -8,7 +8,7 @@ import {
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 
-import { ThemeSelector } from "./theme-selector";
+import { GlobalThemeSelector } from "./global-theme-selector";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -40,7 +40,7 @@ export function Providers({ children }: Readonly<{ children: ReactNode }>) {
       storageKey="tinyroute-color-theme"
     >
       <QueryClientProvider client={getQueryClient()}>
-        <ThemeSelector />
+        <GlobalThemeSelector />
         {children}
       </QueryClientProvider>
     </ThemeProvider>

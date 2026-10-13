@@ -1,9 +1,19 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { useQueryClient } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Providers } from "../app/providers";
+import { ThemeSelector } from "../app/theme-selector";
+
+const route = vi.hoisted(() => ({ pathname: "/login" }));
+vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
 function QueryClientProbe() {
   const queryClient = useQueryClient();
@@ -13,6 +23,7 @@ function QueryClientProbe() {
 
 describe("Providers", () => {
   beforeEach(() => {
+    route.pathname = "/login";
     vi.stubGlobal(
       "matchMedia",
       vi.fn().mockImplementation((query: string) => ({
@@ -46,6 +57,31 @@ describe("Providers", () => {
 
     expect(screen.getByText("provider-ready")).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps one header toggle on the landing page and one global toggle on account routes", () => {
+    route.pathname = "/";
+    const view = render(
+      <Providers>
+        <header>
+          <ThemeSelector placement="inline" />
+        </header>
+      </Providers>,
+    );
+    expect(
+      screen.getAllByRole("button", { name: /Switch to .* mode/ }),
+    ).toHaveLength(1);
+    expect(within(screen.getByRole("banner")).getByRole("button")).toBeTruthy();
+    route.pathname = "/login";
+    view.rerender(
+      <Providers>
+        <QueryClientProbe />
+      </Providers>,
+    );
+    expect(
+      screen.getAllByRole("button", { name: /Switch to .* mode/ }),
+    ).toHaveLength(1);
+    expect(screen.queryByRole("banner")).toBeNull();
   });
 
   it("toggles between dark and light with a keyboard-accessible button and persists the choice", async () => {

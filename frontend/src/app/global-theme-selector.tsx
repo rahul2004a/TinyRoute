@@ -1,0 +1,9 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
+import { ThemeSelector } from "./theme-selector";
+
+export function GlobalThemeSelector() {
+  return usePathname() === "/" ? null : <ThemeSelector />;
+}

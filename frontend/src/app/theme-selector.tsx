@@ -6,7 +6,11 @@ import { useSyncExternalStore } from "react";
 
 const subscribeToHydration = () => () => undefined;
 
-export function ThemeSelector() {
+export function ThemeSelector({
+  placement = "floating",
+}: {
+  placement?: "floating" | "inline";
+}) {
   const { setTheme, theme } = useTheme();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
@@ -18,7 +22,7 @@ export function ThemeSelector() {
   return (
     <button
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="fixed top-3 right-3 z-50 grid size-12 place-items-center rounded-xl border-2 border-(--border-strong) bg-(--canvas) text-(--ink) transition-colors hover:bg-(--surface-2) focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--canvas) disabled:cursor-wait motion-reduce:transition-none"
+      className={`${placement === "floating" ? "fixed top-3 right-3 z-50 size-12 rounded-xl border-2" : "size-11 shrink-0 rounded-lg border"} grid place-items-center border-(--border-strong) bg-(--canvas) text-(--ink) transition-colors hover:bg-(--surface-2) focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--canvas) disabled:cursor-wait motion-reduce:transition-none`}
       disabled={!mounted}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       type="button"
