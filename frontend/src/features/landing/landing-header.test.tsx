@@ -58,6 +58,34 @@ function setup() {
 }
 
 describe("LandingHeader disclosure", () => {
+  it.each([true, false])(
+    "restores a blurred Menu trigger only when its breakpoint hides it (%s)",
+    (breakpointBlur) => {
+      const { trigger } = setup();
+      trigger.focus();
+      if (breakpointBlur)
+        Object.defineProperty(media, "matches", {
+          value: true,
+          configurable: true,
+        });
+      trigger.blur();
+      document.querySelector("style")!.textContent =
+        ".landing-desktop-nav { display: flex; }";
+      Object.defineProperty(media, "matches", {
+        value: true,
+        configurable: true,
+      });
+      act(() => change?.({ matches: true } as MediaQueryListEvent));
+      expect(document.activeElement).toBe(
+        breakpointBlur
+          ? within(
+              screen.getByRole("navigation", { name: "Primary navigation" }),
+            ).getByRole("link", { name: "Sign in" })
+          : document.body,
+      );
+    },
+  );
+
   it("keeps closed links out of the tab order and supports Enter, Tab, Shift+Tab and Escape", async () => {
     const { user, trigger } = setup();
     expect(
@@ -68,7 +96,7 @@ describe("LandingHeader disclosure", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(document.activeElement).toBe(trigger);
     await user.tab();
-    expect(document.activeElement?.getAttribute("href")).toBe("/#features");
+    expect(document.activeElement?.getAttribute("href")).toBe("/login");
     await user.tab({ shift: true });
     expect(document.activeElement).toBe(trigger);
     await user.tab();
@@ -82,25 +110,26 @@ describe("LandingHeader disclosure", () => {
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("closes section navigation and focuses its actual heading while keeping the real URL", async () => {
-    const { user, trigger } = setup();
-    await user.click(trigger);
-    const link = within(
-      screen.getByRole("navigation", { name: "Mobile navigation" }),
-    ).getByRole("link", { name: "Features" });
-    expect(link.getAttribute("href")).toBe("/#features");
-    await user.click(link);
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(document.activeElement).toBe(document.getElementById("features"));
-  });
-
-  it("keeps modified section clicks native and closes on account navigation", async () => {
+  it("offers only account links in the header and mobile navigation", async () => {
     const { user, trigger } = setup();
     await user.click(trigger);
     const nav = within(
       screen.getByRole("navigation", { name: "Mobile navigation" }),
     );
-    const section = nav.getByRole("link", { name: "How it works" });
+    expect(nav.queryByRole("link", { name: "Features" })).toBeNull();
+    expect(nav.queryByRole("link", { name: "How it works" })).toBeNull();
+    expect(
+      nav.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(["/login", "/register"]);
+  });
+
+  it("keeps modified account clicks native and closes on account navigation", async () => {
+    const { user, trigger } = setup();
+    await user.click(trigger);
+    const nav = within(
+      screen.getByRole("navigation", { name: "Mobile navigation" }),
+    );
+    const section = nav.getByRole("link", { name: "Sign in" });
     expect(fireEvent.click(section, { ctrlKey: true })).toBe(true);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(
@@ -121,6 +150,10 @@ describe("LandingHeader disclosure", () => {
     link.focus();
     document.querySelector("style")!.textContent =
       ".landing-desktop-nav { display: flex; }";
+    Object.defineProperty(media, "matches", {
+      value: true,
+      configurable: true,
+    });
     act(() => change?.({ matches: true } as MediaQueryListEvent));
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(
@@ -130,7 +163,14 @@ describe("LandingHeader disclosure", () => {
         }),
       ).getByRole("link", { name: "Sign in" }),
     );
+    document.querySelector("style")!.textContent =
+      ".landing-desktop-nav { display: none; }";
+    Object.defineProperty(media, "matches", { value: false });
+    // Browsers blur a display:none link before dispatching the media change.
+    (document.activeElement as HTMLElement).blur();
+    expect(document.activeElement).toBe(document.body);
     act(() => change?.({ matches: false } as MediaQueryListEvent));
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(trigger);
   });
 });

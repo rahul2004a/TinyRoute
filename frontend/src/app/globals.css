@@ -1,6 +1,68 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+.typewriter-effect {
+  display: inline-block;
+  max-width: 100%;
+  padding-inline-end: 0.2em;
+}
+.typewriter-visual {
+  position: relative;
+  display: block;
+}
+.typewriter-copy {
+  display: block;
+  padding-block: 0.1em;
+  white-space: nowrap;
+}
+.typewriter-effect[data-ready="true"][data-variant="smooth"] .typewriter-copy {
+  clip-path: inset(0% 100% 0% 0%);
+}
+.typewriter-effect[data-ready="true"][data-variant="characters"]
+  .typewriter-character {
+  opacity: 0;
+}
+.typewriter-cursor-track {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+.typewriter-effect[data-active="true"] .typewriter-cursor-track {
+  display: block;
+}
+.typewriter-cursor {
+  position: absolute;
+  top: 0.18em;
+  right: -0.2em;
+  width: 2px;
+  height: 0.9em;
+  border-radius: 1px;
+  background: var(--primary);
+  animation: typewriter-cursor 1.6s ease-in-out infinite;
+}
+@keyframes typewriter-cursor {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-effect .typewriter-copy {
+    clip-path: none !important;
+  }
+  .typewriter-effect .typewriter-character {
+    opacity: 1 !important;
+  }
+  .typewriter-effect .typewriter-cursor-track {
+    display: none !important;
+  }
+}
+
 :root {
   color-scheme: dark;
   --canvas: #1e201e;

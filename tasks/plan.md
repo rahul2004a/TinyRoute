@@ -12,13 +12,15 @@ existing account and link routes.
 
 **Architecture:** Keep the page and static content as Server Components. Use
 small Client Components for mobile disclosure navigation, the existing theme
-toggle, and pathname-based placement of the floating toggle. The landing page
+toggle, pathname-based placement of the floating toggle, decorative light
+timing, and the requested reusable typewriter effect. The landing page
 makes no API/session request; existing account flows and Spring policy remain
 authoritative.
 
 **Tech Stack:** Node.js 24 LTS, Next.js App Router, React, strict TypeScript,
 Tailwind CSS, existing Radix-based shadcn configuration, Lucide, next-themes,
-pnpm, Vitest/RTL, and Playwright. Add no runtime dependency.
+pnpm, Vitest/RTL, and Playwright. The user's 2026-10-13 supplied typewriter
+component explicitly authorizes Motion for the closing CTA; add no other dependency.
 
 **Spec:** [Approved landing-page specification](../docs/spec/landing-page/spec.md).
 Written-spec approval and user edits were committed as `5cae563` on 2026-10-11.
@@ -37,7 +39,7 @@ Plan and checklist approved by the user ("done") on 2026-10-11; inline execution
   changes; preserve user changes and never discard, stash, or overwrite them.
 - No authentication, dashboard, backend, datastore, API, environment, hosting,
   deployment, redirect-policy, analytics, or management implementation changes.
-- No new runtime dependency, fake screenshot, statistics, testimonial, price,
+- No other new runtime dependency, fake screenshot, statistics, testimonial, price,
   anonymous shortening form, tracking, or unavailable route.
 - H1: "Short links. Your control." Use the approved supporting copy and section
   order. Mark Link management and Analytics visibly as `Planned` with future
@@ -46,16 +48,19 @@ Plan and checklist approved by the user ("done") on 2026-10-11; inline execution
   `/#how-it-works` for the specified destinations; use real anchors/Next.js Link.
   The separately required skip link resolves to `#main-content`.
 - Reuse Geist, semantic color variables, a 1200px marketing container, dark
-  default, and DESIGN.md's L1 CSS motion. Keep content server-rendered.
-- Header: 56px, non-sticky; mobile disclosure below 1024px; full navigation from
-  1024px. Collapse page columns below 768px and stack actions below 480px.
+  default, and DESIGN.md's scoped motion rules. The requested closing typewriter
+  is the Motion exception; keep complete content server-rendered.
+- Header: 64px mobile/tablet and 80px desktop, non-sticky, without a divider;
+  account-only disclosure below 1024px and account actions inline above it.
+  Features and How it works appear only in the footer, per latest user steering.
+  Collapse page columns below 768px and stack actions below 480px.
 - Minimum interactive hit area: 44 by 44px, including brand, footer, and skip
   links. Keep the primary hero CTA visible before scrolling.
 - Acceptance viewports: 320 by 568, 768 by 1024, 1024 by 768, and 1440 by 900px,
   each in dark and light. Reduced motion suppresses movement/smooth scrolling.
 - Mobile navigation is a non-modal disclosure. No focus trap or scroll lock.
-  Escape closes it and returns focus to its trigger; section navigation focuses
-  the heading; desktop resize closes it and preserves visible focus.
+  Escape closes it and returns focus to its trigger; footer section navigation
+  reaches the heading; desktop resize closes it and preserves visible focus.
 - Keep `data-theme`, `defaultTheme="dark"`, `enableSystem={false}`, and
   `tinyroute-color-theme`. Exactly one header toggle on `/`; existing floating
   placement elsewhere. Persist preference across reload and route changes.
@@ -70,27 +75,33 @@ Plan and checklist approved by the user ("done") on 2026-10-11; inline execution
 
 ## Files and interfaces
 
-| File                                                    | Responsibility                                                                                                             |
-| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `frontend/src/app/theme-selector.tsx`                   | Existing toggle; add presentation-only `placement?: "floating" \| "inline"`, defaulting to floating.                       |
-| `frontend/src/app/global-theme-selector.tsx`            | New client wrapper; `GlobalThemeSelector()` renders the floating selector only when pathname is not `/`.                   |
-| `frontend/src/app/providers.tsx`                        | Mount the wrapper; preserve query client and theme-provider configuration.                                                 |
-| `frontend/src/test/providers.test.tsx`                  | Existing provider behavior plus single-toggle/root/account-route transitions.                                              |
-| `frontend/src/features/landing/landing-navigation.ts`   | Readonly section/account link arrays shared by header and footer.                                                          |
-| `frontend/src/features/landing/landing-brand.tsx`       | `LandingBrand()` renders the real `/` brand link using Link2 and TinyRoute.                                                |
-| `frontend/src/features/landing/landing-header.tsx`      | `LandingHeader()` renders desktop navigation, inline selector, and mobile disclosure.                                      |
-| `frontend/src/features/landing/landing-header.test.tsx` | Disclosure/link/focus/resize behavior, with realistic matchMedia event fixtures.                                           |
-| `frontend/src/features/landing/landing-page.tsx`        | Synchronous `LandingPage()` Server Component composing header, main sections, and footer. Keep local static sections here. |
-| `frontend/src/features/landing/landing.css`             | Landing-scoped typography, composition, focus, breakpoints, and reduced-motion styling.                                    |
-| `frontend/src/features/landing/landing-page.test.tsx`   | Observable content, landmarks, planned labels, and navigation contract assertions.                                         |
-| `frontend/src/app/page.tsx`                             | Render `LandingPage` and import scoped landing CSS; remain a Server Component.                                             |
-| `frontend/e2e/landing-page.spec.ts`                     | Browser journeys, viewport matrix, geometry, session fixtures, persistence, and motion checks.                             |
-| `docs/spec/landing-page/verification.md`                | Actual results, acceptance evidence, independent-review findings, decisions, and limitations. Create during execution.     |
-| `docs/spec/landing-page/evidence/`                      | Final reviewed landing screenshots, without account data or secrets.                                                       |
+| File                                                        | Responsibility                                                                                                             |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/src/app/theme-selector.tsx`                       | Existing toggle; add presentation-only `placement?: "floating" \| "inline"`, defaulting to floating.                       |
+| `frontend/src/app/global-theme-selector.tsx`                | New client wrapper; `GlobalThemeSelector()` renders the floating selector only when pathname is not `/`.                   |
+| `frontend/src/app/providers.tsx`                            | Mount the wrapper; preserve query client and theme-provider configuration.                                                 |
+| `frontend/src/test/providers.test.tsx`                      | Existing provider behavior plus single-toggle/root/account-route transitions.                                              |
+| `frontend/src/features/landing/landing-navigation.ts`       | Account links shared by header/footer; section links used in footer.                                                       |
+| `frontend/src/features/landing/landing-brand.tsx`           | `LandingBrand()` renders the real `/` brand link using Link2 and TinyRoute.                                                |
+| `frontend/src/features/landing/landing-header.tsx`          | `LandingHeader()` renders desktop navigation, inline selector, and mobile disclosure.                                      |
+| `frontend/src/features/landing/landing-header.test.tsx`     | Disclosure/link/focus/resize behavior, with realistic matchMedia event fixtures.                                           |
+| `frontend/src/features/landing/landing-page.tsx`            | Synchronous `LandingPage()` Server Component composing header, main sections, and footer. Keep local static sections here. |
+| `frontend/src/features/landing/landing-hero-background.tsx` | Server-rendered decorative perspective grid and six route lights.                                                          |
+| `frontend/src/features/landing/landing-hero-lights.tsx`     | Hydration-safe light timing and fresh random cycle durations.                                                              |
+| `frontend/src/components/ui/typewriter-effect.tsx`          | Reusable smooth/character effects with complete accessible text and live reduced motion.                                   |
+| `frontend/src/components/typewriter-effect-demo-1.tsx`      | Adapted TinyRoute closing copy and existing account links inside the surface panel.                                        |
+| `frontend/src/lib/utils.ts`                                 | Standard cn helper using existing clsx and tailwind-merge dependencies.                                                    |
+| `frontend/src/features/landing/landing.css`                 | Landing-scoped typography, composition, focus, breakpoints, and reduced-motion styling.                                    |
+| `frontend/src/features/landing/landing-page.test.tsx`       | Observable content, landmarks, planned labels, and navigation contract assertions.                                         |
+| `frontend/src/app/page.tsx`                                 | Render `LandingPage` and import scoped landing CSS; remain a Server Component.                                             |
+| `frontend/e2e/landing-page.spec.ts`                         | Browser journeys, viewport matrix, geometry, session fixtures, persistence, and motion checks.                             |
+| `docs/spec/landing-page/verification.md`                    | Actual results, acceptance evidence, independent-review findings, decisions, and limitations. Create during execution.     |
+| `docs/spec/landing-page/evidence/`                          | Final reviewed landing screenshots, without account data or secrets.                                                       |
 
 Do not introduce a generic navigation framework or refactor authentication
 branding. The two repeated navigation groups justify one small shared data
-module. Use relative imports consistently with the existing code and tests.
+module. Reusable shared components follow the configured @/* aliases; other
+landing imports retain existing relative conventions. Vitest resolves the same alias.
 
 The shared link contracts are:
 
@@ -201,8 +212,8 @@ navigation`, mobile region `Mobile navigation`. **Acceptance:** AC-02/03/07/09/1
 - [x] Write header tests using RTL/user-event, cleanup, and a matchMedia fixture
       that can dispatch a real change from mobile to desktop. Assert exact hrefs and
       that hidden panel links are not accessible. Assert opening leaves focus on the
-      trigger, Tab reaches Features, Shift+Tab returns, and Escape closes/restores
-      focus. Add section-focus, route-link close, desktop-resize focus transfer,
+      trigger, Tab reaches Sign in, Shift+Tab returns, and Escape closes/restores
+      focus. Add account-only navigation, route-link close, desktop-resize focus transfer,
       and return-to-mobile-closed tests. A central interaction case is:
 
   ```tsx
@@ -225,12 +236,12 @@ navigation`, mobile region `Mobile navigation`. **Acceptance:** AC-02/03/07/09/1
       Use a `(min-width: 1024px)` matchMedia change listener with cleanup, not a raw
       resize/scroll listener. Escape handling must cover focus in the trigger or
       open panel without intercepting unrelated controls elsewhere on the page.
-- [x] Use real section URLs. For plain in-page activation, close the panel and
-      focus the destination heading without preventing normal fragment navigation.
-      Preserve modified-click/new-tab behavior. Account links use Next.js Link;
+- [x] Use real account URLs in the header and section URLs in the footer, after
+      the user-requested header revision. Preserve modified-click/new-tab behavior.
+      Account links use Next.js Link;
       disable their prefetch to keep loading deliberate. Desktop resize transfers
       focus from a disappearing panel link to its visible matching desktop link.
-- [x] Style the header with Tailwind semantic variables, 56px height, 44px hit
+- [x] Style the header with Tailwind semantic variables, responsive height, 44px hit
       areas, visible focus, and desktop/mobile visibility. No modal behavior,
       animation library, or additional dependency. Include the skip link to
       `#main-content`; its visible focused position must fit the viewport.
@@ -251,7 +262,7 @@ navigation`, mobile region `Mobile navigation`. **Acceptance:** AC-02/03/07/09/1
 with `main-content`, `features`, and `how-it-works` focus targets, and the final
 browser acceptance suite. **Acceptance:** AC-01 through AC-11.
 
-- [ ] Before changing the existing route, add component assertions against
+- [x] Before changing the existing route, add component assertions against
       HomePage for the H1, five feature topics, both adjacent Planned labels,
       ordered three-step explanation, all landmarks, section IDs, closing CTA,
       footer/year, and route destinations. Use semantic queries and scope labels to
@@ -279,27 +290,27 @@ browser acceptance suite. **Acceptance:** AC-01 through AC-11.
   ).toBe("/links");
   ```
 
-- [ ] Add Playwright acceptance tests before styling/integrating the page.
+- [x] Add Playwright acceptance tests before styling/integrating the page.
       First run `pnpm --dir frontend exec playwright test e2e/landing-page.spec.ts`;
       record the missing new page behavior as the expected failure. Scope locators
       to main/header/footer or their named regions where labels repeat.
-- [ ] Implement the server page and landing-scoped CSS. Use local static section
+- [x] Implement the server page and landing-scoped CSS. Use local static section
       functions for hero, features, how-it-works, closing CTA, and footer; only the
-      header/theme boundaries are client components. Use the exact approved H1 and
+      header/theme and decorative timing boundaries are client components. Use the exact approved H1 and
       support copy. Keep feature availability honest and no fake previews. The
       footer reuses the two link arrays, adds Your links, and renders the year.
-- [ ] Use asymmetric typography/spacing and an uneven flat feature composition.
+- [x] Use asymmetric typography/spacing and an uneven surface-led feature composition.
       Keep H1 to two lines, 65-character prose measure, mobile-first stacking, and
-      44px targets. Add once-only opacity/transform entrances and a complete local
-      reduced-motion fallback. Do not hide overflow to mask a layout defect.
-- [ ] Make the browser suite prove the following observable contracts:
+      44px targets. Keep hero copy/grid static and apply the user-requested light
+      fades with a complete local reduced-motion fallback. Do not hide overflow to mask a layout defect.
+- [x] Make the browser suite prove the following observable contracts:
 
   | Scenario             | Required assertions                                                                                                                                                                                                                                            |
   | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | Public/no backend    | Abort `**/api/**`, visit `/`, assert content/links visible and application request list empty, including after scrolling. No account email, logout, or authenticated state.                                                                                    |
   | Registration/sign-in | Click every visible Get started/Sign in placement in isolated visits; assert `/register` or `/login` and the existing form heading.                                                                                                                            |
   | Section/footer links | Check exact hrefs; activate both section links and assert fragment, visible destination, and keyboard focus. Assert no empty, placeholder, or unexpected href.                                                                                                 |
-  | Mobile disclosure    | At 320/768px test Enter, Tab/Shift+Tab, Escape/focus, link close, section-focus, and desktop/mobile resize; hidden links cannot receive keyboard focus.                                                                                                        |
+  | Mobile disclosure    | At 320/768px test Enter, Tab/Shift+Tab, Escape/focus, account-link close, and desktop/mobile resize; hidden links cannot receive keyboard focus.                                                                                                               |
   | Theme                | Set light/dark through the real toggle, reload, assert `data-theme` and storage. Navigate to account routes and assert choice and one toggle remain; return to `/` and assert header placement.                                                                |
   | `/links` entry       | In separate contexts, fixture authenticated, confirmed signed-out, and 503 session responses. Follow footer Your links; expect the existing creation form, sign-in prompt, or safe error with no destination input, respectively. No creation request is sent. |
   | Cached session       | Enter `/links` with a successful fixture, return using its Home link, then make API unavailable. On `/`, assert fixed public navigation and no cached identity/session UI or new API request.                                                                  |
@@ -312,8 +323,8 @@ browser acceptance suite. **Acceptance:** AC-01 through AC-11.
   Fixture helpers stay private to this browser file; do not change auth policy
   or cache settings to make a test pass.
 
-- [ ] Run the eight viewport/theme cases at the spec's exact dimensions. After
-      fonts are ready and entrance motion has completed, measure document width,
+- [x] Run the eight viewport/theme cases at the spec's exact dimensions. After
+      fonts are ready and finite feedback has completed, measure document width,
       all visible interactive bounding boxes, hero CTA bounds, and H1 line height.
       Require `scrollWidth <= clientWidth`, targets at least 44px in both dimensions,
       CTA entirely inside the initial viewport, and H1 at most two lines. Repeat
@@ -340,7 +351,7 @@ browser acceptance suite. **Acceptance:** AC-01 through AC-11.
   expect(cta!.y + cta!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
   ```
 
-- [ ] Measure text/background contrast for hero/body/supporting copy, navigation,
+- [x] Measure text/background contrast for hero/body/supporting copy, navigation,
       Planned labels, and buttons in both themes using computed styles and WCAG
       relative luminance (4.5:1 normal text, 3:1 large text). Resolve transparent
       backgrounds through ancestors. Inspect focus visibility and control contrast;
@@ -364,7 +375,7 @@ and actual Git/check evidence. **Produces:** reviewed feature and complete
 evidence/task records ready for archiving and PR delivery. **Acceptance:** AC-12
 and all preceding ACs.
 
-- [ ] Run the full frontend checks below, inspect outputs, and record exact
+- [x] Run the full frontend checks below, inspect outputs, and record exact
       commands, pass counts, build results, and the commit tested in verification.md.
       Run type generation and build sequentially because both write `.next`.
       Independent read-only lint/format checks may be batched. Browser execution
@@ -379,7 +390,7 @@ and all preceding ACs.
   pnpm --dir frontend exec playwright test
   ```
 
-- [ ] Inspect the built route output: `/` must retain static content, without
+- [x] Inspect the built route output: `/` must retain static content, without
       requiring backend/session access. Inspect final screenshots for all eight
       matrix cases and expanded mobile menus in both themes. Save final images as
       `landing-320-dark.png`, `landing-320-light.png`, `landing-768-dark.png`,
@@ -387,17 +398,17 @@ and all preceding ACs.
       `landing-1440-dark.png`, `landing-1440-light.png`, `navigation-320-dark.png`,
       and `navigation-320-light.png` in the evidence directory. Capture only after
       acceptance checks pass; review every image and fix visible problems.
-- [ ] Use `superpowers:requesting-code-review` to dispatch one fresh independent
+- [x] Use `superpowers:requesting-code-review` to dispatch one fresh independent
       reviewer with read-only scope. Supply base commit `975d5d4`, current head,
       spec/plan/checklist, requirement constraints, acceptance evidence, and
       verification.md. Ask for prioritized findings with file references. Resolve
       actual reviewer/model/tool support at dispatch time; do not delegate coding.
-- [ ] Apply `superpowers:receiving-code-review` before acting on findings.
+- [x] Apply `superpowers:receiving-code-review` before acting on findings.
       Verify feedback, fix blocking issues inline, and rerun affected checks.
       Record any justified deferred minor finding and its impact. Use
       `superpowers:verification-before-completion` for the final claim; if fixes
       change behavior/layout, repeat the affected browser evidence and checks.
-- [ ] Mark every acceptance criterion verified in the evidence record and every
+- [x] Mark every acceptance criterion verified in the evidence record and every
       completed checkbox in todo.md. Link screenshots and record the fixture-based
       integration limitation. This change does not prove live backend integration,
       latency, production availability, or the planned capabilities.
@@ -458,21 +469,116 @@ checkboxes that would require archiving partially completed task files.
 
 ## Progress ledger
 
-Record each task's state, red/green commands/results, commits, and material
-decisions here during execution. Do not replace this ledger with chat history.
+| Date       | State                      | Evidence or decision                                                                                                                                   |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-11 | Baseline                   | Clean current main `975d5d4`; 16 test files / 77 tests passed.                                                                                         |
+| 2026-10-11 | Spec approved              | User edits/approval committed as `5cae563`; Cursor checkout retained.                                                                                  |
+| 2026-10-11 | Plan approved              | User replied "done"; continuous inline execution authorized. All 12 criteria mapped to tasks; plan self-review complete.                               |
+| 2026-10-11 | Task 1 complete            | RED: expected one toggle, got two. GREEN: 3 provider tests/typecheck. Commit `00fd5b1`.                                                                |
+| 2026-10-12 | Task 2 initial complete    | RED: missing Menu. GREEN: 7 focused tests/lint/typecheck. Commit `db31bee`. Header revised below on user request.                                      |
+| 2026-10-12 | Task 3 baseline            | RED: missing page content. GREEN: 10 focused/29 browser tests and 85 full unit tests. Visual evidence superseded after user rejection.                 |
+| 2026-10-12 | Diagnostics                | Measure H1 text Range rectangles, not stretched grid height. Native keyboard activation verifies JavaScript-disabled navigation.                       |
+| 2026-10-12 | Visual revision authorized | User: "implementation starts"; modern SaaS panels/steps/closing CTA approved.                                                                          |
+| 2026-10-12 | Final reference steering   | Replace sculpture and URL/route demo with open technical-grid hero. Header becomes spacious and account-only; section links stay in footer.            |
+| 2026-10-12 | Header revision TDD        | RED: first tab reached Features and section link remained. GREEN: 4 revised header tests.                                                              |
+| 2026-10-12 | Light steering             | User explicitly requests independent on/off light delays, infinite repetition, and no playback button. Preserve static reduced-motion/no-JS rendering. |
 
-| Date       | State             | Evidence or decision                                                          |
-| ---------- | ----------------- | ----------------------------------------------------------------------------- |
-| 2026-10-11 | Baseline          | Clean current main `975d5d4`; 16 test files / 77 tests passed before changes. |
-| 2026-10-11 | Approach approved | Asymmetric text-led page, neutral sessions, Planned management/analytics.     |
-| 2026-10-11 | Spec approved     | User edits and approval recorded in `5cae563`; Cursor checkout retained.      |
-| 2026-10-11 | Plan saved        | Tasks 1-4 are not started; waiting for written plan/checklist approval.       |
+## Authorized visual revision within Task 3
 
-Plan self-review: all 12 criteria map to tasks; shared names/types/IDs match;
-exact paths and verification commands are specified; scope remains the public
-landing page. Inline implementation is authorized; reviewer dispatch follows final verification.
+[The saved visual decision](../docs/spec/landing-page/redesign-proposal.md) and
+updated DESIGN.md record the user's latest instructions. Product scope and
+acceptance criteria are unchanged except explicitly requested header contents
+and decorative motion. Keep implementation inline.
 
-| 2026-10-11 | Plan approved | User replied "done"; continuous inline execution authorized. |
-| 2026-10-11 | Task 1 complete | Provider test RED: expected 1 toggle, got 2. GREEN: 3/3 provider tests; typecheck passed. Theme placement only; provider configuration unchanged. |
+- [x] Implement `landing-hero-background.tsx` as server-rendered perspective
+      SVG grid and six illuminated route points. No image, imitation controls,
+      URL demo, or illustration box.
+- [x] Implement `landing-hero-lights.tsx` as the small hydration-safe client
+      boundary. CSS opacity-only cycles have independent negative delays and
+      random 8–14-second durations after each iteration. No timers or API calls.
+      Repeat indefinitely without playback controls; reduced motion/no JS static.
+- [x] Group H1/copy/actions on the left over the open hero canvas. Keep copy and
+      grid still. Retain semantic colors, first-viewport CTA, and two-line H1.
+- [x] Restyle header with filled icon/wordmark, 64px mobile/80px desktop spacing,
+      no divider, and account-only navigation. Retain keyboard/Escape/focus/resize.
+- [x] Use varied feature panels, stacked section headings, connected open steps,
+      and emphasized closing CTA, without new dependencies or product claims.
+- [x] Apply the user's footer reference: generous spacing, Pages/Account headings,
+      branding/copyright, and a large static aria-hidden wordmark. Preserve real
+      links, mobile columns, contrast, and touch target size. RED: missing Pages
+      heading before implementation; focused test verifies semantic grouping.
+- [x] Pass focused component/browser checks and refresh/inspect ten screenshots.
+- [ ] Record final revision evidence and commit Task 3, then continue Task 4.
 
-| 2026-10-12 | Task 2 complete | RED: four tests missing Menu control. GREEN: 7/7 focused tests; lint and typecheck passed. Resize fixture now reflects visible desktop CSS; real-browser focus checks follow. |
+Footer visual revision requested on 2026-10-12; preserve existing destinations and refresh final viewport evidence after implementation.
+
+2026-10-12 footer GREEN: 10 focused landing/provider tests pass. Lint/format/typecheck/full suite (85) and build passed before this footer amendment; rerun affected checks and final browser evidence before delivery.
+
+2026-10-12 footer sizing: user requested a smaller decorative TinyRoute wordmark. Reduced responsive size from 18vw (260px maximum) to 14vw (200px maximum), with a 44px mobile minimum. Real brand/navigation type is unchanged.
+
+2026-10-12 footer finish: user clarified the reference has a softened upper edge. Apply a static 2px blur to an upper-only decorative layer and blend it with the sharper lower wordmark via masks. No functional text is blurred.
+
+2026-10-12 alignment regression: browser RED measured wordmark text at x=306.75px
+against footer content at x=120px at 1440px. Align the decorative layers to the
+container's left edge; GREEN measures matching origins and identical layer bounds.
+
+2026-10-12 review fixes: reverse desktop-to-mobile resize now transfers focus to
+Menu (unit RED/GREEN). Browser RED reproduced the light iteration retaining
+8099.9ms of elapsed time after changing duration. Restart the CSS animation at
+the dim boundary with a fresh 8–14-second duration and zero delay. Browser GREEN
+verifies three successive randomly selected full cycles. No timers or controls.
+
+2026-10-13 footer typography: user's screenshot exposed crowded T/i/y spacing
+and clipping of the final e. Relax tracking from -0.075em to -0.02em, use 1.3
+line height, and reserve 8px inside each mask while keeping the text's left
+edge aligned with the footer content. Browser RED confirmed no edge clearance;
+final matrix checks the full text bounds inside both masks at all four widths.
+
+2026-10-13 browser diagnostics: CSS display:none can blur a desktop link before
+the media-change callback. Remember focus only across that breakpoint-induced
+blur, then return it to Menu; ordinary desktop blurs clear the memory. Unit
+RED/GREEN reproduces the browser ordering. The light regression now waits for
+the animation's ready promise and first active frame before seeking a boundary,
+so it tests iteration handling rather than initial animation-start scheduling.
+
+## 2026-10-13 requested CTA amendment
+
+User supplied the smooth typewriter React component and requested it for the
+closing CTA. This is steering of the authorized landing feature, with unchanged
+account routes and backend policy. Setup confirmed: shadcn Radix Nova metadata,
+Tailwind 4.3.3, strict TypeScript and @/* -> src/* aliases. Canonical shared
+components are frontend/src/components/ui; styles are src/app/globals.css.
+Create the missing UI directory and standard cn helper using existing clsx and
+tailwind-merge. Add exact-version Motion for the supplied effect.
+
+- [x] Observe missing typewriter behavior in a browser regression.
+- [x] Add reusable effect and adapted demo/CTA with TinyRoute copy and real links.
+- [x] Preserve server/no-JS/screen-reader text, static reduced motion, single
+      reveal, stable geometry, responsive sizing, and semantic theme colors.
+- [x] Verify browser behavior and refresh screenshots after the CTA amendment.
+- [x] Complete affected checks and the same independent review before delivery.
+
+The user's follow-up retains the previous bordered CTA panel. Restore its
+surface background, 12px corners, and 24px horizontal inset around the typewriter.
+Check the complete heading against the panel's inner bounds at every viewport.
+The initial browser run verified no-JS and reduced-motion fallbacks; the reveal
+assertion needed to handle CSS's one-value `inset(0%)` serialization before
+rerunning the complete CTA checks.
+
+2026-10-13 reviewer regression: the installed Motion reduced-motion hook takes
+an initial snapshot without subscribing to changes. Browser RED reproduced
+both preference directions (data-active remained stale). Use a live matchMedia
+subscription and complete the reveal when reduced motion is enabled, including
+the initial static presentation, so later enabling motion cannot hide the text.
+Require cancellation within 500ms rather than waiting for natural completion.
+
+2026-10-13 latest footer steering: center the large decorative TinyRoute text
+horizontally within the footer. This supersedes the earlier left-aligned origin;
+retain coincident blur/sharp layers, tracking, size, and glyph clearance. The
+viewport regression measures the text's actual center against the footer center.
+
+2026-10-13 final checks: lint/format/typecheck, 18 unit files/87 tests, production
+build (static root), full62 Chromium browser tests, and three tightened typewriter
+regressions all pass. Reviewed12 screenshots: eight full-page, two expanded
+menus, two footer details. The independent reviewer confirms no unresolved
+findings. Complete results and acceptance trace are in verification.md.

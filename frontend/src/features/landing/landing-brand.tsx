@@ -8,7 +8,9 @@ export function LandingBrand() {
       href="/"
       prefetch={false}
     >
-      <Link2 aria-hidden="true" size={22} strokeWidth={1.8} />
+      <span aria-hidden="true" className="landing-brand-mark">
+        <Link2 size={22} strokeWidth={1.8} />
+      </span>
       TinyRoute
     </Link>
   );

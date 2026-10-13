@@ -13,10 +13,9 @@ import {
 
 import { ThemeSelector } from "../../app/theme-selector";
 import { LandingBrand } from "./landing-brand";
-import {
-  LANDING_ACCOUNT_LINKS,
-  LANDING_SECTION_LINKS,
-} from "./landing-navigation";
+import { LANDING_ACCOUNT_LINKS } from "./landing-navigation";
+
+const DESKTOP_MEDIA = "(min-width: 1024px)";
 
 function isPlainClick(event: MouseEvent<HTMLAnchorElement>) {
   return (
@@ -35,12 +34,25 @@ export function LandingHeader() {
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const desktop = useRef<HTMLElement>(null);
+  const desktopHadFocus = useRef(false);
+  const triggerHadFocus = useRef(false);
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 1024px)");
+    const media = window.matchMedia(DESKTOP_MEDIA);
     function onChange(event: MediaQueryListEvent) {
-      if (!event.matches) return;
       const active = document.activeElement;
+      if (!event.matches) {
+        if (
+          active &&
+          (desktop.current?.contains(active) ||
+            (active === document.body && desktopHadFocus.current))
+        ) {
+          trigger.current?.focus();
+        }
+        desktopHadFocus.current = false;
+        setOpen(false);
+        return;
+      }
       if (
         active instanceof HTMLAnchorElement &&
         panel.current?.contains(active)
@@ -50,9 +62,13 @@ export function LandingHeader() {
             `a[href="${active.getAttribute("href")}"]`,
           )
           ?.focus();
-      } else if (active === trigger.current) {
+      } else if (
+        active === trigger.current ||
+        (active === document.body && triggerHadFocus.current)
+      ) {
         desktop.current?.querySelector<HTMLAnchorElement>("a")?.focus();
       }
+      triggerHadFocus.current = false;
       setOpen(false);
     }
     media.addEventListener("change", onChange);
@@ -66,57 +82,55 @@ export function LandingHeader() {
     trigger.current?.focus();
   }
 
-  function onSectionClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (!isPlainClick(event)) return;
-    setOpen(false);
-    const id = event.currentTarget.hash.slice(1);
-    document.getElementById(id)?.focus({ preventScroll: true });
-  }
-
   return (
     <>
       <a className="landing-skip" href="#main-content">
         Skip to content
       </a>
-      <header className="landing-header border-b border-(--border)">
-        <div className="landing-container flex h-14 items-center gap-4">
+      <header className="landing-header">
+        <div className="landing-header-inner landing-container flex items-center gap-4">
           <LandingBrand />
-          <nav
-            aria-label="Primary navigation"
-            className="landing-desktop-nav ml-auto hidden items-center gap-3 lg:flex"
-            ref={desktop}
-          >
-            {LANDING_SECTION_LINKS.map(({ href, label }) => (
-              <a
-                className="landing-nav-link"
-                href={href}
-                key={href}
-                onClick={onSectionClick}
-              >
-                {label}
-              </a>
-            ))}
-            {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
-              <Link
-                className={
-                  href === "/register" ? "landing-action" : "landing-nav-link"
-                }
-                href={href}
-                key={href}
-                prefetch={false}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <div className="ml-auto flex items-center gap-2 lg:gap-6">
             <ThemeSelector placement="inline" />
+            <nav
+              aria-label="Primary navigation"
+              className="landing-desktop-nav hidden items-center gap-3 lg:flex"
+              onFocusCapture={() => {
+                desktopHadFocus.current = true;
+              }}
+              onBlurCapture={() => {
+                // CSS can hide and blur the link before the media event fires.
+                if (window.matchMedia(DESKTOP_MEDIA).matches)
+                  desktopHadFocus.current = false;
+              }}
+              ref={desktop}
+            >
+              {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
+                <Link
+                  className={
+                    href === "/register" ? "landing-action" : "landing-nav-link"
+                  }
+                  href={href}
+                  key={href}
+                  prefetch={false}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
             <button
               aria-controls={panelId}
               aria-expanded={open}
               aria-label="Menu"
               className="grid size-11 place-items-center rounded-lg border border-(--border-strong) lg:hidden"
               onClick={() => setOpen(!open)}
+              onFocus={() => {
+                triggerHadFocus.current = true;
+              }}
+              onBlur={() => {
+                if (!window.matchMedia(DESKTOP_MEDIA).matches)
+                  triggerHadFocus.current = false;
+              }}
               onKeyDown={onEscape}
               ref={trigger}
               type="button"
@@ -137,16 +151,6 @@ export function LandingHeader() {
           onKeyDown={onEscape}
           ref={panel}
         >
-          {LANDING_SECTION_LINKS.map(({ href, label }) => (
-            <a
-              className="landing-nav-link"
-              href={href}
-              key={href}
-              onClick={onSectionClick}
-            >
-              {label}
-            </a>
-          ))}
           {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
             <Link
               className={

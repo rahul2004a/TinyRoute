@@ -241,6 +241,51 @@ shadows to every card, use pure-black shadows, or blur scrolling surfaces.
 }
 ```
 
+For the landing-page hero, the user selected a technical-grid reference on
+2026-10-12 and removed the illustration box and typing/route animation. Use
+large left-aligned copy over an open canvas, with perspective route lines and
+six softly illuminated points on the right. The artwork uses existing semantic
+paper/charcoal colors and stays behind and clear of the copy. This scoped hero
+exception permits light halos and a fading artwork mask, without another accent
+or text shadow. The user's final motion instruction is continuous independent
+on/off fades with uneven delays, and explicitly no play/pause button. Animate
+only the six lights' opacity, on slow 8–14-second cycles with new random duration
+at each iteration, restarting at the dim boundary with a full new cycle. Copy and grid stay still. Reduced motion and pre-hydration
+markup show static lights. At small widths, reduce the artwork's prominence and
+keep the primary CTA in view. Add no animation library, timer, or canvas.
+
+The landing header is continuous with that canvas, without a divider: 64px on
+mobile/tablet and 80px on desktop. Use a compact filled icon beside the wordmark.
+Its navigation contains account actions only; section links remain in the
+footer, as explicitly requested by the user.
+
+The landing footer follows the user's spacious reference: a top divider, brand
+and copyright at the left, Pages and Account columns at the right, and an
+oversized TinyRoute wordmark below, centered horizontally within the footer.
+Keep its sharp and softened layers in the same grid cell and at the same origin.
+Use restrained tracking (-0.02em), 1.3 line height, and 8px clearance around
+each masked layer so letters, descenders, and the blur are not clipped.
+Stack branding above two link columns on
+mobile. The large wordmark is decorative, aria-hidden, static, and uses a derived
+low-contrast color (`color-mix(in srgb, var(--ink) 8%, var(--canvas))`); all real
+navigation and copyright retain accessible text contrast. The user requested a
+softened upper edge: blend a static 2px-blurred upper text layer with a sharper
+lower layer using fade masks. This exception applies only to the decorative
+wordmark; ordinary text remains sharp. Use existing routes
+only, with no imitation legal or social links.
+
+The closing CTA follows the user's supplied smooth typewriter reference
+(2026-10-13): preserve the previous bordered surface panel with 12px corners
+and 24px horizontal padding. Center the intro, one-line responsive display text
+and two real account links inside it. Reveal text once on entering view over two seconds,
+after a short delay, with a subtle decorative cursor. Reserve the full text
+width and height throughout so surrounding content does not move. Keep complete
+server-rendered and screen-reader text. Reduced motion disables the reveal and
+cursor, including changes made while the animation is running. Motion is an
+explicitly requested exception to the initial CSS-only motion implementation;
+keep it within the reusable typewriter client component. Retain the existing
+semantic color palette rather than the reference's hard-coded blue/black/white.
+
 Animate only transform and opacity for movement. Use entrance motion once per
 page region. Press feedback may move a button by 1px. Copy success changes the
 label or adjacent live region. Do not add parallax, scroll hijacking, raw scroll

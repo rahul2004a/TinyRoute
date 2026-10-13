@@ -6,8 +6,10 @@
 - Approach approved: 2026-10-11 ("yes"), including `Planned` labels for link
   management and analytics.
 - Written specification approved: 2026-10-11 after user review and edits.
-  Planning is authorized; coding requires separate approval of the saved plan
-  and checklist.
+  Saved plan/checklist approved on 2026-10-11 ("done"); inline implementation
+  authorized. Visual amendments were directly requested during execution.
+- Implementation and independent review completed: 2026-10-13. See
+  [verification.md](verification.md) for acceptance evidence and limitations.
 - Execution preference: inline with `superpowers:executing-plans`, TDD, and one
   independent final reviewer when supported. Reviewer delegation is authorized;
   delegated implementation is not authorized.
@@ -49,8 +51,9 @@ typography, semantic color variables, dual themes, and reduced-motion rules.
 Exclude authentication changes, dashboard changes, link-management or analytics
 implementation, backend APIs, schema changes, anonymous shortening, pricing,
 testimonials, usage statistics, new tracking, and V1/Future features. No new
-runtime dependency is needed for the selected native disclosure navigation and
-existing theme control.
+runtime dependency was needed for the initial page. The user's 2026-10-13
+typewriter-component request explicitly adds Motion for the closing CTA only;
+the existing navigation, hero lights, and theme control retain their implementation.
 
 The current `/links` page provides authenticated creation. It does not yet
 provide an owner list or management actions. The backend currently exposes link
@@ -82,14 +85,13 @@ frontend-only feature.
 
 Use these sections in order, with one H1 and logical H2/H3 headings:
 
-1. **Header:** TinyRoute brand linking to `/`, Features linking to `/#features`,
-   How it works linking to `/#how-it-works`, one sun/moon theme toggle, Sign in
+1. **Header:** TinyRoute brand linking to `/`, one sun/moon theme toggle, Sign in
    linking to `/login`, and Get started linking to `/register`.
 2. **Hero:** H1 "Short links. Your control." Supporting copy: "Create short links
    with custom aliases and expiry. Sign in, shorten, and share from one place."
    Primary Get started links to `/register`; secondary Sign in links to `/login`.
    Keep the H1 within two lines and the primary CTA visible in the first viewport.
-3. **Features**, with `id="features"`: an uneven, border-led composition covering
+3. **Features**, with `id="features"`: an uneven, surface-led composition covering
    the five items below. Use real text and Lucide icons, without screenshot
    mockups, chart samples, nonfunctional controls, or invented short-link domains.
 4. **How it works**, with `id="how-it-works"`: an ordered sequence explaining
@@ -97,11 +99,28 @@ Use these sections in order, with one H1 and logical H2/H3 headings:
    email/password or Google registration, an HTTPS destination with optional alias
    and expiry, and copying/sharing the result. Recipients need no account to
    follow an active, unexpired link. No form is embedded here.
-5. **Closing CTA:** "Ready to make your first short link?" Get started links to
-   `/register`; Sign in links to `/login`.
+5. **Closing CTA:** follow the user's supplied smooth typewriter component with
+   the previous bordered, rounded surface panel and centered composition:
+   "Your next short link starts here." above
+   "Short links. Big possibilities." and existing account links. Get started
+   links to `/register`; Sign in links to `/login`. Reveal the heading once when
+   it enters view, with a decorative cursor and reserved layout space. Keep the
+   complete heading readable to assistive technology and without JavaScript.
+   Reduced motion shows static text and hides the cursor. Use semantic theme
+   colors and responsive type that fits at 320px; no Aceternity promotion or
+   inert demo buttons. This visual amendment is directly authorized by the user.
 6. **Footer:** linked TinyRoute brand, Features, How it works, Get started,
    Sign in, and Your links linking to `/links`, plus the current copyright year
-   and TinyRoute name. Do not add legal, social, pricing, or other absent routes.
+   and TinyRoute name. Group links under Pages and Account headings. Follow the
+   user's footer reference with generous spacing, branding/copyright at the left,
+   link columns at the right, and a large decorative aria-hidden TinyRoute wordmark
+   below, centered horizontally within the footer, with both text layers sharing
+   one origin. On mobile place branding above the two link columns. Keep actual links
+   and copyright readable; the decorative wordmark may have subtle contrast. Its upper part has a soft
+   fade/2px blur, while the lower part remains clearer, matching the user reference.
+   Use -0.02em tracking, 1.3 line height, and 8px clearance around both masked
+   layers to prevent crowded letters and clipping of the descender or final glyph.
+   Do not add legal, social, pricing, or other absent routes.
 
 Feature overview content:
 
@@ -126,21 +145,39 @@ claim that the visitor is authenticated or that a management dashboard exists.
 ## Presentation and interaction
 
 Use the existing DESIGN.md without replacing it or creating a competing design
-system. The chosen direction is an asymmetric, text-led hero and flat editorial
-sections. No hero screenshot or generated image is required. Keep the marketing
-container at 1200px maximum, Geist Sans for prose, and Geist Mono only where
-appropriate for actual codes, URLs, dates, or aligned numbers.
+system. The modern SaaS revision was authorized on 2026-10-12 (user:
+"implementation starts"). The latest user-provided hero reference supersedes the
+sculpture and URL/route animation concepts: remove the illustration box and
+keep copy/grid still. Group the two-line headline, supporting copy, and actions on the left of
+an open hero canvas. Put static perspective grid/route lines and softly
+illuminated connection points in the right-side background, clear of the text.
+The final user instruction adds independently fading lights with irregular
+delays, repeating indefinitely, and explicitly removes playback controls.
+No standalone illustration card, URL demo, imitation controls, or product
+screenshot appears in the hero. The background is aria-hidden, non-interactive,
+server-rendered SVG/CSS using semantic colors. A small Client Component enables
+CSS opacity cycles after hydration and varies each light's duration randomly
+(8–14 seconds) on animation iteration. It makes no application request and uses
+no timer. Reduced motion and JavaScript-disabled rendering stay static. No
+raster asset, animation library, canvas, or external image host is needed.
 
-Use semantic color variables in both themes, the existing dark default, 8px
-control radii, and 12px panel radii only where grouping requires a panel. Avoid
-equal three-card feature rows, decorative eyebrows, gradients, glass, oversized
-shadows, fabricated proof, and animation-driven content. The how-it-works
-sequence can use columns without enclosing each step in a card.
+Use five varied feature panels, stacked section headings, a connected steps
+sequence, and a spacious closing CTA. Keep the marketing container at 1200px,
+Geist Sans for prose, and Geist Mono only for actual codes, URLs, dates, or
+aligned numbers. Use semantic colors in both themes, the existing dark default,
+8px controls, and 12px panel radii where grouping requires a panel. The reference
+allows static light halos and an artwork fade mask in this hero only; do not
+add another accent, text shadows, glass, oversized shadows, fabricated proof,
+or content that depends on motion. The how-it-works sequence uses connected open steps
+without enclosing each in a card. All behavior acceptance criteria remain.
 
-The header is a non-sticky 56px bar. At widths below 1024px, keep the brand,
-theme toggle, and a labeled navigation button visible; put the section and
-account links in its expandable panel. At 1024px and above, show the full
-navigation inline. Below 768px, collapse page columns; below 480px, stack hero
+The header follows the user's reference: spacious, non-sticky, and continuous
+with the hero canvas, without a bottom divider. It is 64px high below 1024px and
+80px above. Keep TinyRoute's icon/wordmark at the left and account actions/theme
+at the right. The user explicitly removed Features and How it works from both
+header navigation variants; retain those real section links in the footer.
+Below 1024px, keep brand, theme toggle, and Menu visible with account links in
+its disclosure. Above it, show Sign in and Get started inline. Below 768px, collapse page columns; below 480px, stack hero
 and closing actions. Use 16px padding at the smallest widths, then 24px and 32px
 as space allows. Ensure long text wraps within its container without hiding
 page overflow as a workaround.
@@ -151,8 +188,7 @@ must be absent from the tab order and accessibility tree. Opening leaves focus
 on the trigger; Tab and Shift+Tab follow normal document order without a focus
 trap or body scroll lock. Escape from the open panel closes it and restores
 focus to the trigger. Activating a link closes the panel and follows the real
-destination; section navigation moves focus to its destination heading instead
-of leaving focus in the hidden panel. Entering desktop layout closes the
+destination. Footer section navigation reaches the real focusable heading. Entering desktop layout closes the
 disclosure state so it does not unexpectedly reopen when returning to mobile.
 If a focused panel link becomes hidden during that resize, move focus to its
 visible desktop equivalent. This is not a dialog or product sidebar; no new
@@ -169,8 +205,9 @@ the header; retain existing floating placement on other routes. Keep the same
 sun/moon behavior, accessible action label, hydration safety, and stored choice.
 Changing themes and navigating to account pages must not reset the preference.
 
-Use DESIGN.md's L1 CSS entrance motion and short control feedback. Content must
-be visible in the server-rendered page. Reduced motion disables movement and
+The hero copy and grid are static. Only the six decorative light points loop,
+as explicitly requested. Retain DESIGN.md's short control feedback elsewhere. Content must be visible in the
+server-rendered page. Reduced motion disables movement and
 smooth scrolling; essential content must not depend on animation completion.
 Do not add scroll listeners, parallax, autoplay typing, or animation libraries.
 
@@ -178,8 +215,8 @@ Do not add scroll listeners, parallax, autoplay typing, or animation libraries.
 
 Retain Next.js App Router, React, strict TypeScript, Tailwind, the existing
 Radix-based shadcn configuration, and Lucide. The page and static sections are
-Server Components; the navigation disclosure and theme control are small Client
-Components. Keep landing-specific UI within the existing `features/` convention
+Server Components; the navigation disclosure, theme control, and decorative
+light timing are small Client Components. Keep landing-specific UI within the existing `features/` convention
 and landing styles scoped to that page. The implementation plan will name exact
 files and tests after this specification is approved.
 
@@ -283,3 +320,10 @@ navigation semantics, theme placement, session-neutral behavior, and viewport
 dimensions. Requirement links resolve locally. No implementation tasks or code
 are authorized by approach approval alone. User review and written-spec approval
 are now complete; approval of the saved implementation plan is the next gate.
+
+Visual revision approved and inline implementation explicitly authorized on
+2026-10-12 (user: "implementation starts") after the saved
+[redesign proposal](redesign-proposal.md). This supersedes the original text-only
+visual direction; behavior, requirements, acceptance criteria, and scope remain
+unchanged. The revised presentation was self-reviewed for consistency with
+DESIGN.md and the original twelve acceptance criteria.
