@@ -104,7 +104,10 @@ test("password sign-in persists on reload and sign-out clears the session", asyn
   await expect(
     page.getByRole("heading", { name: "Create a short link" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Account settings" }).click();
+  await page
+    .getByRole("navigation", { name: "Footer account" })
+    .getByRole("link", { name: "Account settings" })
+    .click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await expect(

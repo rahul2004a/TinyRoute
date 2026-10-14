@@ -184,45 +184,55 @@ export function LandingPage() {
           <TypewriterEffectSmoothDemo />
         </section>
       </main>
-      <footer className="landing-footer">
-        <div className="landing-container landing-footer-content">
-          <div>
-            <LandingBrand />
-            <p>© {new Date().getFullYear()} TinyRoute</p>
-          </div>
-          <nav aria-label="Footer sections">
-            <h2>Pages</h2>
-            {LANDING_SECTION_LINKS.map(({ href, label }) => (
-              <a className="landing-nav-link" href={href} key={href}>
-                {label}
-              </a>
-            ))}
-          </nav>
-          <nav aria-label="Footer account">
-            <h2>Account</h2>
-            {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
-              <Link
-                className="landing-nav-link"
-                href={href}
-                key={href}
-                prefetch={false}
-              >
-                {label}
-              </Link>
-            ))}
-            <Link className="landing-nav-link" href="/links" prefetch={false}>
-              Your links
-            </Link>
-          </nav>
-        </div>
-        <div
-          aria-hidden="true"
-          className="landing-footer-wordmark landing-container"
-        >
-          <div className="landing-footer-wordmark-sharp">TinyRoute</div>
-          <div className="landing-footer-wordmark-soft">TinyRoute</div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
+  );
+}
+
+export function LandingFooter({
+  accountLinks = [
+    ...LANDING_ACCOUNT_LINKS,
+    { href: "/links", label: "Your links" },
+  ],
+}: Readonly<{
+  accountLinks?: readonly { href: string; label: string }[];
+}> = {}) {
+  return (
+    <footer className="landing-footer">
+      <div className="landing-container landing-footer-content">
+        <div>
+          <LandingBrand />
+          <p>© {new Date().getFullYear()} TinyRoute</p>
+        </div>
+        <nav aria-label="Footer sections">
+          <h2>Pages</h2>
+          {LANDING_SECTION_LINKS.map(({ href, label }) => (
+            <a className="landing-nav-link" href={href} key={href}>
+              {label}
+            </a>
+          ))}
+        </nav>
+        <nav aria-label="Footer account">
+          <h2>Account</h2>
+          {accountLinks.map(({ href, label }) => (
+            <Link
+              className="landing-nav-link"
+              href={href}
+              key={href}
+              prefetch={false}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <div
+        aria-hidden="true"
+        className="landing-footer-wordmark landing-container"
+      >
+        <div className="landing-footer-wordmark-sharp">TinyRoute</div>
+        <div className="landing-footer-wordmark-soft">TinyRoute</div>
+      </div>
+    </footer>
   );
 }

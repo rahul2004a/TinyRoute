@@ -94,14 +94,18 @@ it("keeps creation unavailable while session state is pending or unknown", async
   );
   expect(screen.queryByLabelText("HTTPS destination")).toBeNull();
 });
-it("submits optional inputs once, retains the inputs, and renders the authoritative result", async () => {
+it("submits optional inputs once, resets the form, and renders the authoritative result", async () => {
   mount();
   const user = await fill();
+  fireEvent.change(screen.getByLabelText("Expiry (optional)"), {
+    target: { value: "2030-10-08T12:30" },
+  });
   await user.click(screen.getByRole("button", { name: "Create short link" }));
   await waitFor(() =>
     expect(vi.mocked(createLink).mock.calls[0]?.[0]).toEqual({
       destinationUrl: link.destinationUrl,
       alias: "MyAlias",
+      expiresAt: new Date("2030-10-08T12:30").toISOString(),
     }),
   );
   expect(
@@ -109,7 +113,14 @@ it("submits optional inputs once, retains the inputs, and renders the authoritat
   ).toBe(link.shortUrl);
   expect(
     (screen.getByLabelText("HTTPS destination") as HTMLInputElement).value,
-  ).toBe(link.destinationUrl);
+  ).toBe("");
+  expect(
+    (screen.getByLabelText("Custom alias (optional)") as HTMLInputElement)
+      .value,
+  ).toBe("");
+  expect(
+    (screen.getByLabelText("Expiry (optional)") as HTMLInputElement).value,
+  ).toBe("");
 });
 it("prevents duplicate pending requests", async () => {
   vi.mocked(createLink).mockImplementation(() => new Promise(() => {}));
@@ -206,6 +217,10 @@ it("keeps the last successful URL available after a later ambiguous failure", as
   await user.click(screen.getByRole("button", { name: "Create short link" }));
   await screen.findByLabelText("Short URL");
   vi.mocked(createLink).mockRejectedValueOnce(new TypeError("network"));
+  await user.type(
+    screen.getByLabelText("HTTPS destination"),
+    link.destinationUrl,
+  );
   await user.click(screen.getByRole("button", { name: "Create short link" }));
   await screen.findByRole("alert");
   expect((screen.getByLabelText("Short URL") as HTMLInputElement).value).toBe(

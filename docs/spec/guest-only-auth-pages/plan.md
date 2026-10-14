@@ -11,3 +11,6 @@ Specification: `docs/spec/guest-only-auth-pages/spec.md`.
    session refresh, history replacement, OTP, and sign-out.
 4. Run frontend validation and build, review the final diff, record evidence,
    and archive completed task files.
+5. Continue the requested `/links` layout correction in existing files: reuse
+   header/footer, preserve form styles, and verify responsive navigation and
+   theme behavior. Keep follow-up tracking here per the user's no-new-file request.

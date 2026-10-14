@@ -93,6 +93,8 @@ test("real signed-in creation, clipboard, anonymous state/expiry, and account de
     expect(head.headers().location).toBe(destination);
     expect(await head.body()).toHaveLength(0);
     await redirect(link.shortUrl.replace(alias, alias.toLowerCase()), 404);
+    await page.getByLabel("HTTPS destination").fill(destination);
+    await page.getByLabel("Custom alias (optional)").fill(alias);
     await page.getByRole("button", { name: "Create short link" }).click();
     await expect(page.locator("main").getByRole("alert")).toContainText(
       "different custom alias",
@@ -139,7 +141,10 @@ test("real signed-in creation, clipboard, anonymous state/expiry, and account de
       shortUrl: string;
     };
     await redirect(deletionLink.shortUrl, 302);
-    await page.getByRole("link", { name: "Account settings" }).click();
+    await page
+      .getByRole("navigation", { name: "Footer account" })
+      .getByRole("link", { name: "Account settings" })
+      .click();
     await page.getByRole("button", { name: "Delete account" }).click();
     await page.getByRole("button", { name: "Confirm deletion" }).click();
     await expect(

@@ -85,6 +85,78 @@ async function fill(page: Page) {
   await page.getByLabel("Custom alias (optional)").fill("Docs2026");
 }
 
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [320, 768, 1024, 1440]) {
+    test(`links page shares the header and footer in ${theme} at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(
+        (theme) => localStorage.setItem("tinyroute-color-theme", theme),
+        theme,
+      );
+      await fixture(page);
+      await page.goto("/links");
+      await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+      await expect(page.getByRole("banner")).toHaveCount(1);
+      await expect(page.getByRole("contentinfo")).toHaveCount(1);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(
+        page.getByRole("button", { name: /Switch to .* mode/ }),
+      ).toHaveCount(1);
+
+      const navigation = page.getByRole("navigation", {
+        name: width < 1024 ? "Mobile navigation" : "Primary navigation",
+      });
+      if (width < 1024)
+        await page.getByRole("button", { name: "Menu" }).click();
+      await expect(
+        navigation.getByRole("link", { name: "Your links" }),
+      ).toHaveAttribute("aria-current", "page");
+      await expect(
+        navigation.getByRole("link", { name: "Account settings" }),
+      ).toHaveAttribute("href", "/settings");
+      await expect(
+        navigation.getByRole("link", { name: "Sign in" }),
+      ).toHaveCount(0);
+      if (width < 1024) {
+        await navigation.getByRole("link", { name: "Your links" }).focus();
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("button", { name: "Menu" })).toBeFocused();
+      }
+
+      await page.getByRole("link", { name: "Skip to content" }).focus();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("main")).toBeFocused();
+      await page.getByRole("contentinfo").scrollIntoViewIfNeeded();
+      await expect(
+        page
+          .getByRole("navigation", { name: "Footer account" })
+          .getByRole("link", { name: "Account settings" }),
+      ).toHaveAttribute("href", "/settings");
+      await expect(
+        page
+          .getByRole("navigation", { name: "Footer sections" })
+          .getByRole("link", { name: "Features" }),
+      ).toHaveAttribute("href", "/#features");
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+
+      const nextTheme = theme === "dark" ? "light" : "dark";
+      await page
+        .getByRole("button", { name: `Switch to ${nextTheme} mode` })
+        .click();
+      await expect(page.locator("html")).toHaveAttribute(
+        "data-theme",
+        nextTheme,
+      );
+    });
+  }
+}
+
 test("signed-out and unknown sessions cannot submit", async ({ page }) => {
   const state = await fixture(page, { session: "out" });
   await page.goto("/links");
@@ -117,6 +189,9 @@ test("keyboard creation and one-click copying use the exact response URL", async
   await page.getByRole("button", { name: "Create short link" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Short URL")).toHaveValue(link.shortUrl);
+  await expect(page.getByLabel("HTTPS destination")).toHaveValue("");
+  await expect(page.getByLabel("Custom alias (optional)")).toHaveValue("");
+  await expect(page.getByLabel("Expiry (optional)")).toHaveValue("");
   await page.getByLabel("Short URL").focus();
   await page.keyboard.press("Tab");
   await expect(
@@ -310,6 +385,8 @@ for (const theme of ["light", "dark"] as const)
         expect(size?.height).toBeGreaterThanOrEqual(44);
         expect(size?.width).toBeGreaterThanOrEqual(44);
       }
+      await page.getByLabel("HTTPS destination").fill(destination);
+      await page.getByLabel("Custom alias (optional)").fill("Docs2026");
       await page.getByRole("button", { name: "Create short link" }).click();
       await expect(page.locator("main").getByRole("alert")).toBeVisible();
       await capture("error");

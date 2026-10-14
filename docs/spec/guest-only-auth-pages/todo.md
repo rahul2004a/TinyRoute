@@ -7,3 +7,5 @@
 - [x] Update browser and live-flow coverage.
 - [x] Pass frontend checks, build, and browser regressions.
 - [x] Review the diff, record verification, and archive completed tasks.
+- [x] Reuse the site header/footer on `/links` in existing files.
+- [x] Verify the follow-up layout, navigation, themes, form, and frontend checks.

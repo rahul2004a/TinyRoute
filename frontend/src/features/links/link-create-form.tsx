@@ -41,6 +41,7 @@ export function LinkCreateForm() {
           : {}),
       });
       setLastResult(created);
+      form.reset();
     } catch (error) {
       if (error instanceof ApiClientError) {
         const detail = error.apiError?.error;

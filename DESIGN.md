@@ -259,6 +259,10 @@ mobile/tablet and 80px on desktop. Use a compact filled icon beside the wordmark
 Its navigation contains account actions only; section links remain in the
 footer, as explicitly requested by the user.
 
+The `/links` page reuses this header and footer, with Your links and Account
+settings navigation and one inline theme toggle. Keep the create form's existing
+typography and width separate from the landing-page text styles.
+
 The landing footer follows the user's spacious reference: a top divider, brand
 and copyright at the left, Pages and Account columns at the right, and an
 oversized TinyRoute wordmark below, centered horizontally within the footer.

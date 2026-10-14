@@ -19,6 +19,12 @@ preserves HttpOnly cookie handling (NFR-SEC-06).
 - Keep sign-out available in authenticated account settings after removing the
   signed-in login panel.
 - Keep backend authentication and public short-URL redirect policy unchanged.
+- Follow-up requested for the `/links` destination: reuse the existing site
+  header and footer, account navigation, and inline theme toggle while preserving
+  link creation and session handling (FR-CRE-01/02). Edit existing files only.
+- After a confirmed successful creation, clear destination, alias, expiry, and
+  validation state while retaining the copyable success result (FR-CRE-01/05).
+  Failed or ambiguous requests retain entered values and are never retried.
 
 ## Acceptance criteria
 
@@ -29,3 +35,5 @@ preserves HttpOnly cookie handling (NFR-SEC-06).
 - [x] OTP verification still navigates to `/settings`.
 - [x] Sign-out is available in account settings, after which auth pages work.
 - [x] Frontend checks, build, and relevant browser regressions pass.
+- [x] `/links` has the shared responsive header/footer, working account links,
+  accessible mobile navigation, and exactly one theme toggle in both themes.

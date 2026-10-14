@@ -123,7 +123,10 @@ test("cached authentication never changes the landing navigation when the backen
     unexpected.push(route.request().url());
     await route.abort();
   });
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "TinyRoute", exact: true })
+    .click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Short links. Your control.",
   );

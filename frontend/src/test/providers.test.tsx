@@ -59,30 +59,35 @@ describe("Providers", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps one header toggle on the landing page and one global toggle on account routes", () => {
-    route.pathname = "/";
-    const view = render(
-      <Providers>
-        <header>
-          <ThemeSelector placement="inline" />
-        </header>
-      </Providers>,
-    );
-    expect(
-      screen.getAllByRole("button", { name: /Switch to .* mode/ }),
-    ).toHaveLength(1);
-    expect(within(screen.getByRole("banner")).getByRole("button")).toBeTruthy();
-    route.pathname = "/login";
-    view.rerender(
-      <Providers>
-        <QueryClientProbe />
-      </Providers>,
-    );
-    expect(
-      screen.getAllByRole("button", { name: /Switch to .* mode/ }),
-    ).toHaveLength(1);
-    expect(screen.queryByRole("banner")).toBeNull();
-  });
+  it.each(["/", "/links"])(
+    "keeps one header toggle on %s and one global toggle on auth routes",
+    (pathname) => {
+      route.pathname = pathname;
+      const view = render(
+        <Providers>
+          <header>
+            <ThemeSelector placement="inline" />
+          </header>
+        </Providers>,
+      );
+      expect(
+        screen.getAllByRole("button", { name: /Switch to .* mode/ }),
+      ).toHaveLength(1);
+      expect(
+        within(screen.getByRole("banner")).getByRole("button"),
+      ).toBeTruthy();
+      route.pathname = "/login";
+      view.rerender(
+        <Providers>
+          <QueryClientProbe />
+        </Providers>,
+      );
+      expect(
+        screen.getAllByRole("button", { name: /Switch to .* mode/ }),
+      ).toHaveLength(1);
+      expect(screen.queryByRole("banner")).toBeNull();
+    },
+  );
 
   it("toggles between dark and light with a keyboard-accessible button and persists the choice", async () => {
     const user = userEvent.setup();

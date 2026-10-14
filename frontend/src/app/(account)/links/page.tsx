@@ -1,23 +1,29 @@
-import Link from "next/link";
-import { AuthBrand } from "../../../features/auth/auth-brand";
+import { LandingHeader } from "../../../features/landing/landing-header";
+import { LandingFooter } from "../../../features/landing/landing-page";
+import "../../../features/landing/landing.css";
 import { LinkCreateForm } from "../../../features/links/link-create-form";
+
+const accountLinks = [
+  { href: "/links", label: "Your links" },
+  { href: "/settings", label: "Account settings" },
+] as const;
 
 export default function LinksPage() {
   return (
-    <main className="auth-shell auth-page-enter mx-auto min-h-[100dvh] max-w-3xl px-4 py-24 sm:px-6 lg:px-8">
-      <AuthBrand />
-      <LinkCreateForm />
-      <nav
-        aria-label="Account"
-        className="mt-12 flex flex-wrap gap-6 border-t border-(--border) pt-4"
+    <div className="flex min-h-[100dvh] flex-col">
+      <div className="landing-page">
+        <LandingHeader accountLinks={accountLinks} currentPath="/links" />
+      </div>
+      <main
+        className="auth-shell auth-page-enter mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+        id="main-content"
+        tabIndex={-1}
       >
-        <Link className="link-navigation" href="/">
-          Home
-        </Link>
-        <Link className="link-navigation" href="/settings">
-          Account settings
-        </Link>
-      </nav>
-    </main>
+        <LinkCreateForm />
+      </main>
+      <div className="landing-page">
+        <LandingFooter accountLinks={accountLinks} />
+      </div>
+    </div>
   );
 }
