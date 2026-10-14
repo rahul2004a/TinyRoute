@@ -7,6 +7,7 @@ import { ApiClientError } from "../../lib/api-client";
 import { RegistrationForm } from "./registration-form";
 import {
   fetchCsrfToken,
+  getCurrentSession,
   resendRegistrationOtp,
   startRegistration,
   verifyRegistration,
@@ -21,12 +22,14 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("./auth-api", () => ({
   fetchCsrfToken: vi.fn(),
+  getCurrentSession: vi.fn(),
   resendRegistrationOtp: vi.fn(),
   startRegistration: vi.fn(),
   verifyRegistration: vi.fn(),
 }));
 
 const fetchCsrfTokenMock = vi.mocked(fetchCsrfToken);
+const getCurrentSessionMock = vi.mocked(getCurrentSession);
 const resendRegistrationOtpMock = vi.mocked(resendRegistrationOtp);
 const startRegistrationMock = vi.mocked(startRegistration);
 const verifyRegistrationMock = vi.mocked(verifyRegistration);
@@ -58,6 +61,7 @@ describe("RegistrationForm", () => {
   });
 
   beforeEach(() => {
+    getCurrentSessionMock.mockResolvedValue({ authenticated: false });
     fetchCsrfTokenMock.mockResolvedValue("csrf-token");
     startRegistrationMock.mockResolvedValue({ status: "PENDING_VERIFICATION" });
     resendRegistrationOtpMock.mockResolvedValue({
@@ -69,21 +73,57 @@ describe("RegistrationForm", () => {
     });
   });
 
-  it("offers Google account creation through the backend authorization flow", () => {
+  it("replaces registration with links for an existing authenticated session", async () => {
+    getCurrentSessionMock.mockResolvedValue({
+      authenticated: true,
+      user: { email: "person@example.com" },
+    });
+    renderRegistrationForm();
+
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/links"));
+    expect(screen.queryByLabelText("Email address")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Create account" })).toBeNull();
+  });
+
+  it("hides registration inputs until the session check completes", () => {
+    getCurrentSessionMock.mockReturnValue(new Promise(() => {}));
+    renderRegistrationForm();
+
+    expect(screen.getByRole("status").textContent).toBe(
+      "Checking your session.",
+    );
+    expect(screen.queryByLabelText("Email address")).toBeNull();
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it("reports session failures without exposing the registration form or redirecting", async () => {
+    getCurrentSessionMock.mockRejectedValue(
+      new TypeError("Network unavailable"),
+    );
+    renderRegistrationForm();
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "We couldn’t check your session.",
+    );
+    expect(screen.queryByLabelText("Email address")).toBeNull();
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it("offers Google account creation through the backend authorization flow", async () => {
     process.env.NEXT_PUBLIC_API_BASE_URL = "https://api.tinyroute.test";
     renderRegistrationForm();
 
     expect(
-      screen
-        .getByRole("link", { name: "Continue with Google" })
-        .getAttribute("href"),
+      (
+        await screen.findByRole("link", { name: "Continue with Google" })
+      ).getAttribute("href"),
     ).toBe("https://api.tinyroute.test/api/auth/google/start");
   });
 
-  it("links existing account holders to sign in", () => {
+  it("links existing account holders to sign in", async () => {
     renderRegistrationForm();
 
-    expect(screen.getByText(/Already have an account/)).toBeTruthy();
+    expect(await screen.findByText(/Already have an account/)).toBeTruthy();
     expect(
       screen.getByRole("link", { name: "Sign in" }).getAttribute("href"),
     ).toBe("/login");
@@ -93,7 +133,7 @@ describe("RegistrationForm", () => {
     const user = userEvent.setup();
     renderRegistrationForm();
 
-    expect(screen.getByText("TinyRoute")).toBeTruthy();
+    expect(await screen.findByText("TinyRoute")).toBeTruthy();
 
     await user.type(
       screen.getByLabelText("Email address"),
@@ -118,7 +158,7 @@ describe("RegistrationForm", () => {
     const user = userEvent.setup();
     renderRegistrationForm();
 
-    const password = screen.getByLabelText("Password");
+    const password = await screen.findByLabelText("Password");
     await user.type(password, "correct-horse-battery");
 
     expect(password.getAttribute("type")).toBe("password");
@@ -156,7 +196,7 @@ describe("RegistrationForm", () => {
     renderRegistrationForm();
 
     await user.type(
-      screen.getByLabelText("Email address"),
+      await screen.findByLabelText("Email address"),
       "person@example.com",
     );
     await user.type(screen.getByLabelText("Password"), "correct-horse-battery");
@@ -190,7 +230,7 @@ describe("RegistrationForm", () => {
     const { queryClient } = renderRegistrationForm();
 
     await user.type(
-      screen.getByLabelText("Email address"),
+      await screen.findByLabelText("Email address"),
       "person@example.com",
     );
     await user.type(screen.getByLabelText("Password"), "correct-horse-battery");
@@ -208,6 +248,7 @@ describe("RegistrationForm", () => {
       });
       expect(replaceMock).toHaveBeenCalledWith("/settings");
     });
+    expect(replaceMock).not.toHaveBeenCalledWith("/links");
     expect(screen.queryByLabelText("Verification code")).toBeNull();
     expect(screen.queryByRole("button", { name: "Resend code" })).toBeNull();
   });

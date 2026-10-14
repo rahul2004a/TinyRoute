@@ -29,17 +29,17 @@ export function LogoutButton() {
   return (
     <div className="mt-6 space-y-3">
       {error ? (
-        <p className="text-sm font-medium text-(--auth-danger)" role="alert">
+        <p className="text-sm font-medium text-(--danger)" role="alert">
           {error}
         </p>
       ) : null}
       {signedOut ? (
-        <p className="text-sm text-(--auth-ink-muted)" role="status">
+        <p className="text-sm text-(--ink-muted)" role="status">
           You are signed out.
         </p>
       ) : null}
       <button
-        className="min-h-11 rounded-lg border border-(--auth-border) px-4 py-2 font-medium text-(--auth-ink) transition hover:border-(--auth-primary) focus-visible:ring-2 focus-visible:ring-(--auth-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--auth-canvas) disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-h-11 rounded-lg border border-(--border) px-4 py-2 font-medium text-(--ink) transition hover:border-(--primary) focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--canvas) disabled:cursor-not-allowed disabled:opacity-60"
         disabled={isSigningOut}
         onClick={signOut}
         type="button"

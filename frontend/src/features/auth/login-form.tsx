@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,7 +13,6 @@ import { ApiClientError } from "../../lib/api-client";
 import { AuthBrand } from "./auth-brand";
 import { fetchCsrfToken, login } from "./auth-api";
 import { GoogleSignInButton } from "./google-sign-in-button";
-import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
 
 const loginSchema = z.object({
@@ -45,6 +45,7 @@ export function LoginForm({
 }: Readonly<{ oauthFailed?: boolean }>) {
   const queryClient = useQueryClient();
   const session = useSession();
+  const router = useRouter();
   const [submissionError, setSubmissionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -52,6 +53,10 @@ export function LoginForm({
     defaultValues: { email: "", password: "" },
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (session.data?.authenticated) router.replace("/links");
+  }, [router, session.data?.authenticated]);
 
   async function submit(values: LoginValues) {
     setIsSubmitting(true);
@@ -73,36 +78,7 @@ export function LoginForm({
   }
 
   if (session.data?.authenticated) {
-    return (
-      <section aria-labelledby="signed-in-title" className="w-full max-w-md">
-        <AuthBrand />
-        <h1
-          className="text-3xl font-semibold tracking-[-0.8px] text-(--auth-ink) sm:text-4xl"
-          id="signed-in-title"
-        >
-          You’re signed in
-        </h1>
-        <p
-          className="mt-3 text-sm leading-6 text-(--auth-ink-muted)"
-          role="status"
-        >
-          Signed in as {session.data.user.email}.
-        </p>
-        <LogoutButton />
-        <Link
-          className="mt-4 flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
-          href="/links"
-        >
-          Create a short link
-        </Link>
-        <Link
-          className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-(--auth-primary)"
-          href="/settings"
-        >
-          Account settings
-        </Link>
-      </section>
-    );
+    return <p role="status">Opening your links.</p>;
   }
 
   return (

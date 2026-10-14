@@ -356,9 +356,10 @@ test("static content and account links remain readable without JavaScript", asyn
       .getByRole("link", { name: "Get started", exact: true })
       .focus();
     await page.keyboard.press("Enter");
-    await expect(
-      page.getByRole("heading", { name: "Create your account", exact: true }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("https://localhost:3000/register");
+    // API-host cookies require a browser session check before showing the form.
+    await expect(page.getByRole("status")).toHaveText("Checking your session.");
+    await expect(page.getByLabel("Email address")).toHaveCount(0);
   } finally {
     await context.close().catch(() => undefined);
   }

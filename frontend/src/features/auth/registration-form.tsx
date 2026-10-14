@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,7 +18,7 @@ import {
   verifyRegistration,
 } from "./auth-api";
 import { GoogleSignInButton } from "./google-sign-in-button";
-import { sessionQueryKey } from "./use-session";
+import { sessionQueryKey, useSession } from "./use-session";
 
 const registrationSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
@@ -54,6 +54,7 @@ export function RegistrationForm({
 }: Readonly<{ initialStep?: Exclude<RegistrationStep, "complete"> }>) {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const session = useSession();
   const [step, setStep] = useState<RegistrationStep>(initialStep);
   const [notice, setNotice] = useState(
     initialStep === "verify" ? genericRegistrationMessage : "",
@@ -69,6 +70,13 @@ export function RegistrationForm({
     defaultValues: { otp: "" },
     resolver: zodResolver(otpSchema),
   });
+
+  useEffect(() => {
+    // A completed verification already navigates to account settings.
+    if (session.data?.authenticated && step !== "complete") {
+      router.replace("/links");
+    }
+  }, [router, session.data?.authenticated, step]);
 
   async function runSubmission(submission: () => Promise<void>) {
     setIsSubmitting(true);
@@ -108,6 +116,22 @@ export function RegistrationForm({
       await resendRegistrationOtp(csrfToken);
       setNotice("A new verification code is on its way.");
     });
+  }
+
+  if (session.isPending) {
+    return <p role="status">Checking your session.</p>;
+  }
+
+  if (session.data?.authenticated && step !== "complete") {
+    return <p role="status">Opening your links.</p>;
+  }
+
+  if (session.isError) {
+    return (
+      <p role="alert">
+        We couldn’t check your session. Please refresh and try again.
+      </p>
+    );
   }
 
   if (step === "complete") {
