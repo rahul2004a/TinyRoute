@@ -50,6 +50,14 @@ async function sessionFixture(
       return;
     }
     requests.push(`${request.method()} ${path}`);
+    if (path === "/api/links" && request.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        headers,
+        json: { items: [], nextCursor: null },
+      });
+      return;
+    }
     if (path.endsWith("/csrf")) {
       await route.fulfill({
         status: 200,
@@ -105,9 +113,10 @@ for (const state of ["in", "out", "unavailable"] as const) {
         );
     }
     expect(requests).toContain("GET /api/auth/me");
-    expect(requests.some((request) => request.includes("/api/links"))).toBe(
+    expect(requests.some((request) => request === "POST /api/links")).toBe(
       false,
     );
+    if (state !== "in") expect(requests).not.toContain("GET /api/links");
   });
 }
 
@@ -117,6 +126,7 @@ test("cached authentication never changes the landing navigation when the backen
   const requests = await sessionFixture(page, "in");
   await page.goto("/links");
   await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+  await expect(page.getByText("No saved links on this page.")).toBeVisible();
   await page.unrouteAll();
   const unexpected: string[] = [];
   await page.route("**/api/**", async (route) => {

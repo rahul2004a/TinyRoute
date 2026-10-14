@@ -105,8 +105,8 @@ export function LandingPage() {
                 </span>
               </div>
               <p>
-                Planned tools will let you list, search and filter your links,
-                edit destinations, disable or re-enable links, and delete them.
+                Browse your saved links with pagination. Search, destination
+                editing, disabling, re-enabling, and deletion are planned.
               </p>
             </article>
             <article

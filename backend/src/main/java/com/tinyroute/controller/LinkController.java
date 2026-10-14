@@ -44,4 +44,29 @@ public class LinkController {
                                 created.createdAt(),
                                 created.expiresAt()));
     }
+
+    @GetMapping
+    public ResponseEntity<LinkPageResponse> list(
+            @AuthenticationPrincipal AccessToken principal,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String cursor) {
+        var page = links.list(principal, size, cursor);
+        var items =
+                page.items().stream()
+                        .map(
+                                link ->
+                                        new LinkPageResponse.Item(
+                                                link.id(),
+                                                link.code().value(),
+                                                properties.shortUrl(link.code()),
+                                                link.destinationUrl(),
+                                                link.createdAt(),
+                                                link.expiresAt(),
+                                                link.status(),
+                                                link.clickCount()))
+                        .toList();
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-store")
+                .body(new LinkPageResponse(items, page.nextCursor()));
+    }
 }

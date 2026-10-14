@@ -22,16 +22,24 @@ const failure = (code: string, fieldErrors?: Record<string, string>) => ({
   },
 });
 type Response = { status: number; body?: unknown };
+type SavedLink = typeof link & {
+  status: "ACTIVE" | "DISABLED" | "EXPIRED";
+  clickCount: number;
+};
 async function fixture(
   page: Page,
   options: {
     session?: "out" | "unknown";
     create?: (route: Route, count: number) => Promise<Response>;
     renew?: boolean;
+    saved?: SavedLink[];
+    historyUnavailable?: boolean;
   } = {},
 ) {
   let attempts = 0,
     refreshes = 0;
+  let saved = [...(options.saved ?? [])];
+  let historyUnavailable = options.historyUnavailable ?? false;
   await page.route("https://localhost:8443/api/**", async (route) => {
     const request = route.request(),
       path = new URL(request.url()).pathname;
@@ -64,12 +72,35 @@ async function fixture(
         options.session === "out"
           ? { status: 401, body: failure("AUTHENTICATION_FAILED") }
           : { status: 200, body: account };
+    } else if (path === "/api/links" && request.method() === "GET") {
+      if (historyUnavailable)
+        response = { status: 503, body: failure("SERVICE_UNAVAILABLE") };
+      else {
+        const start = Number(
+          new URL(request.url()).searchParams.get("cursor") ?? "0",
+        );
+        const items = saved.slice(start, start + 10);
+        response = {
+          status: 200,
+          body: {
+            items,
+            nextCursor: saved.length > start + 10 ? String(start + 10) : null,
+          },
+        };
+      }
     } else if (path === "/api/links") {
       attempts++;
       expect(request.headers()["x-csrf-token"]).toBe("fixture-csrf");
       response = options.create
         ? await options.create(route, attempts)
         : { status: 201, body: link };
+      if (response.status === 201) {
+        const created = response.body as typeof link;
+        saved = [
+          { ...created, status: "ACTIVE", clickCount: 0 },
+          ...saved.filter((item) => item.id !== created.id),
+        ];
+      }
     } else throw new Error("Unexpected fixture request");
     await route.fulfill({
       status: response.status,
@@ -77,13 +108,132 @@ async function fixture(
       body: JSON.stringify(response.body),
     });
   });
-  return { attempts: () => attempts, refreshes: () => refreshes };
+  return {
+    attempts: () => attempts,
+    refreshes: () => refreshes,
+    recoverHistory: () => {
+      historyUnavailable = false;
+    },
+  };
 }
 async function fill(page: Page) {
   await page.goto("/links");
   await page.getByLabel("HTTPS destination").fill(destination);
   await page.getByLabel("Custom alias (optional)").fill("Docs2026");
 }
+
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [320, 1440]) {
+    test(`saved history survives refresh and paginates in ${theme} at ${width}px`, async ({
+      page,
+      context,
+    }) => {
+      const duplicateKeyErrors: string[] = [];
+      page.on("console", (message) => {
+        if (
+          message.type() === "error" &&
+          /Encountered two children with the same key/i.test(message.text())
+        ) {
+          duplicateKeyErrors.push(message.text());
+        }
+      });
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(
+        (theme) => localStorage.setItem("tinyroute-color-theme", theme),
+        theme,
+      );
+      const saved: SavedLink[] = Array.from({ length: 13 }, (_, index) => ({
+        ...link,
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+        code: `Saved${String(index).padStart(2, "0")}`,
+        shortUrl: `https://go.tinyroute.test/Saved${String(index).padStart(2, "0")}`,
+        status: index === 1 ? "DISABLED" : index === 2 ? "EXPIRED" : "ACTIVE",
+        clickCount: index,
+      }));
+      const state = await fixture(page, { saved });
+      await page.goto("/links");
+      const history = page.getByRole("region", {
+        name: "Your links",
+        exact: true,
+      });
+      await expect(
+        history.getByRole("link", { name: saved[0].shortUrl, exact: true }),
+      ).toBeVisible();
+      const view =
+        width < 768
+          ? history.getByRole("list", { name: "Saved short links" })
+          : history.getByRole("table");
+      await expect(view.getByText("Disabled", { exact: true })).toBeVisible();
+      await expect(view.getByText("Expired", { exact: true })).toBeVisible();
+      await history.getByRole("button", { name: "Next", exact: true }).click();
+      await expect(
+        history.getByRole("link", { name: saved[10].shortUrl, exact: true }),
+      ).toBeVisible();
+      await expect(
+        history.getByRole("button", { name: "Next", exact: true }),
+      ).toBeDisabled();
+      await history
+        .getByRole("button", { name: "Previous", exact: true })
+        .click();
+      await expect(
+        history.getByRole("link", { name: saved[0].shortUrl, exact: true }),
+      ).toBeVisible();
+      await page.reload();
+      await expect(
+        history.getByRole("link", { name: saved[0].shortUrl, exact: true }),
+      ).toBeVisible();
+      await history
+        .getByRole("button", { name: "Copy Saved00", exact: true })
+        .click();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        saved[0].shortUrl,
+      );
+      await history.getByRole("button", { name: "Next", exact: true }).click();
+      await expect(history.getByText("Page 2", { exact: true })).toBeVisible();
+      await page.getByLabel("HTTPS destination").fill(destination);
+      await page
+        .getByRole("button", { name: "Create short link", exact: true })
+        .click();
+      await expect(page.getByLabel("HTTPS destination")).toHaveValue("");
+      await expect(history.getByText("Page 1", { exact: true })).toBeVisible();
+      await expect(
+        history.getByRole("link", { name: link.shortUrl, exact: true }),
+      ).toBeVisible();
+      expect(duplicateKeyErrors).toEqual([]);
+      await page.reload();
+      await expect(
+        history.getByRole("link", { name: link.shortUrl, exact: true }),
+      ).toBeVisible();
+      expect(state.attempts()).toBe(1);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: test.info().outputPath("saved-history.png"),
+        fullPage: true,
+        style: "nextjs-portal { display: none !important; }",
+      });
+    });
+  }
+}
+
+test("saved history can recover from a safe error without creating another link", async ({
+  page,
+}) => {
+  const state = await fixture(page, { historyUnavailable: true });
+  await page.goto("/links");
+  const history = page.getByRole("region", { name: "Your links", exact: true });
+  await expect(history.getByRole("alert")).toContainText(
+    "We couldn’t load your links.",
+  );
+  state.recoverHistory();
+  await history.getByRole("button", { name: "Refresh links" }).click();
+  await expect(history.getByText("No saved links on this page.")).toBeVisible();
+  expect(state.attempts()).toBe(0);
+});
 
 for (const theme of ["light", "dark"] as const) {
   for (const width of [320, 768, 1024, 1440]) {

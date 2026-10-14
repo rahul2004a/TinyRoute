@@ -59,6 +59,30 @@ public class Link {
         return code;
     }
 
+    public UUID id() {
+        return id;
+    }
+
+    public String destinationUrl() {
+        return destinationUrl;
+    }
+
+    public LinkStatus status() {
+        return status;
+    }
+
+    public long clickCount() {
+        return clickCount;
+    }
+
+    public Instant createdAt() {
+        return createdAt;
+    }
+
+    public Instant expiresAt() {
+        return expiresAt;
+    }
+
     public void tombstone(Instant now) {
         status = LinkStatus.DELETED;
         if (deletedAt == null) {

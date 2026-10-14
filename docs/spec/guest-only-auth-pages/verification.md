@@ -63,6 +63,7 @@ copyable success, clipboard fallback, and retained values on validation/alias
 failures. Lint and TypeScript checks passed. Browser/live fixtures that make a
 second creation now deliberately fill the reset fields again.
 
-Persistent paginated history is a separate requested extension: no listing API
-currently exists. Its implementation is pending the user's branch choice while
-the previously requested auth/header/footer changes remain on the fix branch.
+The user subsequently authorized committing all prior changes and continuing
+on this branch. Those completed changes are committed at `2a5ad5b`. The saved-link
+listing extension is recorded in the [pagination specification](../paginated-link-history/spec.md)
+and its verification record.

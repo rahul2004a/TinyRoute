@@ -10,12 +10,16 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { LinkCreateForm } from "./link-create-form";
 import { localExpiryToInstant } from "./link-form-schema";
-import { createLink } from "./link-api";
+import { createLink, getLinks } from "./link-api";
 import { getCurrentSession } from "../auth/auth-api";
 import { clearCsrfToken } from "../../lib/csrf";
 import { ApiClientError, type ApiError } from "../../lib/api-client";
 
-vi.mock("./link-api", () => ({ createLink: vi.fn() }));
+vi.mock("./link-api", () => ({
+  createLink: vi.fn(),
+  getLinks: vi.fn(),
+  linkHistoryQueryKey: ["links", "history"],
+}));
 vi.mock("../auth/auth-api", () => ({ getCurrentSession: vi.fn() }));
 vi.mock("../../lib/csrf", () => ({ clearCsrfToken: vi.fn() }));
 const link = {
@@ -48,6 +52,7 @@ beforeEach(() => {
     user: { email: "fixture@example.com" },
   });
   vi.mocked(createLink).mockResolvedValue(link);
+  vi.mocked(getLinks).mockResolvedValue({ items: [], nextCursor: null });
 });
 afterEach(() => cleanup());
 async function fill() {
@@ -133,6 +138,29 @@ it("prevents duplicate pending requests", async () => {
   expect(
     screen.getByRole("button", { name: "Creating…" }).hasAttribute("disabled"),
   ).toBe(true);
+});
+
+it("returns history to page one and reloads saved links after successful creation", async () => {
+  let created = false;
+  const saved = { ...link, status: "ACTIVE" as const, clickCount: 0 };
+  vi.mocked(getLinks).mockImplementation(async (cursor) => ({
+    items: created ? [saved] : [],
+    nextCursor: cursor === undefined && !created ? "older-page" : null,
+  }));
+  vi.mocked(createLink).mockImplementation(async () => {
+    created = true;
+    return link;
+  });
+  mount();
+  const user = await fill();
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  expect(await screen.findByText("Page 2")).toBeTruthy();
+  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  expect(await screen.findByText("Page 1")).toBeTruthy();
+  await screen.findAllByRole("link", { name: link.shortUrl });
+  expect(
+    (screen.getByLabelText("HTTPS destination") as HTMLInputElement).value,
+  ).toBe("");
 });
 it.each([
   [400, "VALIDATION_ERROR"],

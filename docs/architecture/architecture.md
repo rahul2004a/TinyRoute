@@ -294,6 +294,14 @@ Next.js → HTTPS ingress → **JwtAuthenticationFilter** (required) → **CsrfP
 
 Next.js never checks `owner_id`. Link path does **not** call AuthService, RedirectService, ClickCountService, or UserRepository (user id comes from the verified JWT `sub`).
 
+Owner listing is implemented by `GET /api/links?size=10&cursor=...` through
+`LinkService.list` and `LinkRepository.findPageByOwnerId` (FR-MGT-01/02).
+The query excludes tombstones and filters by the verified JWT owner on every
+page. It orders by `(created_at DESC, id DESC)` using the existing owner index,
+reads at most 51 rows, and returns at most 50 with an opaque next cursor.
+Spring derives expired status; Next.js renders the response and loads saved
+history again after refresh. See the [listing specification](../spec/paginated-link-history/spec.md).
+
 ### Generated short-code allocation
 
 After authentication, CSRF, the account quota, the active-owner row lock, and destination/alias/expiry validation:

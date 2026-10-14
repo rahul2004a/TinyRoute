@@ -8,13 +8,13 @@ import { useForm } from "react-hook-form";
 import { ApiClientError } from "../../lib/api-client";
 import { clearCsrfToken } from "../../lib/csrf";
 import { sessionQueryKey, useSession } from "../auth/use-session";
-import { createLink, type CreatedLink } from "./link-api";
+import { createLink, linkHistoryQueryKey, type CreatedLink } from "./link-api";
 import {
   linkFormSchema,
   localExpiryToInstant,
   type LinkFormValues,
 } from "./link-form-schema";
-import { LinkCreateResult } from "./link-create-result";
+import { LinkCreateResult, SavedLinkHistory } from "./link-create-result";
 
 export function LinkCreateForm() {
   const queryClient = useQueryClient();
@@ -42,6 +42,7 @@ export function LinkCreateForm() {
       });
       setLastResult(created);
       form.reset();
+      void queryClient.invalidateQueries({ queryKey: linkHistoryQueryKey });
     } catch (error) {
       if (error instanceof ApiClientError) {
         const detail = error.apiError?.error;
@@ -226,8 +227,12 @@ export function LinkCreateForm() {
         </button>
       </form>
       {lastResult ? (
-        <LinkCreateResult key={lastResult.id} link={lastResult} />
+        <LinkCreateResult key={`result:${lastResult.id}`} link={lastResult} />
       ) : null}
+      <SavedLinkHistory
+        key={`history:${lastResult?.id ?? "initial"}`}
+        accountKey={session.data.user.email}
+      />
     </section>
   );
 }

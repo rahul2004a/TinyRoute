@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createLink } from "./link-api";
+import { createLink, getLinks } from "./link-api";
+import { refreshSession } from "../auth/auth-api";
+vi.mock("../auth/auth-api", () => ({ refreshSession: vi.fn() }));
 import { clearCsrfToken, getCsrfToken } from "../../lib/csrf";
 
 export const created = {
@@ -10,6 +12,58 @@ export const created = {
   createdAt: "2026-10-08T00:00:00Z",
   expiresAt: null,
 };
+
+it("loads credentialed saved-link pages with an encoded server cursor", async () => {
+  const body = {
+    items: [{ ...created, status: "ACTIVE", clickCount: 0 }],
+    nextCursor: "next",
+  };
+  const fetch = vi
+    .fn()
+    .mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
+  vi.stubGlobal("fetch", fetch);
+  expect(await getLinks("abc+/=")).toEqual(body);
+  const [url, options] = fetch.mock.calls[0];
+  expect(new URL(url).searchParams.get("cursor")).toBe("abc+/=");
+  expect(new URL(url).searchParams.get("size")).toBe("10");
+  expect(options.credentials).toBe("include");
+  expect(options.method).toBe("GET");
+});
+
+it("renews an expired access session once before retrying a safe history GET", async () => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(new Response("{}", { status: 401 }))
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ items: [], nextCursor: null }), {
+        status: 200,
+      }),
+    );
+  vi.stubGlobal("fetch", fetch);
+  vi.mocked(refreshSession).mockResolvedValue({
+    authenticated: true,
+    user: { email: "fixture@example.com" },
+  });
+  expect(await getLinks()).toEqual({ items: [], nextCursor: null });
+  expect(refreshSession).toHaveBeenCalledOnce();
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
+
+it("rejects malformed saved-link metadata rather than displaying it", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [{ ...created, status: "UNKNOWN", clickCount: 0 }],
+          nextCursor: null,
+        }),
+        { status: 200 },
+      ),
+    ),
+  );
+  await expect(getLinks()).rejects.toThrow();
+});
 beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.tinyroute.test");
   clearCsrfToken();

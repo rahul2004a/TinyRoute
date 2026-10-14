@@ -1,5 +1,6 @@
 package com.tinyroute.repository;
 
+import com.tinyroute.model.Link;
 import com.tinyroute.model.RedirectLinkState;
 import java.time.Instant;
 import java.util.List;
@@ -7,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface LinkRepository {
+    List<Link> findPageByOwnerId(UUID ownerId, Instant beforeCreatedAt, UUID beforeId, int limit);
+
     Optional<Integer> lockActiveOwnerTokenVersion(UUID ownerId);
 
     int insertIfCodeAvailable(

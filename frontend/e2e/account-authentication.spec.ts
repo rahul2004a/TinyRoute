@@ -15,6 +15,17 @@ async function stubAuthApi(
     csrf: string | undefined,
   ) => StubResponse,
 ) {
+  await page.route("https://localhost:8443/api/links?**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://localhost:3000",
+        "Access-Control-Allow-Credentials": "true",
+        "Content-Type": "application/json",
+      },
+      json: { items: [], nextCursor: null },
+    }),
+  );
   await page.route("https://localhost:8443/api/auth/**", async (route) => {
     const request = route.request();
     const headers = {
