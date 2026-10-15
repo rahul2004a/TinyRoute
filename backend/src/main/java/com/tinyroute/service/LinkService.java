@@ -7,12 +7,18 @@ import com.tinyroute.model.AccountDeletionCleanup;
 import com.tinyroute.model.CreateLinkCommand;
 import com.tinyroute.model.CreatedLink;
 import com.tinyroute.model.GeneratedShortCode;
+import com.tinyroute.model.LinkPage;
+import com.tinyroute.model.LinkStatus;
 import com.tinyroute.model.ShortCode;
 import com.tinyroute.repository.AccountDeletionCleanupRepository;
 import com.tinyroute.repository.LinkRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -106,6 +112,72 @@ public class LinkService {
             throw new ServiceUnavailableException(exception);
         }
     }
+
+    /** Cursor positions never replace the owner filter (FR-MGT-01/02, NFR-SEC-04). */
+    @Transactional(readOnly = true)
+    public LinkPage list(AccessToken principal, int size, String encodedCursor) {
+        if (principal == null) throw new AuthenticationFailedException();
+        if (size < 1 || size > 50) {
+            throw new LinkValidationException("size", "Choose a page size between 1 and 50.");
+        }
+        Cursor cursor = decodeCursor(encodedCursor);
+        var rows =
+                linkRepository.findPageByOwnerId(
+                        principal.userId(),
+                        cursor == null ? null : cursor.createdAt(),
+                        cursor == null ? null : cursor.id(),
+                        size + 1);
+        Instant now = clock.instant();
+        var items =
+                rows.stream()
+                        .limit(size)
+                        .map(
+                                link ->
+                                        new LinkPage.Item(
+                                                link.id(),
+                                                new ShortCode(link.code()),
+                                                link.destinationUrl(),
+                                                link.createdAt(),
+                                                link.expiresAt(),
+                                                link.status() == LinkStatus.ACTIVE
+                                                                && link.expiresAt() != null
+                                                                && !now.isBefore(link.expiresAt())
+                                                        ? "EXPIRED"
+                                                        : link.status().name(),
+                                                link.clickCount()))
+                        .toList();
+        String nextCursor = null;
+        if (rows.size() > size) {
+            var last = items.getLast();
+            nextCursor =
+                    Base64.getUrlEncoder()
+                            .withoutPadding()
+                            .encodeToString(
+                                    (last.createdAt() + "|" + last.id())
+                                            .getBytes(StandardCharsets.UTF_8));
+        }
+        return new LinkPage(items, nextCursor);
+    }
+
+    private Cursor decodeCursor(String encoded) {
+        if (encoded == null) return null;
+        try {
+            if (encoded.isEmpty() || encoded.length() > 256) throw new IllegalArgumentException();
+            String[] parts =
+                    new String(Base64.getUrlDecoder().decode(encoded), StandardCharsets.UTF_8)
+                            .split("\\|", -1);
+            if (parts.length != 2) throw new IllegalArgumentException();
+            Instant createdAt = Instant.parse(parts[0]);
+            int year = createdAt.atOffset(ZoneOffset.UTC).getYear();
+            if (year < 1 || year > 9999) throw new IllegalArgumentException();
+            return new Cursor(createdAt, UUID.fromString(parts[1]));
+        } catch (IllegalArgumentException | DateTimeException invalid) {
+            throw new LinkValidationException(
+                    "cursor", "This page cursor is invalid. Start from the first page.");
+        }
+    }
+
+    private record Cursor(Instant createdAt, UUID id) {}
 
     @Transactional
     public void tombstoneOwnedLinks(UUID userId) {

@@ -15,6 +15,17 @@ async function stubAuthApi(
     csrf: string | undefined,
   ) => StubResponse,
 ) {
+  await page.route("https://localhost:8443/api/links?**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://localhost:3000",
+        "Access-Control-Allow-Credentials": "true",
+        "Content-Type": "application/json",
+      },
+      json: { items: [], nextCursor: null },
+    }),
+  );
   await page.route("https://localhost:8443/api/auth/**", async (route) => {
     const request = route.request();
     const headers = {
@@ -96,18 +107,69 @@ test("password sign-in persists on reload and sign-out clears the session", asyn
     .getByLabel("Password", { exact: true })
     .fill("browser-password-123");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/links$/);
   await expect(
-    page.getByRole("heading", { name: "You’re signed in" }),
+    page.getByRole("heading", { name: "Create a short link" }),
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByText("Signed in as browser@example.com."),
+    page.getByRole("heading", { name: "Create a short link" }),
   ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Footer account" })
+    .getByRole("link", { name: "Account settings" })
+    .click();
   await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Sign in to TinyRoute" }),
   ).toBeVisible();
 });
+
+for (const path of ["/login", "/register"]) {
+  for (const restoreSession of [false, true]) {
+    test(`${path} replaces itself with links for ${restoreSession ? "a refresh-restored" : "an existing"} session`, async ({
+      page,
+    }) => {
+      let accessValid = !restoreSession;
+      let refreshAttempts = 0;
+      await stubAuthApi(page, (requestPath, method, csrf) => {
+        if (requestPath.endsWith("/csrf"))
+          return { status: 200, body: { csrfToken: "browser-csrf" } };
+        if (requestPath.endsWith("/me"))
+          return accessValid
+            ? { status: 200, body: account }
+            : {
+                status: 401,
+                body: failure("AUTHENTICATION_FAILED", "Session expired"),
+              };
+        if (
+          requestPath.endsWith("/refresh") &&
+          method === "POST" &&
+          csrf === "browser-csrf"
+        ) {
+          refreshAttempts += 1;
+          accessValid = true;
+          return { status: 200, body: account };
+        }
+        return {
+          status: 500,
+          body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
+        };
+      });
+
+      await page.goto("/");
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/links$/);
+      await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+      await expect(page.getByLabel("Email address")).toHaveCount(0);
+      expect(refreshAttempts).toBe(restoreSession ? 1 : 0);
+
+      await page.goBack();
+      await expect(page).toHaveURL("https://localhost:3000/");
+    });
+  }
+}
 
 test("account deletion requires confirmation and keeps the session on failure", async ({
   page,
@@ -247,6 +309,13 @@ test("registration requires an OTP before displaying a verified session", async 
   await stubAuthApi(page, (path, method, csrf) => {
     if (path.endsWith("/csrf"))
       return { status: 200, body: { csrfToken: "browser-csrf" } };
+    if (path.endsWith("/me") && verificationRequests > 0)
+      return { status: 200, body: account };
+    if (path.endsWith("/me") || path.endsWith("/refresh"))
+      return {
+        status: 401,
+        body: failure("AUTHENTICATION_FAILED", "Session expired"),
+      };
     if (
       path.endsWith("/register") &&
       method === "POST" &&

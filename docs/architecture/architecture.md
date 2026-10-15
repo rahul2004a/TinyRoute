@@ -98,6 +98,22 @@ The active profile is always selected outside the application with
 image. Real credentials are never committed. `.env.example` contains safe
 local placeholders only (NFR-SEC-03).
 
+Local development can expose the UI, API and short links together at
+`https://localhost:3000`. With frontend `BACKEND_ORIGIN=http://localhost:8080`,
+Next.js transparently rewrites `/api/*` and unmatched single-segment shortcode
+candidates to Spring. Application pages/assets take priority over shortcode
+fallbacks; infrastructure namespaces are excluded. Spring's local environment
+uses `SERVER_PORT=8080`, `SERVER_SSL_ENABLED=false`, and
+`SHORT_LINK_BASE_URL=https://localhost:3000`; keep this HTTP listener on loopback.
+The browser's API base is the HTTPS frontend origin, so Secure cookies remain
+browser-facing HTTPS. This is transport routing, not a Next.js redirect handler:
+Spring still owns code validation, resolution, throttling, 302 Location and HTML
+errors (FR-RED-01..07, NFR-REL-02). Analytics remains deferred by the user's scope.
+Leaving `BACKEND_ORIGIN` unset preserves direct backend access. The production
+API/go-host topology below is unchanged; shared-host production delivery needs
+separate origin-host, cache and forwarded-client trust configuration. See the
+[frontend routing specification](../spec/frontend-short-links/spec.md).
+
 The development Compose file is not a production deployment definition and
 production must not depend on it. The planned independent production stack
 under `infra/vps/` runs Caddy, a reproducible Spring Boot image, and Redis.
@@ -293,6 +309,14 @@ Next.js → HTTPS ingress → **JwtAuthenticationFilter** (required) → **CsrfP
 6. After successful commit: LinkService → RedirectCache.evict → Redis `DEL redirect:{code}`
 
 Next.js never checks `owner_id`. Link path does **not** call AuthService, RedirectService, ClickCountService, or UserRepository (user id comes from the verified JWT `sub`).
+
+Owner listing is implemented by `GET /api/links?size=10&cursor=...` through
+`LinkService.list` and `LinkRepository.findPageByOwnerId` (FR-MGT-01/02).
+The query excludes tombstones and filters by the verified JWT owner on every
+page. It orders by `(created_at DESC, id DESC)` using the existing owner index,
+reads at most 51 rows, and returns at most 50 with an opaque next cursor.
+Spring derives expired status; Next.js renders the response and loads saved
+history again after refresh. See the [listing specification](../spec/paginated-link-history/spec.md).
 
 ### Generated short-code allocation
 

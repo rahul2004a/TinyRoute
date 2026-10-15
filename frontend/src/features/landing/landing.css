@@ -78,7 +78,8 @@
   font-size: 0.875rem;
   font-weight: 500;
 }
-.landing-page .landing-nav-link:hover {
+.landing-page .landing-nav-link:hover,
+.landing-page .landing-nav-link[aria-current="page"] {
   text-decoration: underline;
   text-underline-offset: 4px;
 }

@@ -16,6 +16,25 @@ public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkReposi
     @Override
     @Query(
             value =
+                    """
+            select * from links
+             where owner_id = :ownerId
+               and deleted_at is null and status <> 'DELETED'
+               and (cast(:beforeCreatedAt as timestamptz) is null
+                    or (created_at, id) < (cast(:beforeCreatedAt as timestamptz), cast(:beforeId as uuid)))
+             order by created_at desc, id desc
+             limit :limit
+            """,
+            nativeQuery = true)
+    List<Link> findPageByOwnerId(
+            @Param("ownerId") UUID ownerId,
+            @Param("beforeCreatedAt") Instant beforeCreatedAt,
+            @Param("beforeId") UUID beforeId,
+            @Param("limit") int limit);
+
+    @Override
+    @Query(
+            value =
                     "select token_version from users where id = :ownerId and deleted_at is null for update",
             nativeQuery = true)
     Optional<Integer> lockActiveOwnerTokenVersion(@Param("ownerId") UUID ownerId);

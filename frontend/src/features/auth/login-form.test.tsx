@@ -8,6 +8,11 @@ import { LoginForm } from "./login-form";
 import { fetchCsrfToken, getCurrentSession, login } from "./auth-api";
 
 const originalApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+const replaceMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: replaceMock }),
+}));
 
 vi.mock("./auth-api", () => ({
   fetchCsrfToken: vi.fn(),
@@ -48,7 +53,7 @@ describe("LoginForm", () => {
     loginMock.mockResolvedValue(undefined);
   });
 
-  it("submits labelled credentials, then derives the signed-in UI from me", async () => {
+  it("submits labelled credentials, then leaves login after me confirms the session", async () => {
     const user = userEvent.setup();
     getCurrentSessionMock
       .mockResolvedValueOnce({ authenticated: false })
@@ -71,15 +76,32 @@ describe("LoginForm", () => {
         "csrf-token",
       );
     });
-    expect((await screen.findByRole("status")).textContent).toContain(
-      "Signed in as person@example.com.",
-    );
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/links"));
     expect(screen.queryByLabelText("Password")).toBeNull();
-    expect(
-      screen
-        .getByRole("link", { name: "Create a short link" })
-        .getAttribute("href"),
-    ).toBe("/links");
+    expect(screen.queryByText("You’re signed in")).toBeNull();
+  });
+
+  it("replaces login with links for an existing authenticated session", async () => {
+    getCurrentSessionMock.mockResolvedValue({
+      authenticated: true,
+      user: { email: "person@example.com" },
+    });
+    renderLoginForm();
+
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/links"));
+    expect(screen.queryByLabelText("Email address")).toBeNull();
+    expect(screen.queryByText("You’re signed in")).toBeNull();
+  });
+
+  it("hides login inputs until the session check completes", () => {
+    getCurrentSessionMock.mockReturnValue(new Promise(() => {}));
+    renderLoginForm();
+
+    expect(screen.getByRole("status").textContent).toBe(
+      "Checking your session.",
+    );
+    expect(screen.queryByLabelText("Email address")).toBeNull();
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 
   it("announces a rate limit safely, preserves the email, and clears the password", async () => {

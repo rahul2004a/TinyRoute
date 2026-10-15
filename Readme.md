@@ -265,11 +265,12 @@ and still fall back to PostgreSQL on cache failure (NFR-REL-02).
 
 ### Local HTTPS for registration
 
-From the repository root, create and trust a local certificate, then start both
-applications over HTTPS:
+From the repository root, create and trust a local certificate. The browser uses
+`https://localhost:3000`; Next.js proxies API calls and short links to the local
+Spring HTTP listener on port 8080. Spring remains the redirect authority.
 
 For Google sign-in, create a Google OAuth client of type **Web application** and
-add `https://localhost:8443/api/auth/google/callback` to its authorized redirect
+add `https://localhost:3000/api/auth/google/callback` to its authorized redirect
 URIs. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the backend's exported
 environment. The redirect URI in Google Cloud must exactly match the backend's
 `GOOGLE_REDIRECT_URI`, including scheme, port, and path.
@@ -283,7 +284,7 @@ openssl pkcs8 -topk8 -nocrypt -in .local-certs/jwt-private.pem -outform DER -out
 openssl pkey -in .local-certs/jwt-private.pem -pubout -outform DER -out .local-certs/jwt-public.der
 export TINYROUTE_JWT_SIGNING_PRIVATE_KEY_BASE64="$(openssl base64 -A -in .local-certs/jwt-private.der)"
 export TINYROUTE_JWT_ACTIVE_VERIFICATION_PUBLIC_KEY_BASE64="$(openssl base64 -A -in .local-certs/jwt-public.der)"
-SPRING_PROFILES_ACTIVE=dev mvn -f backend/pom.xml spring-boot:run
+SERVER_ADDRESS=127.0.0.1 SERVER_PORT=8080 SERVER_SSL_ENABLED=false SHORT_LINK_BASE_URL=https://localhost:3000 GOOGLE_REDIRECT_URI=https://localhost:3000/api/auth/google/callback SPRING_PROFILES_ACTIVE=dev mvn -f backend/pom.xml spring-boot:run
 ```
 
 Run the frontend in a second terminal from the repository root:
@@ -301,9 +302,22 @@ pnpm --dir frontend exec playwright install chromium
 pnpm --dir frontend exec playwright test
 ```
 
-After the real backend is running on `https://localhost:8443`, run the separate
-live browser/backend contract gate. It starts its own disposable SMTP listener
-on port `1025`, creates a unique test account, captures the OTP and reset email,
+Verify real Next.js routing against a disposable HTTP backend fixture, including
+302/404 passthrough, page/asset isolation, and API cookie/CSRF forwarding:
+
+```sh
+pnpm --dir frontend exec playwright test --config playwright.routing.config.ts
+```
+
+This separate gate uses ports 3300 and 18080 and needs the local certificate above.
+It does not create accounts, access the database, or follow external redirects.
+
+For the separate live browser/backend contract gate, run the real backend with
+the direct HTTPS dev configuration on `https://localhost:8443`. The live gate's
+managed frontend disables local rewrites and uses that HTTPS API (override
+`NEXT_PUBLIC_API_BASE_URL` for another verification port). It starts its own
+disposable SMTP listener on port `1025`, creates a unique test account, captures
+the OTP and reset email,
 then verifies registration, session reload, logout, password reset, sign-in, and
 account deletion across Next.js, Spring Security, PostgreSQL, and Redis. Keep
 port `1025` free and configure the backend mail settings shown above:
@@ -384,16 +398,32 @@ method, status and duration, with no link or owner identifiers. See the
 [feature verification record](docs/spec/link-creation-and-redirection/verification.md)
 for the passing local results and production verification limitation (NFR-PER-01–03).
 
-Open `https://localhost:3000/register`. The frontend calls
-`https://localhost:8443/api/auth/csrf`. Maven runs Spring with `backend/` as
-its working directory, so the development profile reads `../.local-certs/`.
+Open `https://localhost:3000/register`. With `frontend/.env.example` copied to
+`frontend/.env.local`, the browser calls `https://localhost:3000/api/auth/csrf`
+and Next.js forwards it to `http://localhost:8080/api/auth/csrf`. Opening
+`https://localhost:3000/<code>` forwards unmatched single-segment codes to
+Spring, passing its 302 Location or HTML error directly to the browser.
+Existing pages and static assets take priority; short links need no React page
+or browser-side lookup. Spring's `SHORT_LINK_BASE_URL` must be
+`https://localhost:3000` so creation/listing return the same public origin.
+Click counting is not added by these rewrites.
+
+For direct HTTPS-backend development instead, unset frontend `BACKEND_ORIGIN`,
+set `NEXT_PUBLIC_API_BASE_URL=https://localhost:8443`, and run Spring with its
+default dev TLS settings and matching short-link/OAuth URLs. Maven runs Spring
+with `backend/` as its working directory, so the development profile reads
+`../.local-certs/`.
 An IDE with another working directory can set `DEV_TLS_CERTIFICATE` and
 `DEV_TLS_PRIVATE_KEY` to absolute `file:` URLs. Keep `.local-certs/` private.
 The backend also needs its normal local database, Redis, JWT signing, and mail
 configuration from the table above. Compose intentionally does not run an SMTP
 server; use a separately managed local listener or configured development SMTP
-account. If `frontend/.env.local` already exists, set only
-`NEXT_PUBLIC_API_BASE_URL=https://localhost:8443` in that file and restart Next.
+account. If `frontend/.env.local` already exists, preserve its other settings and
+set `NEXT_PUBLIC_API_BASE_URL=https://localhost:3000` and
+`BACKEND_ORIGIN=http://localhost:8080` for same-origin development. Restart Next
+after changing routing configuration. `BACKEND_ORIGIN` is server-only and must
+point to Spring, never back to the frontend. Production uses the existing
+API/go-host deployment below; leave this local rewrite configuration unset there.
 
 For a fresh frontend checkout, copy `frontend/.env.example` to
 `frontend/.env.local` before starting Next. Existing `.env.local` settings

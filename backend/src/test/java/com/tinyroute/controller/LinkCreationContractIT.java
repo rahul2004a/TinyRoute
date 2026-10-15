@@ -14,6 +14,123 @@ class LinkCreationContractIT extends LinkHttpTestSupport {
     static final String INPUT = "{\"destinationUrl\":\"https://example.com/docs?q=java#setup\"}";
 
     @Test
+    void listsOnlyOwnedNonDeletedLinksWithStableCursorPagesAndNoCreationQuota() throws Exception {
+        var sameTime = java.sql.Timestamp.from(Instant.parse("2026-10-01T12:00:00Z"));
+        for (int index = 1; index <= 5; index++) {
+            String code = "page-" + index + "-" + ownerId;
+            row(
+                    code,
+                    index == 5 ? "DELETED" : index == 3 ? "DISABLED" : "ACTIVE",
+                    index == 2 ? Instant.parse("2020-01-01T00:00:00Z") : null);
+            jdbc.update(
+                    "update links set id=?,created_at=? where code=?",
+                    UUID.fromString("00000000-0000-0000-0000-%012d".formatted(index)),
+                    sameTime,
+                    code);
+        }
+        UUID otherOwner = UUID.randomUUID();
+        try {
+            jdbc.update(
+                    "insert into users(id,email_normalized,token_version,created_at,updated_at) values(?,?,0,?,?)",
+                    otherOwner,
+                    otherOwner + "@example.com",
+                    sameTime,
+                    sameTime);
+            jdbc.update(
+                    "insert into links(id,code,owner_id,destination_url,status,created_at,updated_at) values(?,?,?,?, 'ACTIVE',?,?)",
+                    UUID.randomUUID(),
+                    "other-" + otherOwner,
+                    otherOwner,
+                    "https://other.example/",
+                    sameTime,
+                    sameTime);
+            var first =
+                    mvc.perform(
+                                    get("/api/links")
+                                            .secure(true)
+                                            .cookie(access)
+                                            .param("size", "2")
+                                            .param("ownerId", otherOwner.toString()))
+                            .andExpect(status().isOk())
+                            .andExpect(header().string("Cache-Control", "no-store"))
+                            .andExpect(jsonPath("$.items.length()").value(2))
+                            .andExpect(jsonPath("$.items[0].code").value("page-4-" + ownerId))
+                            .andExpect(jsonPath("$.items[1].status").value("DISABLED"))
+                            .andExpect(jsonPath("$.items[0].ownerId").doesNotExist())
+                            .andReturn();
+            String cursor =
+                    json.readTree(first.getResponse().getContentAsString())
+                            .get("nextCursor")
+                            .asString();
+            mvc.perform(
+                            get("/api/links")
+                                    .secure(true)
+                                    .cookie(access)
+                                    .param("size", "2")
+                                    .param("cursor", cursor))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.items.length()").value(2))
+                    .andExpect(jsonPath("$.items[0].code").value("page-2-" + ownerId))
+                    .andExpect(jsonPath("$.items[0].status").value("EXPIRED"))
+                    .andExpect(jsonPath("$.items[1].code").value("page-1-" + ownerId))
+                    .andExpect(jsonPath("$.nextCursor").isEmpty());
+            var forged =
+                    Base64.getUrlEncoder()
+                            .withoutPadding()
+                            .encodeToString(
+                                    ("2099-01-01T00:00:00Z|" + UUID.randomUUID())
+                                            .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            mvc.perform(get("/api/links").secure(true).cookie(access).param("cursor", forged))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.items.length()").value(4));
+            assertThat(redis.hasKey("rl:create:" + ownerId)).isFalse();
+        } finally {
+            jdbc.update("delete from links where owner_id=?", otherOwner);
+            jdbc.update("delete from users where id=?", otherOwner);
+        }
+    }
+
+    @Test
+    void listingRequiresValidCredentialsAndBoundsMalformedPageInputs() throws Exception {
+        mvc.perform(get("/api/links").secure(true)).andExpect(status().isUnauthorized());
+        mvc.perform(
+                        get("/api/links")
+                                .secure(true)
+                                .cookie(
+                                        new Cookie(
+                                                AuthCookieService.ACCESS_COOKIE_NAME, "invalid")))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/links").secure(true).cookie(access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.nextCursor").isEmpty());
+        for (String size : List.of("0", "-1", "51", "10000000000", "invalid")) {
+            mvc.perform(get("/api/links").secure(true).cookie(access).param("size", size))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+        }
+        for (String cursor :
+                List.of(
+                        "",
+                        "malformed",
+                        "x".repeat(257),
+                        Base64.getUrlEncoder()
+                                .encodeToString(
+                                        ("+10000-01-01T00:00:00Z|" + UUID.randomUUID())
+                                                .getBytes(
+                                                        java.nio.charset.StandardCharsets
+                                                                .UTF_8)))) {
+            mvc.perform(get("/api/links").secure(true).cookie(access).param("cursor", cursor))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error.fieldErrors.cursor").isNotEmpty());
+        }
+        var token = jwt.verifyAccessToken(access.getValue());
+        revocations.revoke(token.tokenId(), token.expiresAt());
+        mvc.perform(get("/api/links").secure(true).cookie(access))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void createsACommittedCopyableGeneratedLinkWithAnExplicitNullExpiry() throws Exception {
         var response =
                 mvc.perform(creation(INPUT, access))

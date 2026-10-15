@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { deleteAccount } from "./auth-api";
+import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
 
 const buttonClass =
@@ -89,6 +90,7 @@ export function DeleteAccountPanel() {
       <p className="mt-3 text-(--ink-muted)">
         Signed in as {session.data.user.email}.
       </p>
+      <LogoutButton />
       <section
         aria-labelledby="delete-account-title"
         className="mt-12 border-t border-(--border) pt-8"

@@ -28,7 +28,13 @@ function isPlainClick(event: MouseEvent<HTMLAnchorElement>) {
   );
 }
 
-export function LandingHeader() {
+export function LandingHeader({
+  accountLinks = LANDING_ACCOUNT_LINKS,
+  currentPath,
+}: Readonly<{
+  accountLinks?: readonly { href: string; label: string }[];
+  currentPath?: string;
+}> = {}) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -105,8 +111,9 @@ export function LandingHeader() {
               }}
               ref={desktop}
             >
-              {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
+              {accountLinks.map(({ href, label }) => (
                 <Link
+                  aria-current={href === currentPath ? "page" : undefined}
                   className={
                     href === "/register" ? "landing-action" : "landing-nav-link"
                   }
@@ -151,8 +158,9 @@ export function LandingHeader() {
           onKeyDown={onEscape}
           ref={panel}
         >
-          {LANDING_ACCOUNT_LINKS.map(({ href, label }) => (
+          {accountLinks.map(({ href, label }) => (
             <Link
+              aria-current={href === currentPath ? "page" : undefined}
               className={
                 href === "/register" ? "landing-action" : "landing-nav-link"
               }

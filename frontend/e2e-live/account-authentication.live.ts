@@ -42,6 +42,11 @@ test("registration, persisted session, logout, reset, login, and deletion cross 
     await expect(page.getByText(`Signed in as ${email}.`)).toBeVisible();
 
     await page.goto("/login");
+    await expect(page).toHaveURL(/\/links$/);
+    await page
+      .getByRole("navigation", { name: "Footer account" })
+      .getByRole("link", { name: "Account settings" })
+      .click();
     await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
     await page.context().clearCookies({ name: "__Host-tinyroute_access" });
     const logoutRefresh = page.waitForResponse(
@@ -51,6 +56,7 @@ test("registration, persisted session, logout, reset, login, and deletion cross 
     );
     await page.getByRole("button", { name: "Sign out" }).click();
     await logoutRefresh;
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Sign in to TinyRoute" }),
     ).toBeVisible();
@@ -79,10 +85,14 @@ test("registration, persisted session, logout, reset, login, and deletion cross 
       .getByLabel("Password", { exact: true })
       .fill(replacementPassword);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page).toHaveURL(/\/links$/);
     await expect(
-      page.getByRole("heading", { name: "You’re signed in" }),
+      page.getByRole("heading", { name: "Create a short link" }),
     ).toBeVisible();
-    await page.getByRole("link", { name: "Account settings" }).click();
+    await page
+      .getByRole("navigation", { name: "Footer account" })
+      .getByRole("link", { name: "Account settings" })
+      .click();
 
     await page.getByRole("button", { name: "Delete account" }).click();
     await page.getByRole("button", { name: "Confirm deletion" }).click();

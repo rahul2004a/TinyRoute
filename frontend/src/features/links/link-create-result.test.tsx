@@ -1,7 +1,14 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, it, vi } from "vitest";
-import { LinkCreateResult } from "./link-create-result";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LinkCreateResult, SavedLinkHistory } from "./link-create-result";
+import { getLinks } from "./link-api";
+vi.mock("./link-api", () => ({
+  getLinks: vi.fn(),
+  linkHistoryQueryKey: ["links", "history"],
+}));
+beforeEach(() => vi.mocked(getLinks).mockReset());
 
 const link = {
   id: "fixture",
@@ -11,6 +18,70 @@ const link = {
   createdAt: "2026-10-08T00:00:00Z",
   expiresAt: null,
 };
+
+function history(accountKey = "first@example.com") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <SavedLinkHistory accountKey={accountKey} />
+    </QueryClientProvider>,
+  );
+}
+
+it("loads saved pages and navigates forward and backward using server cursors", async () => {
+  const first = { ...link, status: "ACTIVE" as const, clickCount: 0 };
+  const second = {
+    ...first,
+    id: "second",
+    code: "Older",
+    shortUrl: "https://go.tinyroute.test/Older",
+  };
+  vi.mocked(getLinks).mockImplementation(async (cursor) =>
+    cursor === "next-page"
+      ? { items: [second], nextCursor: null }
+      : { items: [first], nextCursor: "next-page" },
+  );
+  const user = userEvent.setup();
+  history();
+  await screen.findAllByRole("link", { name: first.shortUrl });
+  expect(
+    (screen.getByRole("button", { name: "Previous" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
+  await user.click(screen.getByRole("button", { name: "Next" }));
+  await screen.findAllByRole("link", { name: second.shortUrl });
+  expect(screen.getByText("Page 2")).toBeTruthy();
+  expect(
+    (screen.getByRole("button", { name: "Next" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
+  await user.click(screen.getByRole("button", { name: "Previous" }));
+  await screen.findAllByRole("link", { name: first.shortUrl });
+  expect(screen.getByText("Page 1")).toBeTruthy();
+  expect(getLinks).toHaveBeenCalledWith("next-page", expect.any(AbortSignal));
+});
+
+it("shows loading, a safe failure, and a retryable empty result", async () => {
+  let reject!: (reason: Error) => void;
+  vi.mocked(getLinks).mockReturnValueOnce(
+    new Promise((_resolve, failure) => {
+      reject = failure;
+    }),
+  );
+  const user = userEvent.setup();
+  history();
+  expect(screen.getByText("Loading your links.")).toBeTruthy();
+  reject(new Error("private datastore details"));
+  expect((await screen.findByRole("alert")).textContent).toContain(
+    "We couldn’t load your links.",
+  );
+  expect(screen.queryByText("private datastore details")).toBeNull();
+  vi.mocked(getLinks).mockResolvedValue({ items: [], nextCursor: null });
+  await user.click(screen.getByRole("button", { name: "Refresh links" }));
+  expect(await screen.findByText("No saved links on this page.")).toBeTruthy();
+});
 
 it("displays the returned expiry with its exact instant", () => {
   const expiry = "2030-10-08T12:30:00Z";

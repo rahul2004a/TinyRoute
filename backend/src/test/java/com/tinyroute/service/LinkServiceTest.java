@@ -28,6 +28,21 @@ class LinkServiceTest {
     private static final Instant NOW = Instant.parse("2026-09-25T00:00:00Z");
 
     @Test
+    void validatesListingBeforeAnyRepositoryRead() {
+        var links = mock(LinkRepository.class);
+        var service = service(links, mock(AccountDeletionCleanupRepository.class));
+        assertThatThrownBy(() -> service.list(null, 10, null))
+                .isInstanceOf(AuthenticationFailedException.class);
+        for (int size : new int[] {0, -1, 51}) {
+            assertThatThrownBy(() -> service.list(principal(), size, null))
+                    .isInstanceOf(LinkValidationException.class);
+        }
+        assertThatThrownBy(() -> service.list(principal(), 10, ""))
+                .isInstanceOf(LinkValidationException.class);
+        verify(links, never()).findPageByOwnerId(any(), any(), any(), anyInt());
+    }
+
+    @Test
     void tombstonesAnyNumberOfOwnedLinksWithOneBulkUpdateAndOneCleanupJob() {
         UUID userId = UUID.randomUUID();
         LinkRepository links = mock(LinkRepository.class);

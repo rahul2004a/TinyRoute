@@ -16,6 +16,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleMalformedParameter() {
+        return ResponseEntity.badRequest()
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(ApiErrorResponse.validationError(UUID.randomUUID().toString(), Map.of()));
+    }
+
     @ExceptionHandler(LinkValidationException.class)
     public ResponseEntity<ApiErrorResponse> handleLinkValidation(
             LinkValidationException exception) {
