@@ -15,6 +15,12 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
   },
   webServer: {
+    // Live gates target the separate HTTPS verification backend, not local rewrites.
+    env: {
+      BACKEND_ORIGIN: "",
+      NEXT_PUBLIC_API_BASE_URL:
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:8443",
+    },
     command: `pnpm dev --webpack --experimental-https --experimental-https-key ../.local-certs/localhost-key.pem --experimental-https-cert ../.local-certs/localhost.pem --port ${port}`,
     url: `${frontendBase}/login`,
     ignoreHTTPSErrors: true,
