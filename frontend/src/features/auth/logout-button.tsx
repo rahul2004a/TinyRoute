@@ -6,7 +6,7 @@ import { useState } from "react";
 import { logout } from "./auth-api";
 import { sessionQueryKey } from "./use-session";
 
-export function LogoutButton() {
+export function LogoutButton({ className = "" }: { className?: string }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState("");
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -27,7 +27,7 @@ export function LogoutButton() {
   }
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className={`mt-6 space-y-3 ${className}`}>
       {error ? (
         <p className="text-sm font-medium text-(--danger)" role="alert">
           {error}
