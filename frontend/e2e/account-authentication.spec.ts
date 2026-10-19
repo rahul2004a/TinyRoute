@@ -3,6 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 type StubResponse = { status: number; body?: unknown };
 
 const account = { authenticated: true, user: { email: "browser@example.com" } };
+const apiOrigin =
+  process.env.TINYROUTE_E2E_API_BASE_URL ?? "https://localhost:8443";
 const failure = (code: string, message: string) => ({
   error: { code, message, requestId: "browser-fixture" },
 });
@@ -15,7 +17,7 @@ async function stubAuthApi(
     csrf: string | undefined,
   ) => StubResponse,
 ) {
-  await page.route("https://localhost:8443/api/links?**", (route) =>
+  await page.route(`${apiOrigin}/api/links?**`, (route) =>
     route.fulfill({
       status: 200,
       headers: {
@@ -26,7 +28,7 @@ async function stubAuthApi(
       json: { items: [], nextCursor: null },
     }),
   );
-  await page.route("https://localhost:8443/api/auth/**", async (route) => {
+  await page.route(`${apiOrigin}/api/auth/**`, async (route) => {
     const request = route.request();
     const headers = {
       "Access-Control-Allow-Origin": "https://localhost:3000",
@@ -235,12 +237,19 @@ test("account deletion requires confirmation and keeps the session on failure", 
     page.getByText("We couldn't confirm deletion. Please try again."),
   ).toBeVisible();
   await expect(
-    page.getByText("Signed in as browser@example.com."),
+    page
+      .getByRole("region", { name: "Your account" })
+      .getByText("browser@example.com"),
   ).toBeVisible();
   await page.getByRole("button", { name: "Confirm deletion" }).click();
   await expect(
     page.getByRole("heading", { name: "Account deleted" }),
   ).toBeVisible();
+  await expect(
+    page
+      .getByRole("complementary", { name: "Account navigation" })
+      .getByText("browser@example.com"),
+  ).toHaveCount(0);
   expect(deleteAttempts).toBe(2);
 });
 
@@ -353,7 +362,9 @@ test("registration requires an OTP before displaying a verified session", async 
     page.getByRole("heading", { name: "Account settings" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Signed in as browser@example.com."),
+    page
+      .getByRole("region", { name: "Your account" })
+      .getByText("browser@example.com"),
   ).toBeVisible();
   await expect(page.getByLabel("Verification code")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Resend code" })).toHaveCount(
@@ -516,17 +527,14 @@ test("Google handoff reports a fixed failure without exposing provider details",
       body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
     };
   });
-  await page.route(
-    "https://localhost:8443/api/auth/google/start",
-    async (route) => {
-      await route.fulfill({
-        status: 302,
-        headers: {
-          Location: "https://localhost:3000/login?error=oauth_failed",
-        },
-      });
-    },
-  );
+  await page.route(`${apiOrigin}/api/auth/google/start`, async (route) => {
+    await route.fulfill({
+      status: 302,
+      headers: {
+        Location: "https://localhost:3000/login?error=oauth_failed",
+      },
+    });
+  });
 
   await page.goto("/login");
   await page.getByRole("link", { name: "Continue with Google" }).click();
@@ -560,7 +568,7 @@ test("Google success handoff displays the authenticated account", async ({
       body: failure("SERVICE_UNAVAILABLE", "Fixture mismatch"),
     };
   });
-  await page.route("https://localhost:8443/api/auth/google/start", (route) => {
+  await page.route(`${apiOrigin}/api/auth/google/start`, (route) => {
     signedIn = true;
     return route.fulfill({
       status: 302,
@@ -575,7 +583,9 @@ test("Google success handoff displays the authenticated account", async ({
     page.getByRole("heading", { name: "Account settings" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Signed in as browser@example.com."),
+    page
+      .getByRole("region", { name: "Your account" })
+      .getByText("browser@example.com"),
   ).toBeVisible();
 });
 

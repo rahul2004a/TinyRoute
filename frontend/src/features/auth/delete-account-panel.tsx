@@ -1,15 +1,13 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { Check, LogOut, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { deleteAccount } from "./auth-api";
 import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
-
-const buttonClass =
-  "min-h-11 rounded-lg px-4 py-2 font-medium transition focus-visible:ring-2 focus-visible:ring-(--primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--canvas) disabled:cursor-not-allowed disabled:opacity-60";
 
 export function DeleteAccountPanel() {
   const session = useSession();
@@ -30,7 +28,14 @@ export function DeleteAccountPanel() {
     setSubmitting(true);
     try {
       await deleteAccount();
-      queryClient.clear();
+      // Keep the session query's observers connected so sidebar identity clears
+      // immediately, while removing every other private query and mutation.
+      queryClient.removeQueries({
+        predicate: ({ queryKey }) =>
+          queryKey.length !== sessionQueryKey.length ||
+          queryKey.some((part, index) => part !== sessionQueryKey[index]),
+      });
+      queryClient.getMutationCache().clear();
       queryClient.setQueryData(sessionQueryKey, { authenticated: false });
       setDeleted(true);
     } catch {
@@ -49,17 +54,20 @@ export function DeleteAccountPanel() {
   if (deleted) {
     return (
       <section
-        className="mx-auto max-w-xl"
+        className="settings-state"
         aria-labelledby="account-deleted-title"
       >
-        <h1 id="account-deleted-title" className="text-3xl font-semibold">
+        <span aria-hidden="true" className="settings-state-icon">
+          <Check size={24} />
+        </span>
+        <h1 id="account-deleted-title" className="settings-title">
           Account deleted
         </h1>
         <p className="mt-4" role="status">
           Your account was deleted. Your short links no longer work.
         </p>
         <Link
-          className="mt-6 inline-flex min-h-11 items-center underline"
+          className="settings-button settings-button-primary mt-6"
           href="/login"
         >
           Return to sign in
@@ -68,44 +76,112 @@ export function DeleteAccountPanel() {
     );
   }
 
-  if (session.isPending) return <p role="status">Checking your session.</p>;
+  if (session.isPending)
+    return (
+      <div className="settings-state" role="status">
+        <div aria-hidden="true" className="settings-skeleton" />
+        <p>Checking your session.</p>
+      </div>
+    );
   if (session.isError) {
     return (
-      <p role="alert">We couldn’t check your session. Refresh and try again.</p>
+      <section className="settings-state" aria-labelledby="session-error-title">
+        <h1 className="settings-title" id="session-error-title">
+          Account settings
+        </h1>
+        <p className="mt-4" role="alert">
+          We couldn’t check your session. Refresh and try again.
+        </p>
+        <button
+          className="settings-button mt-6"
+          onClick={() => void session.refetch()}
+          type="button"
+        >
+          Try again
+        </button>
+      </section>
     );
   }
   if (!session.data?.authenticated) {
     return (
-      <p>
-        Sign in to manage your account. <Link href="/login">Sign in</Link>
-      </p>
+      <section className="settings-state" aria-labelledby="signed-out-title">
+        <span aria-hidden="true" className="settings-state-icon">
+          <UserRound size={24} />
+        </span>
+        <h1 className="settings-title" id="signed-out-title">
+          Account settings
+        </h1>
+        <p className="mt-4">Sign in to manage your account.</p>
+        <Link
+          className="settings-button settings-button-primary mt-6"
+          href="/login"
+        >
+          Sign in
+        </Link>
+      </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-xl" aria-labelledby="settings-title">
-      <h1 id="settings-title" className="text-3xl font-semibold tracking-tight">
-        Account settings
-      </h1>
-      <p className="mt-3 text-(--ink-muted)">
-        Signed in as {session.data.user.email}.
-      </p>
-      <LogoutButton />
+    <div className="settings-content">
+      <header className="settings-heading">
+        <h1 id="settings-title" className="settings-title">
+          Account settings
+        </h1>
+        <p>Manage your account and your current session.</p>
+      </header>
+      <section className="settings-section" aria-labelledby="profile-title">
+        <div className="settings-section-heading">
+          <UserRound aria-hidden="true" size={19} />
+          <h2 id="profile-title">Your account</h2>
+        </div>
+        <div className="settings-profile">
+          <span
+            aria-hidden="true"
+            className="settings-avatar settings-avatar-large"
+          >
+            {session.data.user.email.charAt(0).toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <p className="settings-field-label">Email address</p>
+            <p className="settings-profile-email">{session.data.user.email}</p>
+          </div>
+          <span className="settings-status">
+            <Check aria-hidden="true" size={14} />
+            Signed in
+          </span>
+        </div>
+      </section>
+      <section
+        className="settings-section settings-session"
+        aria-labelledby="session-title"
+      >
+        <div>
+          <div className="settings-section-heading">
+            <LogOut aria-hidden="true" size={19} />
+            <h2 id="session-title">Current session</h2>
+          </div>
+          <p>Sign out of TinyRoute on this browser.</p>
+        </div>
+        <LogoutButton className="settings-logout" />
+      </section>
       <section
         aria-labelledby="delete-account-title"
-        className="mt-12 border-t border-(--border) pt-8"
+        className="settings-danger"
       >
-        <h2 id="delete-account-title" className="text-xl font-semibold">
-          Delete your account
-        </h2>
-        <p className="mt-3 text-(--ink-muted)">
+        <div className="settings-section-heading">
+          <Trash2 aria-hidden="true" size={19} />
+          <h2 id="delete-account-title">Delete your account</h2>
+          <span className="settings-danger-label">Permanent action</span>
+        </div>
+        <p className="settings-danger-description">
           This permanently removes your account. Your short links will stop
           working, and you’ll be signed out of every session.
         </p>
         {confirming ? (
           <div
             aria-labelledby="delete-confirm-title"
-            className="mt-6 space-y-4"
+            className="settings-confirmation"
           >
             <h3
               id="delete-confirm-title"
@@ -121,9 +197,9 @@ export function DeleteAccountPanel() {
                 {error}
               </p>
             ) : null}
-            <div className="flex flex-wrap gap-3">
+            <div className="settings-confirm-actions">
               <button
-                className={`${buttonClass} bg-(--danger) text-(--canvas)`}
+                className="settings-button settings-button-danger-filled"
                 disabled={submitting}
                 onClick={confirmDeletion}
                 type="button"
@@ -131,7 +207,7 @@ export function DeleteAccountPanel() {
                 {submitting ? "Deleting…" : "Confirm deletion"}
               </button>
               <button
-                className={`${buttonClass} border border-(--border)`}
+                className="settings-button"
                 disabled={submitting}
                 onClick={cancelDeletion}
                 type="button"
@@ -142,7 +218,7 @@ export function DeleteAccountPanel() {
           </div>
         ) : (
           <button
-            className={`${buttonClass} mt-6 border border-(--danger) text-(--danger)`}
+            className="settings-button settings-button-danger mt-6"
             onClick={() => setConfirming(true)}
             ref={triggerRef}
             type="button"
@@ -151,6 +227,6 @@ export function DeleteAccountPanel() {
           </button>
         )}
       </section>
-    </section>
+    </div>
   );
 }

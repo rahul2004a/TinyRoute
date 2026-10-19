@@ -263,6 +263,20 @@ The `/links` page reuses this header and footer, with Your links and Account
 settings navigation and one inline theme toggle. Keep the create form's existing
 typography and width separate from the landing-page text styles.
 
+The `/settings` page follows the user's full-height settings reference: no site
+header, footer, or outer frame. A 224px desktop sidebar stays at the left edge
+and contains branding, Back to home, Dashboard (the existing `/links` workspace),
+active Account settings, an inline theme control, and the actual account email.
+Center the content in the remaining space
+at a 760px maximum width. Below 1024px a compact menu button opens the sidebar as
+a native modal drawer, with focus containment, Escape dismissal, and focus
+restoration. Use clear profile and current session rows, followed by a separate
+deletion panel with a restrained danger border and explicit consequences.
+Derive subtle surfaces and secondary text from the semantic palette with
+color-mix; retain accessible contrast in both themes. Account initials come from
+the session email, never an invented profile. Keep deletion confirmation inline,
+including focus management and safe errors.
+
 The landing footer follows the user's spacious reference: a top divider, brand
 and copyright at the left, Pages and Account columns at the right, and an
 oversized TinyRoute wordmark below, centered horizontally within the footer.

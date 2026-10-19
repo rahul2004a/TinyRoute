@@ -6,5 +6,9 @@ import { ThemeSelector } from "./theme-selector";
 
 export function GlobalThemeSelector() {
   const pathname = usePathname();
-  return pathname === "/" || pathname === "/links" ? null : <ThemeSelector />;
+  return pathname === "/" ||
+    pathname === "/links" ||
+    pathname === "/settings" ? null : (
+    <ThemeSelector />
+  );
 }

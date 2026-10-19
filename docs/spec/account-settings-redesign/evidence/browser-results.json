@@ -1,0 +1,47 @@
+{
+  "matrix": [
+    {
+      "theme": "dark",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "overflow": false
+    }
+  ],
+  "deletions": 2,
+  "reducedMotion": "none",
+  "pageErrors": []
+}
