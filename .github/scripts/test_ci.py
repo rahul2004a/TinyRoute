@@ -14,12 +14,34 @@ class ChangesTest(unittest.TestCase):
     def test_application_and_shared_paths(self):
         self.assertEqual(ci.classify(["frontend/src/deleted.ts"]), (True, False))
         self.assertEqual(ci.classify(["backend/pom.xml"]), (False, True))
-        for path in [".github/scripts/ci.py", "AGENTS.md", "DESIGN.md", "compose.yml", ".gitattributes",
-                     ".env.example", "docs/requirements/Functional.md",
-                     "docs/architecture/architecture.md", "docs/decisions/0002-backend-stack.md"]:
+        for path in [".github/scripts/ci.py", ".github/workflows/backend-ci.yml",
+                     "compose.yml", ".gitattributes", ".env.example"]:
             with self.subTest(path=path):
                 self.assertEqual(ci.classify([path]), (True, True))
         self.assertEqual(ci.classify(["Readme.md", "docs/spec/example/spec.md"]), (False, False))
+
+    def test_documentation_does_not_select_application_verification(self):
+        for path in ["DESIGN.md", "AGENTS.md", "Readme.md", "frontend/NOTES.MD",
+                     "docs/requirements/Functional.md", "docs/architecture/architecture.md",
+                     "docs/decisions/0002-backend-stack.md", "docs/spec/example/evidence.png",
+                     "frontend/AGENTS.md", "frontend/README.md", "backend/README.md",
+                     ".github/pull_request_template.md"]:
+            with self.subTest(path=path):
+                self.assertEqual(ci.classify([path]), (False, False))
+
+    def test_code_and_configuration_changes_select_only_affected_applications(self):
+        for paths, expected in [
+            (["DESIGN.md", "frontend/README.md", "backend/README.md"], (False, False)),
+            (["DESIGN.md", "frontend/src/app/page.tsx"], (True, False)),
+            (["AGENTS.md", "frontend/package.json"], (True, False)),
+            (["frontend/README.md", "backend/src/main/java/com/tinyroute/model/User.java"], (False, True)),
+            (["docs/requirements/Functional.md", "backend/pom.xml"], (False, True)),
+            (["frontend/src/app/page.tsx", "backend/pom.xml"], (True, True)),
+            (["DESIGN.md", ".github/scripts/ci.py"], (True, True)),
+            (["backend/README.md", "compose.yml"], (True, True)),
+        ]:
+            with self.subTest(paths=paths):
+                self.assertEqual(ci.classify(paths), expected)
 
     def test_link_load_harness_requires_frontend_verification(self):
         for path in ["tools/link-performance.mjs", "tools/link-performance.test.mjs"]:

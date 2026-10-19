@@ -10,8 +10,11 @@ from pathlib import Path
 
 
 def classify(paths):
-    shared_files = {"AGENTS.md", "DESIGN.md", "compose.yml", ".env.example", ".gitattributes"}
-    shared_prefixes = (".github/", "docs/requirements/", "docs/architecture/", "docs/decisions/")
+    # Documentation does not change application code or build configuration.
+    paths = [path for path in paths
+             if not path.startswith("docs/") and not path.lower().endswith(".md")]
+    shared_files = {"compose.yml", ".env.example", ".gitattributes"}
+    shared_prefixes = (".github/",)
     shared = any(path in shared_files or path.startswith(shared_prefixes) for path in paths)
     frontend_verification = {"tools/link-performance.mjs", "tools/link-performance.test.mjs"}
     return (shared or any(path.startswith("frontend/") or path in frontend_verification for path in paths),

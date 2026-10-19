@@ -31,10 +31,17 @@ push comparisons. `--no-renames` checks both sides of moves; deletions count.
 A first push with no prior SHA runs both applications conservatively. Missing
 or invalid revisions fail detection. There are no workflow event path filters.
 
-`frontend/**` affects frontend; `backend/**` affects backend. `.github/**`,
-requirements, architecture, decisions, root `AGENTS.md`, `DESIGN.md`,
-`compose.yml`, root `.env.example`, and `.gitattributes` affect both. Ordinary README, deployment
-guide, and feature-spec changes skip the expensive application checks.
+Documentation does not select application verification: root `docs/**` and
+Markdown (`.md`, case-insensitive) anywhere in the repository are excluded first.
+This includes `DESIGN.md`, `AGENTS.md`, requirements/architecture/decisions,
+application READMEs, and the pull-request template.
+
+Of the remaining paths, `frontend/**` affects frontend only and `backend/**`
+affects backend only. `.github/**`, `compose.yml`, root `.env.example`, and
+`.gitattributes` affect both. A mixed documentation/code change validates the
+application(s) affected by its code or configuration. Both workflows still
+start and report required checks for documentation-only changes; pre-checks and
+the secret scan run, while application builds/tests/security-image jobs skip.
 
 ## Frontend verification
 
