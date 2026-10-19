@@ -140,6 +140,64 @@ describe("LoginForm", () => {
     expect(screen.queryByText(/^Signed in as /)).toBeNull();
   });
 
+  it.each([
+    [
+      new TypeError("Failed to fetch"),
+      "Sign-in is temporarily unavailable. Please try again.",
+    ],
+    [
+      new ApiClientError(503, null),
+      "Sign-in is temporarily unavailable. Please try again.",
+    ],
+    [
+      new ApiClientError(403, {
+        error: {
+          code: "CSRF_INVALID",
+          message: "Internal detail",
+          requestId: "csrf",
+        },
+      }),
+      "Your session changed. Please try signing in again.",
+    ],
+    [
+      new ApiClientError(401, {
+        error: {
+          code: "AUTHENTICATION_FAILED",
+          message: "Internal detail",
+          requestId: "auth",
+        },
+      }),
+      "We couldn't sign you in. Check your email and password and try again.",
+    ],
+  ])(
+    "shows an accurate submission error after a failed session check: %s",
+    async (error, message) => {
+      const user = userEvent.setup();
+      getCurrentSessionMock.mockRejectedValue(new ApiClientError(503, null));
+      loginMock.mockRejectedValue(error);
+      renderLoginForm();
+
+      await user.type(
+        await screen.findByLabelText("Email address"),
+        "person@example.com",
+      );
+      await user.type(
+        screen.getByLabelText("Password"),
+        "correct-horse-battery",
+      );
+      await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+      await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(1));
+      expect(screen.getByRole("alert").textContent).toBe(message);
+      expect(
+        (screen.getByLabelText("Email address") as HTMLInputElement).value,
+      ).toBe("person@example.com");
+      expect(
+        (screen.getByLabelText("Password") as HTMLInputElement).value,
+      ).toBe("");
+    },
+  );
+
   it("reveals and hides the entered password without changing it", async () => {
     const user = userEvent.setup();
     renderLoginForm();

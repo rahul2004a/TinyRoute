@@ -21,6 +21,10 @@ responses; it does not create, parse, store, or authorize tokens.
   frontend holds the returned value only in memory and supplies it in the
   request header. Authentication success and logout invalidate the previous
   CSRF token, so the frontend fetches a replacement before the next mutation.
+  Password login, session refresh, and logout recover a stale in-memory token
+  by fetching a replacement and retrying once after `403 CSRF_INVALID` only.
+  This rejection occurs before the mutation executes. Network errors, server
+  errors, credential failures, and other 403 responses are not replayed.
 - Auth cookies are host-only to `api.<zone>`, `HttpOnly`, `Secure`, and
   `SameSite=Lax`; their `Path` is `/`. Their names and clearing attributes
   are fixed: `__Host-tinyroute_access` and `__Host-tinyroute_refresh`, both

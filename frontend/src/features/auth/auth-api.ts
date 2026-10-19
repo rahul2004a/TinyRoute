@@ -44,6 +44,35 @@ function mutationOptions(csrfToken: string, body?: object) {
   };
 }
 
+async function withCsrfRecovery<T>(
+  request: (csrfToken: string) => Promise<T>,
+  initialToken?: string,
+): Promise<T> {
+  const csrfToken = initialToken ?? (await getCsrfToken());
+  try {
+    return await request(csrfToken);
+  } catch (error) {
+    if (!(
+      error instanceof ApiClientError &&
+      error.status === 403 &&
+      error.apiError?.error.code === "CSRF_INVALID"
+    )) {
+      throw error;
+    }
+  }
+
+  // Another tab can replace the shared CSRF cookie while this tab is idle.
+  // Spring rejects CSRF before executing the mutation, so only this explicit
+  // rejection is safe to replay. Never retry an ambiguous network/server error.
+  clearCsrfToken();
+  try {
+    return await request(await getCsrfToken());
+  } catch (error) {
+    clearCsrfToken();
+    throw error;
+  }
+}
+
 export async function fetchCsrfToken(): Promise<string> {
   return getCsrfToken();
 }
@@ -68,10 +97,14 @@ export async function login(
   input: LoginInput,
   csrfToken: string,
 ): Promise<void> {
-  await apiRequest("/api/auth/login", {
-    ...mutationOptions(csrfToken, input),
-    responseSchema: sessionSchema,
-  });
+  await withCsrfRecovery(
+    (token) =>
+      apiRequest("/api/auth/login", {
+        ...mutationOptions(token, input),
+        responseSchema: sessionSchema,
+      }),
+    csrfToken,
+  );
   clearCsrfToken();
 }
 
@@ -141,12 +174,13 @@ async function refreshWithCoordination(): Promise<Session> {
 }
 
 async function requestRefresh(): Promise<Session> {
-  const csrfToken = await getCsrfToken();
   try {
-    return await apiRequest("/api/auth/refresh", {
-      ...mutationOptions(csrfToken),
-      responseSchema: sessionSchema,
-    });
+    return await withCsrfRecovery((csrfToken) =>
+      apiRequest("/api/auth/refresh", {
+        ...mutationOptions(csrfToken),
+        responseSchema: sessionSchema,
+      }),
+    );
   } catch (error) {
     if (!(
       error instanceof ApiClientError &&
@@ -173,10 +207,14 @@ async function requestRefresh(): Promise<Session> {
 }
 
 function requestLogout(csrfToken: string) {
-  return apiRequest("/api/auth/logout", {
-    ...mutationOptions(csrfToken),
-    responseSchema: emptyResponseSchema,
-  });
+  return withCsrfRecovery(
+    (token) =>
+      apiRequest("/api/auth/logout", {
+        ...mutationOptions(token),
+        responseSchema: emptyResponseSchema,
+      }),
+    csrfToken,
+  );
 }
 
 export async function logout(): Promise<void> {
