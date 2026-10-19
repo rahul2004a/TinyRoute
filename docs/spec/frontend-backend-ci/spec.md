@@ -21,9 +21,13 @@ NFR-DEP-05 (backend Docker packaging). Preserve the locked application stack.
   report. Checkout full history; compare PR base/head using merge-base, and
   pushes using before/after. Deleted and renamed paths count. Missing/zero
   push base conservatively validates both applications. Detection failures fail.
-- Application directories trigger their own validation. `.github/**`, shared
-  requirements/architecture/decisions, `AGENTS.md`, `DESIGN.md`, `compose.yml`,
-  root `.env.example`, and `.gitattributes` trigger both. Ordinary documentation skips costly jobs.
+- Exclude root `docs/**` and case-insensitive `.md` files anywhere before
+  application selection. This includes `DESIGN.md`, `AGENTS.md`, requirements,
+  architecture/decisions, application READMEs, and the PR template. Remaining
+  application paths trigger their own validation; `.github/**`, `compose.yml`,
+  root `.env.example`, and `.gitattributes` trigger both. Mixed docs/code changes
+  validate the affected application(s). Documentation-only changes skip costly
+  jobs while required gates, pre-checks, and secret scanning still run.
 - Read-only token permissions by default; no production/environment secrets,
   no `pull_request_target`, no registry login, and no persistent credentials.
   Pin actions to full release commit SHAs. Superseded runs may be cancelled.
