@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearCsrfToken,
+  fetchCsrfToken,
   getCurrentSession,
+  login,
   logout,
   refreshSession,
 } from "./auth-api";
@@ -17,6 +19,14 @@ const authenticationFailure = {
     code: "AUTHENTICATION_FAILED",
     message: "Authentication failed",
     requestId: "request-1",
+  },
+};
+
+const csrfFailure = {
+  error: {
+    code: "CSRF_INVALID",
+    message: "CSRF token is invalid",
+    requestId: "csrf-fixture",
   },
 };
 
@@ -114,6 +124,127 @@ describe("session API lifecycle", () => {
     await expect(getCurrentSession()).resolves.toEqual({
       authenticated: false,
     });
+  });
+
+  it("restores an idle session when another tab invalidated its cached CSRF token", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "old-csrf" }))
+      .mockResolvedValueOnce(jsonResponse(401, authenticationFailure))
+      .mockResolvedValueOnce(jsonResponse(403, csrfFailure))
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "current-csrf" }))
+      .mockResolvedValueOnce(jsonResponse(200, signedInSession));
+    vi.stubGlobal("fetch", fetchMock);
+    await fetchCsrfToken();
+
+    await expect(getCurrentSession()).resolves.toEqual(signedInSession);
+
+    const refreshRequests = fetchMock.mock.calls.filter(([url]) =>
+      url.endsWith("/api/auth/refresh"),
+    );
+    expect(refreshRequests).toHaveLength(2);
+    expect(refreshRequests.map(([, request]) => csrfHeader(request))).toEqual([
+      "old-csrf",
+      "current-csrf",
+    ]);
+  });
+
+  it.each(["login", "logout"] as const)(
+    "recovers %s after a confirmed CSRF rejection",
+    async (action) => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "old-csrf" }))
+        .mockResolvedValueOnce(jsonResponse(403, csrfFailure))
+        .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "current-csrf" }))
+        .mockResolvedValueOnce(
+          action === "login"
+            ? jsonResponse(200, signedInSession)
+            : jsonResponse(204),
+        );
+      vi.stubGlobal("fetch", fetchMock);
+      const csrf = await fetchCsrfToken();
+
+      await expect(
+        action === "login"
+          ? login({ email: "person@example.com", password: "password" }, csrf)
+          : logout(),
+      ).resolves.toBeUndefined();
+
+      expect(
+        fetchMock.mock.calls.map(([url]) => new URL(url).pathname),
+      ).toEqual([
+        "/api/auth/csrf",
+        `/api/auth/${action}`,
+        "/api/auth/csrf",
+        `/api/auth/${action}`,
+      ]);
+      expect(csrfHeader(fetchMock.mock.calls[3][1])).toBe("current-csrf");
+      if (action === "login") {
+        expect(fetchMock.mock.calls[1][1].body).toBe(
+          fetchMock.mock.calls[3][1].body,
+        );
+      }
+    },
+  );
+
+  it("stops after one CSRF recovery and drops a repeatedly rejected token", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "old-csrf" }))
+      .mockResolvedValueOnce(jsonResponse(403, csrfFailure))
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "rejected-csrf" }))
+      .mockResolvedValueOnce(jsonResponse(403, csrfFailure))
+      .mockResolvedValueOnce(jsonResponse(200, { csrfToken: "next-csrf" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(refreshSession()).rejects.toMatchObject({ status: 403 });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    await expect(fetchCsrfToken()).resolves.toBe("next-csrf");
+  });
+
+  it.each([
+    [401, authenticationFailure],
+    [403, undefined],
+    [403, authenticationFailure],
+    [
+      429,
+      { error: { code: "RATE_LIMITED", message: "Wait", requestId: "rate" } },
+    ],
+    [
+      503,
+      {
+        error: {
+          code: "SESSION_UNAVAILABLE",
+          message: "Unavailable",
+          requestId: "outage",
+        },
+      },
+    ],
+  ])(
+    "does not replay login for a non-CSRF rejection (%s)",
+    async (status, payload) => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(jsonResponse(status as number, payload));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await expect(
+        login({ email: "person@example.com", password: "password" }, "csrf"),
+      ).rejects.toMatchObject({ status });
+      expect(fetchMock).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("does not retry login when the network result is ambiguous", async () => {
+    const failure = new TypeError("Failed to fetch");
+    const fetchMock = vi.fn().mockRejectedValue(failure);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      login({ email: "person@example.com", password: "password" }, "csrf"),
+    ).rejects.toBe(failure);
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it("coalesces simultaneous refreshes within one tab", async () => {

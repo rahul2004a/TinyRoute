@@ -31,7 +31,27 @@ function loginErrorMessage(error: unknown): string {
     return `Too many sign-in attempts. Try again in ${error.apiError.error.retryAfterSeconds} seconds.`;
   }
 
-  return "We couldn't sign you in. Check your email and password and try again.";
+  if (error instanceof ApiClientError && error.status === 429) {
+    return "Too many sign-in attempts. Please try again later.";
+  }
+
+  if (
+    error instanceof ApiClientError &&
+    error.status === 401 &&
+    error.apiError?.error.code === "AUTHENTICATION_FAILED"
+  ) {
+    return "We couldn't sign you in. Check your email and password and try again.";
+  }
+
+  if (
+    error instanceof ApiClientError &&
+    error.status === 403 &&
+    error.apiError?.error.code === "CSRF_INVALID"
+  ) {
+    return "Your session changed. Please try signing in again.";
+  }
+
+  return "Sign-in is temporarily unavailable. Please try again.";
 }
 
 function inputClassName(hasError: boolean, hasTopMargin = true) {
@@ -93,7 +113,7 @@ export function LoginForm({
       <p className="mt-3 max-w-sm text-sm leading-6 text-(--auth-ink-muted)">
         Manage your links and see how they perform.
       </p>
-      {session.isError ? (
+      {session.isError && !submissionError ? (
         <p
           className="mt-5 text-sm font-medium text-(--auth-danger)"
           role="alert"
