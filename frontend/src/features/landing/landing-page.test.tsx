@@ -73,11 +73,14 @@ describe("public landing page", () => {
     setup();
     for (const name of ["Short links", "Custom aliases", "Expiry"])
       expect(screen.getByRole("heading", { name, level: 3 })).toBeTruthy();
-    for (const name of ["Link management", "Analytics"]) {
+    for (const name of ["Link management"]) {
       const article = screen.getByRole("article", { name: `${name} Planned` });
       expect(within(article).getByText("Planned")).toBeTruthy();
     }
-    expect(screen.getAllByText("Planned")).toHaveLength(2);
+    expect(screen.getAllByText("Planned")).toHaveLength(1);
+    expect(
+      screen.getByRole("article", { name: "Analytics Available now" }),
+    ).toBeTruthy();
     expect(screen.getByText(/delayed by up to one minute/)).toBeTruthy();
   });
 

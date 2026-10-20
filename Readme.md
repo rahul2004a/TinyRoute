@@ -8,11 +8,14 @@ rate limits, and persistence.
 
 ## Project status
 
-**Work in progress.** The account-authentication feature is the active workstream
-and is implemented through its review gates. Frontend and backend CI validate
-pull requests. Link creation and management, public redirects, analytics,
-production infrastructure, and deployment delivery remain future
-work. Do not treat this repository as deployed software.
+**Work in progress.** Authentication, HTTPS link creation/custom aliases/expiry,
+public redirects, paginated owned links, and private short-link analytics are
+implemented. Analytics provides an overview, per-link reports, UTC date filters,
+daily trends, and six anonymous traffic breakdowns. Frontend/backend CI validate
+pull requests. Search and link-management mutations, production infrastructure,
+and deployment delivery remain future work. The repository is not deployed
+software. See [analytics setup](docs/spec/short-link-analytics/operations.md),
+including optional local geography and capture limitations.
 
 ## What TinyRoute is intended to deliver
 
@@ -27,7 +30,7 @@ The MVP includes:
 - Owner-only link list, search, destination editing, disable/re-enable, and
   permanent deletion.
 - Click totals, date-range trends, and aggregated referrer, device, OS,
-  browser, country, and city analytics.
+  browser, country, and city analytics, with a zoomable country map for each link.
 - Creation, authentication, and redirect throttling.
 
 The full scope, priority, and acceptance criteria live in

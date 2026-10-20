@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Copy } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
@@ -135,13 +136,44 @@ function SavedLinkDetails({ link }: Readonly<{ link: SavedLink }>) {
           timeStyle: "short",
         })}
       </time>
+      <p className="mt-2 text-xs text-(--ink-muted)">
+        Lifetime redirects:{" "}
+        <span className="font-mono">
+          {link.clickCount.toLocaleString("en")}
+        </span>
+      </p>
     </>
+  );
+}
+
+function LinkAnalyticsAction({
+  id,
+  range,
+}: {
+  id: string;
+  range?: { from: string; to: string };
+}) {
+  const parameters = range
+    ? `?${new URLSearchParams({ from: range.from, to: range.to })}`
+    : "";
+  return (
+    <Link
+      href={`/analytics/${id}${parameters}`}
+      prefetch={false}
+      className="mt-2 inline-flex min-h-11 items-center text-xs underline underline-offset-4"
+    >
+      View analytics
+    </Link>
   );
 }
 
 export function SavedLinkHistory({
   accountKey,
-}: Readonly<{ accountKey: string }>) {
+  analyticsRange,
+}: Readonly<{
+  accountKey: string;
+  analyticsRange?: { from: string; to: string };
+}>) {
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const cursor = cursors[cursors.length - 1];
   const history = useQuery({
@@ -184,7 +216,16 @@ export function SavedLinkHistory({
         </p>
       ) : items.length === 0 ? (
         <p className="mt-4 text-sm text-(--ink-muted)">
-          No saved links on this page.
+          {cursors.length === 1 ? (
+            <>
+              No links yet.{" "}
+              <Link href="/links" className="underline underline-offset-4">
+                Create your first short link.
+              </Link>
+            </>
+          ) : (
+            "No saved links on this page."
+          )}
         </p>
       ) : (
         <>
@@ -223,6 +264,7 @@ export function SavedLinkHistory({
                     >
                       {link.shortUrl}
                     </a>
+                    <LinkAnalyticsAction id={link.id} range={analyticsRange} />
                   </td>
                   <td className="py-4 pr-4">
                     <p className="break-all text-sm text-(--ink-muted)">
@@ -256,6 +298,9 @@ export function SavedLinkHistory({
                 >
                   {link.shortUrl}
                 </a>
+                <div>
+                  <LinkAnalyticsAction id={link.id} range={analyticsRange} />
+                </div>
                 <p className="mt-3 break-all text-sm text-(--ink-muted)">
                   {link.destinationUrl}
                 </p>

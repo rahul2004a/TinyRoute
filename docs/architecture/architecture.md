@@ -108,7 +108,7 @@ uses `SERVER_PORT=8080`, `SERVER_SSL_ENABLED=false`, and
 The browser's API base is the HTTPS frontend origin, so Secure cookies remain
 browser-facing HTTPS. This is transport routing, not a Next.js redirect handler:
 Spring still owns code validation, resolution, throttling, 302 Location and HTML
-errors (FR-RED-01..07, NFR-REL-02). Analytics remains deferred by the user's scope.
+errors (FR-RED-01..07, NFR-REL-02). Analytics is implemented separately by the [analytics specification](../spec/short-link-analytics/spec.md).
 Leaving `BACKEND_ORIGIN` unset preserves direct backend access. The production
 API/go-host topology below is unchanged; shared-host production delivery needs
 separate origin-host, cache and forwarded-client trust configuration. See the
@@ -257,7 +257,7 @@ Visitor → HTTPS ingress → **RedirectController** (no session, no CSRF, no ow
 2. RedirectController → **RedirectService**.resolve
 3. RedirectService → **RedirectCache**.get (and put on DB success) → Redis `redirect:{code}`. A cached lookup includes `expiresAt` when set; the service checks it before redirecting, and the cache TTL is `min(5 s, remaining time to expiry)`.
 4. On miss / Redis down / malformed cache: RedirectService → **LinkRepository**.findByCode → PostgreSQL
-5. After a 3xx only: RedirectService ⋯ **ClickCountService**.recordSuccessfulRedirect ⋯ LinkRepository (increment `click_count`) + ClickEventRepository (store a normalized analytics event)
+5. After completed GET/302 only: the controller marks confirmed resolution; **RedirectAnalyticsInterceptor** ⋯ **ClickCountService**.recordSuccessfulRedirect ⋯ **ClickRecordingWorker** (`@Async`) ⋯ **ClickEventRepository** (atomic event insert + lifetime increment). HEAD, health, auth redirects, and failed responses have no capture.
 
 Redirect path does **not** call AuthService, LinkService, AnalyticsService, RefreshSessionStore, JwtRevocationStore, OwnershipGuard, UserRepository, or Next.js. `ClickCountService` processes the event asynchronously; its failure never delays, changes, or rescues the redirect. It receives request metadata only transiently, normalizes it before persistence, and does not store a raw IP address, raw user agent, or raw referrer URL. ClickCountService does **not** call RedirectCache.
 
@@ -341,7 +341,10 @@ This design does not eliminate the required database insert or unique constraint
 Next.js → HTTPS ingress → **JwtAuthenticationFilter** (required) → **AnalyticsController** → **AnalyticsService**.
 
 1. AnalyticsService → **OwnershipGuard**.requireOwned → LinkRepository.findByIdAndOwnerId (missing and non-owned both 404)
-2. AnalyticsService validates the owner-supplied **AnalyticsRange**, then → **ClickEventRepository**.snapshot → PostgreSQL grouped totals, daily counts, and aggregated referrer/device/OS/browser/country/city breakdowns
+2. AnalyticsService validates **AnalyticsRange**, then uses **ClickEventRepository** grouped reads in one repeatable-read transaction: daily counts, lifetime total, and referrer/device/OS/browser/country/city buckets. The overview filters all reads by the authenticated owner and excludes deleted links.
+3. Ranges are inclusive UTC calendar dates; omit both for the last 30 days, otherwise require both and at most 366 days. Daily rows are zero-filled. Known buckets are bounded to 20 plus Other and explicit unknown categories.
+4. Optional **GeoLocationLookup** → **MaxMindGeoLocationLookup** enriches country/city from a local read-only file in the worker; no remote lookup, persisted address, or IP cache. Browser normalization uses bounded User-Agent and advertised `Sec-CH-UA` brands to distinguish Brave from Chrome's compatibility token; only the family name enters the queue. Dedicated capture workers/queue are bounded and failures never change redirects. See [ADR 0004](../decisions/0004-anonymous-analytics-geography.md) and [operations](../spec/short-link-analytics/operations.md).
+5. Detail responses include complete ISO-coded country counts and Unknown before top-20 folding. The individual-link UI uses those aggregates for a locally bundled SVG world map with bounded zoom/pan and an equivalent Countries table. The map adds no visitor-level data, external map requests, database query, or redirect-path work (FR-ANA-03/04; NFR-PRV-03).
 
 `GET` analytics needs authentication and ownership enforcement but no CSRF check. The frontend only renders the response; it does not make ownership or analytics-policy decisions.
 
@@ -459,7 +462,7 @@ Public: `GET /{code}`, `GET /actuator/health`.
 
 Auth: `POST /api/auth/register`, `POST /api/auth/register/verify`, `POST /api/auth/register/resend-otp`, `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/{provider}/start`, `GET /api/auth/{provider}/callback`, `POST /api/auth/logout`, `GET /api/auth/me`, `POST /api/auth/password-reset`, `POST /api/auth/password-reset/confirm`, `DELETE /api/auth/account`.
 
-Owner: `POST /api/links`, `GET /api/links`, `GET /api/links/{id}/analytics?from={ISO-8601}&to={ISO-8601}`, `PATCH /api/links/{id}/status`, `PATCH /api/links/{id}/destination`, `DELETE /api/links/{id}`.
+Owner: `GET /api/analytics?from={YYYY-MM-DD}&to={YYYY-MM-DD}`, `POST /api/links`, `GET /api/links`, `GET /api/links/{id}/analytics?from={YYYY-MM-DD}&to={YYYY-MM-DD}`, `PATCH /api/links/{id}/status`, `PATCH /api/links/{id}/destination`, `DELETE /api/links/{id}`.
 
 Errors stay generic (NFR-SEC-08): 401, 403 CSRF, 400 validation, 404 missing/not owned, 409 after bounded code retries, 429 with retry guidance, safe 5xx.
 

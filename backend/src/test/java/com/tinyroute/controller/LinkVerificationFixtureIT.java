@@ -47,6 +47,34 @@ class LinkVerificationFixtureIT extends LinkHttpTestSupport {
     }
 
     @Test
+    void runtimeDiagnosticsAreGuardedAndRespondWhenTheDatabasePoolIsExhausted() throws Exception {
+        mvc.perform(get("/__verification/runtime-state")).andExpect(status().isUnauthorized());
+        var held = new java.util.ArrayList<java.sql.Connection>();
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            for (int i = 0; i < 4; i++) held.add(jdbc.getDataSource().getConnection());
+            var response =
+                    executor.submit(
+                            () ->
+                                    mvc.perform(
+                                                    get("/__verification/runtime-state")
+                                                            .header("X-Verification-Token", TOKEN))
+                                            .andExpect(status().isOk())
+                                            .andExpect(header().string("Cache-Control", "no-store"))
+                                            .andExpect(
+                                                    jsonPath("$.sampledAtEpochMillis").isNumber())
+                                            .andExpect(jsonPath("$.poolActive").value(4))
+                                            .andExpect(jsonPath("$.poolMaximum").value(4))
+                                            .andExpect(jsonPath("$.analyticsQueued").isNumber()));
+            response.get(2, java.util.concurrent.TimeUnit.SECONDS);
+        } finally {
+            for (var connection : held) connection.close();
+            executor.shutdownNow();
+            executor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
+        }
+    }
+
+    @Test
     void fixtureRequiresTheTokenAndALoopbackSource() throws Exception {
         mvc.perform(get("/__verification/bootstrap"))
                 .andExpect(status().isUnauthorized())

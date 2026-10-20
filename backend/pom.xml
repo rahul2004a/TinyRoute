@@ -22,10 +22,17 @@
         <tomcat.version>11.0.26</tomcat.version>
         <!-- Patched within Jackson 3.1 for the dependency-scanning CI gate. -->
         <jackson-bom.version>3.1.7</jackson-bom.version>
+        <!-- GeoIP uses Jackson 2; Spring Boot manages this BOM independently. -->
+        <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
         <jacoco.minimum.line.coverage>0.70</jacoco.minimum.line.coverage>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>5.2.0</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>

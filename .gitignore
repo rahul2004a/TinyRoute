@@ -5,3 +5,5 @@
 .local-verification/
 .pnpm-store/
 __pycache__/
+.DS_Store
+/ip-DB/*.mmdb

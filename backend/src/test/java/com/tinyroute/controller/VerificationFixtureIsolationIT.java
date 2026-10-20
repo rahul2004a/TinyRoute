@@ -10,5 +10,8 @@ class VerificationFixtureIsolationIT extends LinkHttpTestSupport {
         mvc.perform(redirect("/__verification/bootstrap"))
                 .andExpect(status().isNotFound())
                 .andExpect(header().doesNotExist("Location"));
+        mvc.perform(redirect("/__verification/runtime-state"))
+                .andExpect(status().isNotFound())
+                .andExpect(header().doesNotExist("Location"));
     }
 }

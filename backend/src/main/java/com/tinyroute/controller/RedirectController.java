@@ -47,6 +47,9 @@ public class RedirectController {
             if (!limit.allowed()) return page(429, request, limit.retryAfter());
             var outcome = redirects.resolve(code);
             if (outcome.kind() == RedirectOutcome.Kind.REDIRECT) {
+                request.setAttribute(
+                        com.tinyroute.security.RedirectAnalyticsInterceptor.SUCCESSFUL_CODE,
+                        code.value());
                 var headers = headers();
                 headers.set("Location", outcome.destinationUrl());
                 return new ResponseEntity<>("", headers, HttpStatus.FOUND);

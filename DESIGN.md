@@ -172,11 +172,32 @@ parameters. Delete confirmation names the code and explains that it cannot be
 reused. Missing and non-owned resources look identical
 (FR-MGT-01 through FR-MGT-07, NFR-SEC-04).
 
+Analytics lives at `/analytics` and `/analytics/[id]`, using the existing settings
+sidebar/mobile drawer and one inline theme control. Keep the links page shell.
+Stack date controls at narrow widths, retain UTC range context across detail/back
+navigation, distinguish selected-range and lifetime totals, and make every saved
+link's analytics action reachable without visiting its short URL. Use two-column
+breakdown tables on desktop and one column on mobile; use readable labels and an
+explicit Show data table disclosure for the daily chart. Loading/new ranges hide
+old results, API failures expose Retry, and snapshots show an As of UTC timestamp.
+No polling or animated metrics.
+
 Analytics leads with total clicks, then the selectable daily trend, then
 referrer, device, operating system, browser, country, and city. Default to 30
 days. Recharts requires direct labels, reachable tooltips, accessible summaries, and table fallbacks.
 Label data as delayed by up to one minute; never expose raw tracking inputs
 (FR-ANA-01 through FR-ANA-04, NFR-CON-03, NFR-PRV-02, NFR-PRV-03).
+
+Approved individual-link map extension (2026-10-20): place a
+full-width country map below all six traffic breakdowns, using the existing
+semantic palette and no animated movement. Provide a labeled intensity legend, country/count
+feedback, 44px zoom/reset controls, bounded drag and keyboard panning, and the
+complete Countries table as an accessible alternative. Show Unknown separately.
+Use the India boundary view, as explicitly requested by the user; preserve that
+choice when regenerating geometry.
+See [the concrete map design](docs/spec/short-link-analytics/world-map-design.md).
+Analytics report footers retain the geography privacy note and an underlined
+“IP Geolocation by DB-IP” attribution link for the selected DB-IP Lite source.
 
 Authentication uses a narrow centered panel. Keep email/password and Google
 methods clear. Account deletion is separated from routine settings and states

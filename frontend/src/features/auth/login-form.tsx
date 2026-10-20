@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ApiClientError } from "../../lib/api-client";
+import { analyticsReturnPath } from "./analytics-return-path";
 import { AuthBrand } from "./auth-brand";
 import { fetchCsrfToken, login } from "./auth-api";
 import { GoogleSignInButton } from "./google-sign-in-button";
@@ -62,7 +63,8 @@ function inputClassName(hasError: boolean, hasTopMargin = true) {
 
 export function LoginForm({
   oauthFailed = false,
-}: Readonly<{ oauthFailed?: boolean }>) {
+  returnTo,
+}: Readonly<{ oauthFailed?: boolean; returnTo?: string }>) {
   const queryClient = useQueryClient();
   const session = useSession();
   const router = useRouter();
@@ -74,9 +76,10 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
+  const destination = analyticsReturnPath(returnTo);
   useEffect(() => {
-    if (session.data?.authenticated) router.replace("/links");
-  }, [router, session.data?.authenticated]);
+    if (session.data?.authenticated) router.replace(destination);
+  }, [router, session.data?.authenticated, destination]);
 
   async function submit(values: LoginValues) {
     setIsSubmitting(true);

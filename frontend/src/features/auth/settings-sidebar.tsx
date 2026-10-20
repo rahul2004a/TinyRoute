@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  ChartNoAxesCombined,
   LayoutDashboard,
   Link2,
   PanelLeft,
@@ -17,9 +18,11 @@ import { useSession } from "./use-session";
 function SidebarContent({
   email,
   onNavigate,
+  active,
 }: {
   email: string | null;
   onNavigate?: () => void;
+  active: "settings" | "analytics";
 }) {
   return (
     <>
@@ -53,10 +56,20 @@ function SidebarContent({
             prefetch={false}
           >
             <LayoutDashboard aria-hidden="true" size={18} />
-            Dashboard
+            {active === "analytics" ? "Your links" : "Dashboard"}
           </Link>
           <Link
-            aria-current="page"
+            aria-current={active === "analytics" ? "page" : undefined}
+            className="settings-nav-link"
+            href="/analytics"
+            onClick={onNavigate}
+            prefetch={false}
+          >
+            <ChartNoAxesCombined aria-hidden="true" size={18} />
+            Analytics
+          </Link>
+          <Link
+            aria-current={active === "settings" ? "page" : undefined}
             className="settings-nav-link"
             href="/settings"
             onClick={onNavigate}
@@ -90,7 +103,11 @@ function SidebarContent({
   );
 }
 
-export function SettingsSidebar() {
+export function SettingsSidebar({
+  active = "settings",
+}: {
+  active?: "settings" | "analytics";
+}) {
   const session = useSession();
   const email = session.data?.authenticated ? session.data.user.email : null;
   const [open, setOpen] = useState(false);
@@ -125,13 +142,17 @@ export function SettingsSidebar() {
         aria-label="Account navigation"
         ref={desktop}
       >
-        <SidebarContent email={email} />
+        <SidebarContent email={email} active={active} />
       </aside>
       <button
         aria-controls={drawerId}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label="Open settings navigation"
+        aria-label={
+          active === "analytics"
+            ? "Open analytics navigation"
+            : "Open settings navigation"
+        }
         className="settings-menu-button"
         onClick={() => {
           drawer.current?.showModal();
@@ -177,6 +198,7 @@ export function SettingsSidebar() {
             <X aria-hidden="true" size={20} />
           </button>
           <SidebarContent
+            active={active}
             email={email}
             onNavigate={() => drawer.current?.close()}
           />

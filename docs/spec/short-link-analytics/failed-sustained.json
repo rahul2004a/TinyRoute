@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-20T03:01:29.254Z",
+  "protocol": {
+    "rate": 100,
+    "duration": 600,
+    "warmup": 30,
+    "create-samples": 200,
+    "clients": 100
+  },
+  "acceptanceProtocol": true,
+  "passed": false,
+  "creation": {
+    "samples": 200,
+    "statuses": {
+      "201": 200
+    },
+    "p95": 22.340958,
+    "passed": true
+  },
+  "redirect": {
+    "offered": 60000,
+    "issued": 59972,
+    "completed": 59972,
+    "elapsedSeconds": 600.0016352089999,
+    "non302": 0,
+    "timeouts": 0,
+    "dropped": 28,
+    "late": 28,
+    "maximumLatenessMs": 230.8285840000026,
+    "p95": 5.970709,
+    "p99": 41.776625,
+    "errorRate": 0,
+    "passed": false,
+    "reasons": [
+      "Incomplete offered/issued/completed requests",
+      "Dropped or excessively late arrivals"
+    ]
+  },
+  "capture": {
+    "final": {
+      "events": 62972,
+      "lifetime": 62972,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 79
+    },
+    "maxRecordingDelayMillis": 557
+  },
+  "featureCommit": "9bcf916ad2d2637d3965c13a614b3c6ce9659fef",
+  "reportSha256": "38cf2a6503eec3c3f502f94a6c012721a746e92a327ead12e8d8730cbd9681ac"
+}

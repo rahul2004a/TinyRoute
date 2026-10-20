@@ -40,74 +40,77 @@ async function fixture(
     refreshes = 0;
   let saved = [...(options.saved ?? [])];
   let historyUnavailable = options.historyUnavailable ?? false;
-  await page.route("https://localhost:8443/api/**", async (route) => {
-    const request = route.request(),
-      path = new URL(request.url()).pathname;
-    const headers = {
-      "Access-Control-Allow-Origin": "https://localhost:3000",
-      "Access-Control-Allow-Credentials": "true",
-      "Access-Control-Allow-Headers": "Content-Type, X-CSRF-TOKEN, Accept",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-    };
-    if (request.method() === "OPTIONS") {
-      await route.fulfill({ status: 204, headers });
-      return;
-    }
-    let response: Response;
-    if (path.endsWith("/csrf"))
-      response = { status: 200, body: { csrfToken: "fixture-csrf" } };
-    else if (path.endsWith("/me"))
-      response =
-        options.session === "unknown"
-          ? { status: 503, body: failure("SESSION_UNAVAILABLE") }
-          : options.session === "out" ||
-              (options.renew && attempts > 0 && refreshes === 0)
+  await page.route(
+    `${process.env.TINYROUTE_E2E_API_BASE_URL ?? "https://localhost:8443"}/api/**`,
+    async (route) => {
+      const request = route.request(),
+        path = new URL(request.url()).pathname;
+      const headers = {
+        "Access-Control-Allow-Origin": "https://localhost:3000",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Headers": "Content-Type, X-CSRF-TOKEN, Accept",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      };
+      if (request.method() === "OPTIONS") {
+        await route.fulfill({ status: 204, headers });
+        return;
+      }
+      let response: Response;
+      if (path.endsWith("/csrf"))
+        response = { status: 200, body: { csrfToken: "fixture-csrf" } };
+      else if (path.endsWith("/me"))
+        response =
+          options.session === "unknown"
+            ? { status: 503, body: failure("SESSION_UNAVAILABLE") }
+            : options.session === "out" ||
+                (options.renew && attempts > 0 && refreshes === 0)
+              ? { status: 401, body: failure("AUTHENTICATION_FAILED") }
+              : { status: 200, body: account };
+      else if (path.endsWith("/refresh")) {
+        refreshes++;
+        response =
+          options.session === "out"
             ? { status: 401, body: failure("AUTHENTICATION_FAILED") }
             : { status: 200, body: account };
-    else if (path.endsWith("/refresh")) {
-      refreshes++;
-      response =
-        options.session === "out"
-          ? { status: 401, body: failure("AUTHENTICATION_FAILED") }
-          : { status: 200, body: account };
-    } else if (path === "/api/links" && request.method() === "GET") {
-      if (historyUnavailable)
-        response = { status: 503, body: failure("SERVICE_UNAVAILABLE") };
-      else {
-        const start = Number(
-          new URL(request.url()).searchParams.get("cursor") ?? "0",
-        );
-        const items = saved.slice(start, start + 10);
-        response = {
-          status: 200,
-          body: {
-            items,
-            nextCursor: saved.length > start + 10 ? String(start + 10) : null,
-          },
-        };
-      }
-    } else if (path === "/api/links") {
-      attempts++;
-      expect(request.headers()["x-csrf-token"]).toBe("fixture-csrf");
-      response = options.create
-        ? await options.create(route, attempts)
-        : { status: 201, body: link };
-      if (response.status === 201) {
-        const created = response.body as typeof link;
-        saved = [
-          { ...created, status: "ACTIVE", clickCount: 0 },
-          ...saved.filter((item) => item.id !== created.id),
-        ];
-      }
-    } else throw new Error("Unexpected fixture request");
-    await route.fulfill({
-      status: response.status,
-      headers,
-      body: JSON.stringify(response.body),
-    });
-  });
+      } else if (path === "/api/links" && request.method() === "GET") {
+        if (historyUnavailable)
+          response = { status: 503, body: failure("SERVICE_UNAVAILABLE") };
+        else {
+          const start = Number(
+            new URL(request.url()).searchParams.get("cursor") ?? "0",
+          );
+          const items = saved.slice(start, start + 10);
+          response = {
+            status: 200,
+            body: {
+              items,
+              nextCursor: saved.length > start + 10 ? String(start + 10) : null,
+            },
+          };
+        }
+      } else if (path === "/api/links") {
+        attempts++;
+        expect(request.headers()["x-csrf-token"]).toBe("fixture-csrf");
+        response = options.create
+          ? await options.create(route, attempts)
+          : { status: 201, body: link };
+        if (response.status === 201) {
+          const created = response.body as typeof link;
+          saved = [
+            { ...created, status: "ACTIVE", clickCount: 0 },
+            ...saved.filter((item) => item.id !== created.id),
+          ];
+        }
+      } else throw new Error("Unexpected fixture request");
+      await route.fulfill({
+        status: response.status,
+        headers,
+        body: JSON.stringify(response.body),
+      });
+    },
+  );
   return {
     attempts: () => attempts,
     refreshes: () => refreshes,
@@ -231,7 +234,7 @@ test("saved history can recover from a safe error without creating another link"
   );
   state.recoverHistory();
   await history.getByRole("button", { name: "Refresh links" }).click();
-  await expect(history.getByText("No saved links on this page.")).toBeVisible();
+  await expect(history.getByText(/No links yet/)).toBeVisible();
   expect(state.attempts()).toBe(0);
 });
 

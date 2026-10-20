@@ -1,0 +1,597 @@
+{
+  "samples": [
+    {
+      "events": 0,
+      "lifetime": 0,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 0,
+      "sampledAtEpochMillis": 1792500695124
+    },
+    {
+      "events": 0,
+      "lifetime": 0,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 0,
+      "sampledAtEpochMillis": 1792500705454
+    },
+    {
+      "events": 0,
+      "lifetime": 0,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 0,
+      "sampledAtEpochMillis": 1792500715844
+    },
+    {
+      "events": 837,
+      "lifetime": 838,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 74,
+      "sampledAtEpochMillis": 1792500726145
+    },
+    {
+      "events": 1868,
+      "lifetime": 1868,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 76,
+      "sampledAtEpochMillis": 1792500736449
+    },
+    {
+      "events": 2914,
+      "lifetime": 2915,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500746943
+    },
+    {
+      "events": 4000,
+      "lifetime": 4000,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500757776
+    },
+    {
+      "events": 5032,
+      "lifetime": 5033,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500768099
+    },
+    {
+      "events": 6067,
+      "lifetime": 6067,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500778449
+    },
+    {
+      "events": 7103,
+      "lifetime": 7103,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500788798
+    },
+    {
+      "events": 8139,
+      "lifetime": 8140,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500799166
+    },
+    {
+      "events": 9173,
+      "lifetime": 9173,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500809503
+    },
+    {
+      "events": 10215,
+      "lifetime": 10216,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500819923
+    },
+    {
+      "events": 11250,
+      "lifetime": 11250,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 97,
+      "sampledAtEpochMillis": 1792500830276
+    },
+    {
+      "events": 12286,
+      "lifetime": 12287,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500840636
+    },
+    {
+      "events": 13323,
+      "lifetime": 13324,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500851006
+    },
+    {
+      "events": 14356,
+      "lifetime": 14356,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500861329
+    },
+    {
+      "events": 15390,
+      "lifetime": 15391,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500871675
+    },
+    {
+      "events": 16423,
+      "lifetime": 16424,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500882004
+    },
+    {
+      "events": 17463,
+      "lifetime": 17463,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500892393
+    },
+    {
+      "events": 18501,
+      "lifetime": 18501,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500902776
+    },
+    {
+      "events": 19533,
+      "lifetime": 19534,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500913109
+    },
+    {
+      "events": 20572,
+      "lifetime": 20572,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500923489
+    },
+    {
+      "events": 21607,
+      "lifetime": 21607,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500933839
+    },
+    {
+      "events": 22635,
+      "lifetime": 22636,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500944125
+    },
+    {
+      "events": 23671,
+      "lifetime": 23671,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500954478
+    },
+    {
+      "events": 24701,
+      "lifetime": 24701,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500964773
+    },
+    {
+      "events": 25732,
+      "lifetime": 25733,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500975089
+    },
+    {
+      "events": 26772,
+      "lifetime": 26772,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 387,
+      "sampledAtEpochMillis": 1792500985491
+    },
+    {
+      "events": 27799,
+      "lifetime": 27800,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792500995766
+    },
+    {
+      "events": 28829,
+      "lifetime": 28829,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792501006059
+    },
+    {
+      "events": 29863,
+      "lifetime": 29864,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792501016404
+    },
+    {
+      "events": 30894,
+      "lifetime": 30894,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792501026709
+    },
+    {
+      "events": 31922,
+      "lifetime": 31923,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792501036992
+    },
+    {
+      "events": 32952,
+      "lifetime": 32953,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 100,
+      "sampledAtEpochMillis": 1792501047295
+    },
+    {
+      "events": 33991,
+      "lifetime": 33993,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 29,
+      "sampledAtEpochMillis": 1792501057686
+    },
+    {
+      "events": 35022,
+      "lifetime": 35023,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 29,
+      "sampledAtEpochMillis": 1792501067989
+    },
+    {
+      "events": 36060,
+      "lifetime": 36061,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 29,
+      "sampledAtEpochMillis": 1792501078372
+    },
+    {
+      "events": 37094,
+      "lifetime": 37095,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 29,
+      "sampledAtEpochMillis": 1792501088714
+    },
+    {
+      "events": 38128,
+      "lifetime": 38129,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501099048
+    },
+    {
+      "events": 39166,
+      "lifetime": 39166,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501109426
+    },
+    {
+      "events": 40199,
+      "lifetime": 40200,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501119762
+    },
+    {
+      "events": 41233,
+      "lifetime": 41235,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501130105
+    },
+    {
+      "events": 42264,
+      "lifetime": 42265,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501140413
+    },
+    {
+      "events": 43300,
+      "lifetime": 43301,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501150776
+    },
+    {
+      "events": 44334,
+      "lifetime": 44335,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 44,
+      "sampledAtEpochMillis": 1792501161110
+    },
+    {
+      "events": 45369,
+      "lifetime": 45370,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501171463
+    },
+    {
+      "events": 46403,
+      "lifetime": 46403,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501181800
+    },
+    {
+      "events": 47438,
+      "lifetime": 47439,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501192155
+    },
+    {
+      "events": 48468,
+      "lifetime": 48468,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501202448
+    },
+    {
+      "events": 49498,
+      "lifetime": 49499,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501212750
+    },
+    {
+      "events": 50525,
+      "lifetime": 50526,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501223022
+    },
+    {
+      "events": 51556,
+      "lifetime": 51558,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501233332
+    },
+    {
+      "events": 52585,
+      "lifetime": 52586,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501243619
+    },
+    {
+      "events": 53614,
+      "lifetime": 53615,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501253911
+    },
+    {
+      "events": 54643,
+      "lifetime": 54644,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501264199
+    },
+    {
+      "events": 55673,
+      "lifetime": 55674,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501274502
+    },
+    {
+      "events": 56704,
+      "lifetime": 56705,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501284813
+    },
+    {
+      "events": 57746,
+      "lifetime": 57749,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501295247
+    },
+    {
+      "events": 58794,
+      "lifetime": 58795,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 48,
+      "sampledAtEpochMillis": 1792501305710
+    },
+    {
+      "events": 59822,
+      "lifetime": 59824,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 89,
+      "sampledAtEpochMillis": 1792501315996
+    },
+    {
+      "events": 60851,
+      "lifetime": 60852,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 89,
+      "sampledAtEpochMillis": 1792501326281
+    },
+    {
+      "events": 61884,
+      "lifetime": 61885,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 89,
+      "sampledAtEpochMillis": 1792501336610
+    },
+    {
+      "events": 62915,
+      "lifetime": 62916,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 89,
+      "sampledAtEpochMillis": 1792501346922
+    },
+    {
+      "events": 63000,
+      "lifetime": 63000,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 89
+    }
+  ],
+  "final": {
+    "events": 63000,
+    "lifetime": 63000,
+    "failed": 0,
+    "rejected": 0,
+    "stale": 0,
+    "maxRecordingDelayMillis": 89
+  },
+  "maxRecordingDelayMillis": 387
+}
