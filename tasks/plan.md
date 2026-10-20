@@ -99,3 +99,8 @@ FR-ANA-04; NFR-PRV-03. Preserve the existing capture and trusted-proxy policies.
 - [x] Verify absent/malformed/oversized hints fall back safely, preserve other browser families, run backend checks, and restart the local application with the verified build.
 - [x] Document local geography prerequisites and the limits of browser detection and historical corrections.
 - [x] Configure the user's downloaded DB-IP City Lite file in the local environment, validate its source checksum and reader compatibility, exclude the binary from Git, and supply the required report attribution (FR-ANA-04; NFR-PRV-03).
+
+## PR 21 dependency-scan follow-up
+
+- [x] Inspect the failing run and retained Trivy JSON; trace five High findings to GeoIP's Jackson 2 modules managed at 2.21.5, independently of the patched Jackson 3 BOM.
+- [x] Pin Spring Boot's Jackson 2 BOM to patched 2.21.7, verify the packaged dependency inventory, and run backend verification and the unchanged security scan.

@@ -18,6 +18,14 @@ supports a reusable local file reader and optional results. The application
 never uses its HTTP web-service API, sends visitor addresses to a provider, or
 caches geography by visitor address.
 
+GeoIP also brings Jackson 2 modules, managed independently from Spring MVC's
+Jackson 3 modules. Pin Spring Boot's `jackson-2-bom.version` to 2.21.7 to avoid
+the five High findings in its default 2.21.5 core/databind modules; keep the
+existing Jackson 3.1.7 pin. Upstream's [core advisory](https://github.com/FasterXML/jackson-core/security/advisories/GHSA-p6pp-m3f8-5c89)
+and [databind advisory](https://github.com/FasterXML/jackson-databind/security/advisories/GHSA-wv8q-qhhj-9h54)
+list the patched line. Existing geography and HTTP contracts verify compatibility;
+the unchanged Trivy gate checks the packaged dependency inventory.
+
 The user supplied DB-IP City Lite (October 2026) for the local runtime. Its City
 MMDB is compatible with this same reader; reference lookups were verified
 without adding a dependency or remote service. The file stays outside Git and

@@ -32,6 +32,7 @@ Active plan: [plan.md](plan.md).
 - [x] Diagnose local Unknown geography without storing visitor addresses or weakening proxy trust.
 - [x] Recognize advertised Brave browser brands, verify capture/fallback behavior, and reload the local backend.
 - [x] Configure and verify the supplied DB-IP City Lite database, keep it outside Git, and include provider attribution on analytics reports.
+- [x] Resolve PR 21's Jackson 2 dependency vulnerabilities and verify backend tests, package inventory, and the unchanged local security scan.
 - [ ] Measure sustained redirect performance and capture freshness with analytics enabled.
 - [x] Update documentation, dependency ADR, geography operation instructions, and evidence.
 - [ ] Verify specification AC1–AC12 and complete all task checkboxes.

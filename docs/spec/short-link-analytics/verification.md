@@ -166,6 +166,30 @@ pagination reset findings were also fixed. Existing Google OAuth navigation to
 Your links was retained as an explicit scope limit; password sign-in preserves
 safe analytics deep links. No OAuth routing policy was added.
 
+## PR 21 dependency-scan correction
+
+The first GitHub backend run passed tests, coverage, and static analysis, then
+failed the packaged dependency scan. Its retained Trivy report identified five
+High findings in Jackson 2 core/databind 2.21.5, brought in through GeoIP and
+managed by Spring Boot's separate Jackson 2 BOM. The existing Jackson 3.1.7 pin
+does not control these artifacts.
+
+Set `jackson-2-bom.version` to 2.21.7, retaining Jackson 3.1.7. The packaged JAR
+contains Jackson 2 core/databind/jsr310 2.21.7 and the BOM's annotations 2.21.
+`./mvnw -B -ntp spotless:check clean verify` passed with 253 unit tests and 118
+integration tests, no failures/errors/skips, coverage met, and static analysis
+clear. Public-reference DB-IP checks through the application adapter still
+return country/city; loopback remains Unknown. Independent read-only review
+found no Important compatibility/security issue.
+
+Repository-pinned Trivy 0.75.0 scanned the packaged `backend/target` with the
+same `rootfs --scanners vuln --pkg-types library --severity HIGH,CRITICAL
+--exit-code 1` gate: zero findings. The CI inventory helper also passed. No
+ignore rule, scanner threshold, workflow gate, application API, or stored
+visitor data changed. GitHub's replacement run must independently pass the
+dependency scan and previously blocked CodeQL/image checks. Strict sustained
+performance acceptance below is a separate open item.
+
 ## Performance evidence
 
 The first protocol attempt ran while other verification was active. Its 200
