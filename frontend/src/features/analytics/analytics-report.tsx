@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   Area,
   AreaChart,
@@ -20,7 +21,41 @@ const dimensions = [
   ["cities", "Cities"],
 ] as const;
 const number = new Intl.NumberFormat("en");
+const dayMonth = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}`;
+const fullDate = (date: string) => `${dayMonth(date)}/${date.slice(0, 4)}`;
+const AnalyticsCountryMap = dynamic(
+  () =>
+    import("./analytics-country-map").then(
+      (module) => module.AnalyticsCountryMap,
+    ),
+  {
+    loading: () => (
+      <p className="analytics-muted" role="status">
+        Loading country map…
+      </p>
+    ),
+  },
+);
 export function AnalyticsReport({ report }: { report: Analytics }) {
+  const countryBuckets =
+    report.link && report.geography
+      ? [
+          ...report.geography.countries.map((country) => ({
+            kind: "VALUE",
+            label: country.label,
+            count: country.count,
+          })),
+          ...(report.geography.unknownClicks
+            ? [
+                {
+                  kind: "UNKNOWN",
+                  label: "Unknown",
+                  count: report.geography.unknownClicks,
+                },
+              ]
+            : []),
+        ]
+      : report.breakdowns.countries;
   return (
     <div className="analytics-report">
       <div className="analytics-totals">
@@ -28,7 +63,7 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
           <h2 id="range-total-label">Redirects in range</h2>
           <p className="analytics-total">{number.format(report.totalClicks)}</p>
           <p className="analytics-muted">
-            {report.range.from} — {report.range.to} · UTC
+            {fullDate(report.range.from)} — {fullDate(report.range.to)} · UTC
           </p>
         </section>
         <section aria-labelledby="lifetime-total-label">
@@ -81,7 +116,7 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
                 <XAxis
                   dataKey="date"
                   minTickGap={42}
-                  tickFormatter={(value: string) => value.slice(5)}
+                  tickFormatter={dayMonth}
                   stroke="var(--settings-muted)"
                   tickLine={false}
                   axisLine={false}
@@ -94,6 +129,9 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
                   axisLine={false}
                 />
                 <Tooltip
+                  labelFormatter={(value) =>
+                    typeof value === "string" ? fullDate(value) : value
+                  }
                   contentStyle={{
                     background: "var(--canvas)",
                     color: "var(--ink)",
@@ -136,7 +174,9 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
               <tbody>
                 {report.dailyClicks.map((day) => (
                   <tr key={day.date}>
-                    <th scope="row">{day.date}</th>
+                    <th scope="row">
+                      <time dateTime={day.date}>{fullDate(day.date)}</time>
+                    </th>
                     <td>{number.format(day.count)}</td>
                   </tr>
                 ))}
@@ -164,7 +204,10 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
                 </tr>
               </thead>
               <tbody>
-                {report.breakdowns[key].map((bucket) => (
+                {(key === "countries"
+                  ? countryBuckets
+                  : report.breakdowns[key]
+                ).map((bucket) => (
                   <tr key={`${bucket.kind}:${bucket.label}`}>
                     <th scope="row">
                       <span>{bucket.label}</span>
@@ -179,7 +222,8 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
                     <td>{number.format(bucket.count)}</td>
                   </tr>
                 ))}
-                {report.breakdowns[key].length === 0 ? (
+                {(key === "countries" ? countryBuckets : report.breakdowns[key])
+                  .length === 0 ? (
                   <tr>
                     <td colSpan={2} className="analytics-muted">
                       No activity in this range.
@@ -191,9 +235,19 @@ export function AnalyticsReport({ report }: { report: Analytics }) {
           </section>
         ))}
       </div>
+      {report.link && report.geography ? (
+        <AnalyticsCountryMap
+          key={`${report.link.id}:${report.range.from}:${report.range.to}`}
+          geography={report.geography}
+        />
+      ) : null}
       <p className="analytics-muted analytics-privacy">
         Anonymous counts only. No visitor IP addresses or identifiers are
-        stored. Geography is approximate.
+        stored. Geography is approximate.{" "}
+        <a href="https://db-ip.com" referrerPolicy="no-referrer">
+          IP Geolocation by DB-IP
+        </a>
+        .
       </p>
     </div>
   );

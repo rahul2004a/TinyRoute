@@ -47,7 +47,7 @@ test("shows returned range and lifetime separately with a full accessible daily 
     name: "Daily redirect counts (UTC)",
   });
   expect(within(table).getAllByRole("row")).toHaveLength(3);
-  expect(within(table).getByText("2026-10-19")).toBeTruthy();
+  expect(within(table).getByText("19/10/2026")).toBeTruthy();
   expect(within(table).getByText("0")).toBeTruthy();
   expect(screen.getByRole("table", { name: "Referrers" })).toBeTruthy();
   expect(screen.getByText("Direct / unknown")).toBeTruthy();

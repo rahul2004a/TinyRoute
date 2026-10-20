@@ -31,7 +31,7 @@
 ## Task 2 — Completed redirect capture and anonymous dimensions
 
 **Files:** `service/ClickMetadataNormalizer.java`, `service/ClickCountService.java`, `service/ClickRecordingWorker.java`, `security/RedirectAnalyticsInterceptor.java`, `config/AnalyticsConfiguration.java`, `client/GeoLocationLookup.java`, `client/MaxMindGeoLocationLookup.java`; modify `RedirectController.java`, `AsyncConfiguration.java`, `ClientAddressResolver.java`, `application.yml`, `pom.xml`; test corresponding service/security/client packages.
-**Interfaces:** `normalize(String referer, String userAgent)` returns `ClickMetadata`; `GeoLocationLookup.lookup(InetAddress)` returns country/city only; `recordSuccessfulRedirect(String code, Instant issuedAt, ClickMetadata metadata, InetAddress address)` submits to the worker.
+**Interfaces:** `normalize(String referer, String userAgent, String browserBrands)` returns `ClickMetadata` (the two-argument overload supplies no hints); `GeoLocationLookup.lookup(InetAddress)` returns country/city only; `recordSuccessfulRedirect(String code, Instant issuedAt, ClickMetadata metadata, InetAddress address)` submits to the worker.
 
 - [ ] Write literal UA/referrer fixtures: Edge wins over Chrome; iOS wins over macOS; referrer strips credentials/path/query; IP literals and oversized input become Unknown.
 - [ ] Run the unit tests red, then implement coarse allowlist normalization and a local optional MaxMind reader, pinned to 5.2.0. Synthetic MMDB verifies the adapter; no network lookup or IP cache.
@@ -76,3 +76,26 @@
 - [ ] Run the existing sustained redirect protocol with analytics, measure capture freshness and counter consistency, and record machine/environment limits and screenshots.
 - [ ] Update docs for APIs, beginning-of-capture history, local geo setup/read-only production mount/license updates, privacy, and availability copy. Mark spec acceptance criteria only with evidence.
 - [ ] Self-review security/query consistency/late account responses; apply verification/review skills. Archive completed plan/todo, commit, push feature branch, and create PR. Do not merge or open the PR page.
+
+## Requested map extension — approved 2026-10-20
+
+Design: [Individual-link country map](../docs/spec/short-link-analytics/world-map-design.md).
+This remains part of `short-link-analytics`; do not replace or archive unfinished work.
+
+- [x] Inspect existing country aggregation, response schemas, report layout, and privacy constraints.
+- [x] Obtain approval of the concrete map design before implementation.
+- [x] Extend the detail response with complete ISO-coded country totals and Unknown using the existing snapshot query; keep overview and top-20 breakdown contracts compatible.
+- [x] Bundle documented static country geometry; implement responsive shading, counts, bounded zoom/drag, reset, keyboard controls, and an equivalent complete Countries table.
+- [x] Add meaningful API/component/browser coverage and run affected checks; update evidence before marking the extension complete.
+- [x] Honor the user's India boundary correction with pinned India POV geometry, shared-edge simplification, official-outline reference checks, and a shipped-SVG regression.
+
+## Requested metadata debugging — 2026-10-20
+
+FR-ANA-04; NFR-PRV-03. Preserve the existing capture and trusted-proxy policies.
+
+- [x] Trace Unknown geography to the running backend configuration and address handling: no City database configured, with localhost requests reaching a loopback listener.
+- [x] Compare browser parsing with Brave's official advertised UA/client-hint formats; the current parser ignores `Sec-CH-UA` and matches Chrome's compatibility token.
+- [x] Reproduce Brave misclassification with redirect and normalization regressions; consume only bounded advertised brand data, reducing it to the Brave family before queueing.
+- [x] Verify absent/malformed/oversized hints fall back safely, preserve other browser families, run backend checks, and restart the local application with the verified build.
+- [x] Document local geography prerequisites and the limits of browser detection and historical corrections.
+- [x] Configure the user's downloaded DB-IP City Lite file in the local environment, validate its source checksum and reader compatibility, exclude the binary from Git, and supply the required report attribution (FR-ANA-04; NFR-PRV-03).

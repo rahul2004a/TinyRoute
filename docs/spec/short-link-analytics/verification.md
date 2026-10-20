@@ -7,10 +7,10 @@ Date: 2026-10-20. Local verification only; no production deployment or data used
 - Backend: `./backend/mvnw -f backend/pom.xml -B -ntp clean verify` passed after
   the legacy redirect assertion was updated to await asynchronous recording.
   Final `./backend/mvnw -f backend/pom.xml -B -ntp verify` also passed after the
-  country display-order fix: 250 unit tests, 116 integration tests, no skipped
-  tests, Spotless/SpotBugs/Find Security Bugs clear, and 2402/2638 covered lines
+  map API extension: 250 unit tests, 117 integration tests, no skipped
+  tests, Spotless/SpotBugs/Find Security Bugs clear, and 2410/2645 covered lines
   (91.1%; required minimum 70%). Disposable PostgreSQL 17.2 and Redis 7.4.2.
-- Frontend: lint, format check, typecheck, and Vitest passed; 24 files and 125 tests.
+- Frontend: lint, format check, typecheck, and Vitest passed; 26 files and 130 tests.
   Node 24 and pinned pnpm 12.4.2/Recharts 3.10.1. Production webpack build passed.
 - Browser: `TINYROUTE_E2E_API_BASE_URL=https://localhost:3000 pnpm --dir frontend
 exec playwright test e2e/short-link-analytics.spec.ts e2e/link-creation.spec.ts
@@ -25,6 +25,107 @@ e2e/idle-session-recovery.spec.ts e2e/account-authentication.spec.ts`: 58 passed
 - Screenshots under [ui/](ui/) were inspected at desktop and mobile widths. Existing
   historical link screenshots generated during regression runs were restored;
   only this feature's evidence is included.
+- After the user's date-format feedback, chart ticks use `DD/MM`; range labels,
+  tooltips, and daily table dates use `DD/MM/YYYY`. The report's two unit tests,
+  TypeScript check, formatting check, and all ten analytics browser checks passed
+  again. Updated light/dark screenshots reflect this preference.
+
+## Country map and India boundary view
+
+- Approved map extension implemented in individual-link reports only, with a
+  complete ISO-coded country list and Unknown from the same owner/range snapshot.
+  The existing aggregate query is reused before top-20 folding. Seven contract
+  tests pass, including 25 countries, Unknown conservation, date/link isolation,
+  overview omission, and positive activity belonging to two different owners.
+- The map has bounded 1–8× zoom, drag/keyboard pan, reset, country/count feedback,
+  an intensity legend, and the complete Countries table. Range changes reset its
+  view. Ctrl/Cmd browser zoom shortcuts are preserved.
+- Final analytics browser suite: 12 passed, covering zoom/drag/reset, touch taps,
+  scope and date changes, and both themes at 320/768/1024/1440px. The initial 320px
+  aspect-ratio overflow was reproduced, corrected, and rerun successfully.
+- User-requested India boundary view uses Natural Earth India POV 5.1.1. Source
+  checksum, generation-only package pins, shared-edge simplification, and
+  licensing are in the [asset notice](../../../frontend/src/features/analytics/data/NOTICE.md).
+  The generator validates polygon coverage before/after simplification and
+  groups territorial shapes by code with canonical country labels.
+- Northern reference locations were checked against the published Survey of
+  India outline in its Lambert conformal conic coordinate system. Gilgit,
+  Aksai Chin, Tawang, and Delhi were inside that outline. The source India POV
+  includes those locations. The shipped SVG regression verifies northern
+  reference locations belong to India and do not overlap neighboring polygons.
+- The old default outline failed the new geometry regression; the corrected
+  asset passes. Zero-activity AU/FR label regressions also pass after combining
+  same-code source features. No geographic package or external map service runs
+  in the application. No visitor-level location data was added.
+- The independent map review found no Critical/Important issue. Its modifier-key,
+  intensity wording, missing-geometry wording, and grouped-territory label
+  findings were fixed and checked. The production frontend build passes with the
+  final asset, including its TypeScript check.
+- [Zoomed India preview](ui/india-boundary-view.png) and the updated map theme/size
+  screenshots were visually inspected. The local development backend was
+  restarted with the map API; health returned `UP`.
+- The user's final placement correction moves the map below all six traffic
+  breakdowns. The report's two unit tests and all 12 analytics browser cases
+  passed again; refreshed screenshots show this order on desktop and mobile.
+
+## Local runtime follow-up
+
+The user's first real analytics request reached a development backend started
+before this feature existed. It had the older dependency classpath and database
+schema v6. Restarting that local process with the verified current application
+and its existing development environment applied Flyway v7 successfully; health
+returned `UP`. The user's subsequent screenshot showed the daily activity chart.
+No historical visits were backfilled. Restart the backend after pulling this
+feature so its new controllers, dependencies, and migration are loaded.
+
+### Unknown geography and Brave follow-up
+
+The user's later screenshot showed Unknown country/city and Chrome for Brave.
+A restricted check of the running development configuration confirmed no City
+database was configured and no proxy CIDRs were trusted; the application listens
+on loopback for the localhost Next.js proxy. The geography adapter intentionally
+returns Unknown without a database and for loopback/private addresses even with
+one. Existing tests verify both missing configuration and a synthetic positive
+lookup. No fabricated location, external IP lookup, or proxy-trust bypass was
+introduced.
+
+The redirect regression reproduced a request with Brave's published macOS
+User-Agent and `Sec-CH-UA` brand being persisted as Chrome. The iOS fixture also
+reproduced Safari instead of Brave. After the fix, existing advertised browser
+brands are reduced to the Brave family before queueing. Tests cover brand order,
+quoted GREASE entries, malformed/oversized/missing hints, exact-brand matching,
+other browser fallbacks, and omission of raw headers/versions from metadata.
+
+`./mvnw -B -ntp clean verify` passed with 253 unit tests and 118 integration tests,
+zero failures/errors/skips, Spotless and static analysis clear, and 2433/2666
+covered lines (91.3%). A read-only independent review found no Critical/Important
+issue. The local backend was restarted with this verified build and health
+returned `UP`. New clicks can show Brave when it advertises its identity; earlier
+Chrome/Unknown records cannot be reconstructed because raw headers and visitor
+addresses were never stored. Operational prerequisites and detection limits are
+documented in [operations.md](operations.md). The sustained-load acceptance
+constraint below remains open.
+
+### Supplied DB-IP City database
+
+The user supplied `ip-DB/dbip-city-lite-2026-10.mmdb`. Its 126,998,165-byte file
+matches the October 2026 SHA-1 published by DB-IP:
+`df17bd24390108ed1d24dcb7718dc60f6b9abd4f`. The existing Java reader identifies
+it as `DBIP-City-Lite`. Direct checks through the application's geography adapter
+returned US/Mountain View and US/Minneapolis for two public reference addresses
+unrelated to visitors. Loopback still correctly returned Unknown. No new runtime
+dependency, external lookup, database schema, or proxy-trust change was needed.
+
+The ignored local `.env` now supplies the absolute path. The local backend was
+restarted with that value and existing development settings; health returned
+`UP`. The binary is excluded from Git. Source/license/update instructions live
+in [ip-DB/README.md](../../../ip-DB/README.md). Both reports now carry the DB-IP
+attribution link, with no-referrer navigation. The report's two component tests,
+targeted formatting/lint checks, TypeScript check, and all 12 analytics browser
+cases passed. Refreshed desktop/mobile screenshots were checked for the footer.
+Local clicks and
+historical Unknown events remain Unknown; useful new geography requires public
+visitor traffic reaching the backend through the approved network path.
 
 ## Correctness, security, and privacy
 
@@ -72,8 +173,17 @@ creation samples had p95 38.49 ms, but the original strict driver rejected the
 warm-up before the sustained phase. Retain [failed-warmup.json](failed-warmup.json)
 for its anonymous capture samples (2997 recorded, no worker failures/rejections,
 maximum observed recording delay 174 ms). This is a failed attempt, not evidence
-of NFR-PER-01/03 acceptance. The final quiet-host protocol is recorded separately
-when complete.
+of NFR-PER-01/03 acceptance.
+
+The sustained second attempt is retained as
+[failed-sustained.json](failed-sustained.json). It completed 59,972 of 60,000
+offered redirects over 600 seconds, with no HTTP errors/timeouts; server p95
+5.97 ms and p99 41.78 ms, create p95 22.34 ms. All 62,972 issued warm-up/measured
+redirects were captured, with no failed/rejected/stale observations and maximum
+observed recording delay 557 ms. The strict original driver rejected 28 arrivals
+that were over 100 ms late at the generator. This remains a failed acceptance
+attempt, despite the latency and capture results. Performance acceptance and
+task archival remain open; the feature must not be marked ready for review yet.
 
 ## Operational limits
 

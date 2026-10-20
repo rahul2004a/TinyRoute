@@ -10,6 +10,36 @@ import org.junit.jupiter.api.Test;
 
 class RedirectAnalyticsIT extends LinkHttpTestSupport {
     @Test
+    void recordsAdvertisedBraveBrandInsteadOfChromesCompatibilityAgent() throws Exception {
+        String code =
+                row(
+                        "brave" + UUID.randomUUID().toString().replace("-", "").substring(0, 12),
+                        "ACTIVE",
+                        null);
+        mvc.perform(
+                        redirect("/" + code)
+                                .header(
+                                        "User-Agent",
+                                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                                + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36")
+                                .header(
+                                        "Sec-CH-UA",
+                                        "\"Not/A)Brand\";v=\"24\", \"Chromium\";v=\"137\", \"Brave\";v=\"137\""))
+                .andExpect(status().isFound());
+        Instant deadline = Instant.now().plusSeconds(8);
+        while (Instant.now().isBefore(deadline)
+                && jdbc.queryForObject(
+                                "select click_count from links where code=?", Long.class, code)
+                        < 1) Thread.sleep(25);
+        assertThat(
+                        jdbc.queryForObject(
+                                "select browser from click_events e join links l on l.id=e.link_id where l.code=?",
+                                String.class,
+                                code))
+                .isEqualTo("Brave");
+    }
+
+    @Test
     void databaseAndWarmCacheSuccessCountButHeadHealthAndFailedRedirectsDoNot() throws Exception {
         String code =
                 row(

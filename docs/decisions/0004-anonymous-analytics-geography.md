@@ -18,6 +18,13 @@ supports a reusable local file reader and optional results. The application
 never uses its HTTP web-service API, sends visitor addresses to a provider, or
 caches geography by visitor address.
 
+The user supplied DB-IP City Lite (October 2026) for the local runtime. Its City
+MMDB is compatible with this same reader; reference lookups were verified
+without adding a dependency or remote service. The file stays outside Git and
+the application image. [DB-IP Lite's CC BY 4.0 terms](https://db-ip.com/db/lite.php)
+require a provider link on pages using its results; both report footers supply
+that attribution. Operators own database updates and provider licensing.
+
 Only country codes and city names are retained. Client addresses exist
 transiently in bounded task memory and are discarded; raw user agents,
 referrer paths/queries, coordinates, postal codes, and visitor hashes are never

@@ -99,6 +99,20 @@ async function fixture(page: Page, initialFailure = false) {
             days.push({ date, count: activity[date] ?? 0 });
           }
           const total = days.reduce((sum, day) => sum + day.count, 0);
+          const countries = total
+            ? [
+                {
+                  countryCode: "SE",
+                  label: "Sweden",
+                  count: Math.ceil(total / 2),
+                },
+                {
+                  countryCode: "IN",
+                  label: "India",
+                  count: Math.floor(total / 2),
+                },
+              ].filter((country) => country.count > 0)
+            : [];
           const bucket = (label: string) =>
             total ? [{ kind: "VALUE", label, count: total }] : [];
           body = {
@@ -113,11 +127,18 @@ async function fixture(page: Page, initialFailure = false) {
               devices: bucket("Mobile"),
               operatingSystems: bucket("iOS"),
               browsers: bucket("Safari"),
-              countries: bucket("Sweden"),
+              countries: detail
+                ? countries.map((country) => ({
+                    kind: "VALUE",
+                    label: country.label,
+                    count: country.count,
+                  }))
+                : bucket("Sweden"),
               cities: bucket("Linköping, SE"),
             },
             ...(detail
               ? {
+                  geography: { countries, unknownClicks: 0 },
                   link: {
                     id,
                     code: saved.code,
@@ -182,6 +203,98 @@ test("overview filters every report, opens a single link, and preserves applied 
   await page.getByRole("link", { name: "All link analytics" }).click();
   await expect(page).toHaveURL(/\/analytics\?from=2026-10-14&to=2026-10-20/);
   expect(data.visits).toEqual([]);
+});
+
+test("individual-link map matches country counts and supports zoom, drag, reset, and range changes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await fixture(page);
+  await page.goto("/analytics");
+  await expect(page.locator(".analytics-total").first()).toHaveText("26");
+  await expect(
+    page.getByRole("heading", { name: "Traffic by country" }),
+  ).toHaveCount(0);
+  await page.goto(`/analytics/${id}`);
+  const map = page.getByRole("group", {
+    name: "World map of redirect countries",
+  });
+  await expect(map).toBeVisible();
+  await page
+    .getByRole("button", { name: "Sweden: 10 redirects", exact: true })
+    .focus();
+  await expect(page.getByText("Sweden · 10 redirects")).toBeVisible();
+  await expect(
+    page
+      .getByRole("table", { name: "Countries", exact: true })
+      .getByRole("rowheader", { name: "Sweden" }),
+  ).toBeVisible();
+  const shapes = map.locator("svg > g");
+  const original = await shapes.getAttribute("transform");
+  await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+  await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText("2×");
+  const zoomed = await shapes.getAttribute("transform");
+  expect(zoomed).not.toBe(original);
+  const rectangle = await map.boundingBox();
+  if (!rectangle) throw new Error("Visible map has no bounds");
+  await page.mouse.move(
+    rectangle.x + rectangle.width / 2,
+    rectangle.y + rectangle.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    rectangle.x + rectangle.width / 2 + 60,
+    rectangle.y + rectangle.height / 2 + 30,
+    { steps: 8 },
+  );
+  await page.mouse.up();
+  await expect(shapes).not.toHaveAttribute("transform", zoomed!);
+  await page.getByRole("button", { name: "Reset map", exact: true }).click();
+  await expect(shapes).toHaveAttribute("transform", original!);
+  await map.focus();
+  await page.keyboard.press("+");
+  await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText("2×");
+  await page.keyboard.press("ArrowLeft");
+  await page.keyboard.press("Home");
+  await expect(shapes).toHaveAttribute("transform", original!);
+  await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+  await page.getByRole("button", { name: "Last 7 days", exact: true }).click();
+  await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText("1×");
+  await page
+    .getByRole("button", { name: "Sweden: 4 redirects", exact: true })
+    .focus();
+  await expect(page.getByText("Sweden · 4 redirects")).toBeVisible();
+  for (let i = 0; i < 3; i++)
+    await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+  await map.focus();
+  for (let i = 0; i < 14; i++) await page.keyboard.press("ArrowRight");
+  for (let i = 0; i < 4; i++) await page.keyboard.press("ArrowUp");
+  await page.mouse.move(0, 0);
+  await page
+    .getByRole("button", { name: "India: 3 redirects", exact: true })
+    .focus();
+  await expect(page.getByText("India · 3 redirects")).toBeVisible();
+  await page.locator(".analytics-map").screenshot({
+    path: resolve(
+      "../docs/spec/short-link-analytics/ui/india-boundary-view.png",
+    ),
+  });
+});
+
+test.describe("touch map", () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+  test("country counts and zoom controls respond to taps", async ({ page }) => {
+    await fixture(page);
+    await page.goto(`/analytics/${id}`);
+    await page
+      .getByRole("button", { name: "India: 9 redirects", exact: true })
+      .tap();
+    await expect(page.getByText("India · 9 redirects")).toBeVisible();
+    await page.getByRole("button", { name: "Zoom in", exact: true }).tap();
+    await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText("2×");
+    await page.getByRole("button", { name: "Zoom out", exact: true }).tap();
+    await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText("1×");
+  });
 });
 
 test("validation, no activity, failure/retry, generic 404, and expired session stay distinct", async ({
@@ -258,6 +371,30 @@ for (const theme of ["light", "dark"] as const)
       await mkdir(directory, { recursive: true });
       await page.screenshot({
         path: resolve(directory, `${theme}-${width}.png`),
+        fullPage: true,
+      });
+      await page.goto(`/analytics/${id}`);
+      await expect(
+        page.getByRole("heading", { name: "Traffic by country" }),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+      await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+      await expect(page.getByLabel("Map zoom", { exact: true })).toHaveText(
+        "2×",
+      );
+      await page
+        .getByRole("button", { name: "Reset map", exact: true })
+        .click();
+      await page.evaluate(() => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        window.scrollTo(0, 0);
+      });
+      await page.screenshot({
+        path: resolve(directory, `map-${theme}-${width}.png`),
         fullPage: true,
       });
     });

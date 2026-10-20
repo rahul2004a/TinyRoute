@@ -4,6 +4,9 @@ Status: approved 2026-10-20; implementation in progress. User approval: “ok st
 Branch: `feature/short-link-analytics`.
 Baseline: `f75203f` (`main` and `origin/main`, checked 2026-10-20).
 
+Approved extension: [individual-link country map](world-map-design.md), requested
+2026-10-20; user confirmation: “ok”. This supersedes the original no-map choice.
+
 ## Outcome and authority
 
 Signed-in owners can inspect successful redirects across their links or for one
@@ -106,7 +109,7 @@ Keep only these normalized dimensions:
 | Referrer         | Lowercase ASCII hostname from a valid HTTP(S) Referer; strip user info, port, path, query, and fragment. Missing header is `Direct / unknown`; malformed, IP-literal, localhost, single-label, or overlong host is `Unknown`. Do not resolve hostnames. |
 | Device           | Coarse allowlist: Desktop, Mobile, Tablet, Bot, Unknown.                                                                                                                                                                                                |
 | Operating system | Family only: Windows, macOS, Linux, Android, iOS, ChromeOS, Other, Unknown.                                                                                                                                                                             |
-| Browser          | Family only: Edge, Opera, Samsung Internet, Chrome, Firefox, Safari, Other, Unknown.                                                                                                                                                                    |
+| Browser          | Family only: Brave, Edge, Opera, Samsung Internet, Chrome, Firefox, Safari, Other, Unknown.                                                                                                                                                             |
 | Country          | ISO country code and English display name from the local database, otherwise Unknown.                                                                                                                                                                   |
 | City             | English city plus country code; no coordinates, postal code, network, or precision fields. Missing city is Unknown.                                                                                                                                     |
 
@@ -119,8 +122,18 @@ overlong input becomes Unknown instead of being persisted or parsed further.
 No user-agent parser dependency or fingerprinting is needed for these coarse
 families. Metadata absence never drops an otherwise valid click.
 
-Use an offline GeoLite2 City/GeoIP City `.mmdb` through a `GeoLocationLookup`
-interface and `MaxMindGeoLocationLookup` adapter in `client/`. The proposed
+The normalizer also consumes the existing `Sec-CH-UA` request header, bounded to
+1024 characters, for an exact advertised Brave brand. Brave's desktop/Android
+User-Agent uses Chrome's compatibility token; its iOS User-Agent can advertise
+Brave directly. See [Brave's detection documentation](https://github.com/brave/brave-browser/wiki/Detecting-Brave-%28for-Websites%29).
+Only the family name enters the async task and database; discard versions and raw
+hints. Absent, malformed, oversized, or unrecognized hints fall back to the
+User-Agent. Do not request additional high-entropy hints, fingerprint the browser,
+or add a client script to the redirect. Hidden browser identity cannot be inferred.
+
+Use an offline City-compatible `.mmdb` (DB-IP City Lite, GeoLite2 City, or GeoIP
+City) through a `GeoLocationLookup` interface and `MaxMindGeoLocationLookup`
+adapter in `client/`. The proposed
 dependency is `com.maxmind.geoip2:geoip2:5.2.0`, justified by FR-ANA-04 and
 documented in a new ADR during implementation. Reuse one reader and call
 `tryCity`; no HTTP lookup or reverse DNS. MaxMind documents local file readers
@@ -134,8 +147,11 @@ obtains and updates the licensed database outside the backend. Do not download
 it or require license credentials during requests, builds, or tests; do not
 commit a production database. Document a read-only mount under `infra/vps/`
 and license/update responsibilities without implementing the production stack.
-Verify a synthetic fixture lookup in tests and record database provisioning as
-a prerequisite for useful deployed geographic results. Geography is approximate.
+The selected local database is operator-supplied DB-IP City Lite, October 2026;
+both analytics report footers include its required provider link. Keep the file
+outside Git and build artifacts. Verify a synthetic fixture lookup in tests and
+record database provisioning as a prerequisite for useful deployed geographic
+results. Geography is approximate.
 
 ## Persistence and consistency
 
@@ -215,7 +231,10 @@ breakdowns: { referrers, devices, operatingSystems, browsers, countries, cities 
 ```
 
 The detail response additionally contains `link: { id, code, shortUrl,
-destinationUrl, status }`, using the existing server-side URL/status rules.
+destinationUrl, status }`, using the existing server-side URL/status rules, and
+`geography: { countries: [{ countryCode, label, count }], unknownClicks }`.
+Geography retains all known country codes before the top-20 folding below;
+country counts plus Unknown equal the selected-range total. Overview omits it.
 The overview does not embed all links; use existing cursor pagination for its
 link selection list. A link's detail lifetime value and list `clickCount` have
 the same meaning, regardless of date filter.
@@ -253,8 +272,8 @@ compute overview totals from the current page.
 Reuse Geist Sans/Mono, semantic CSS variables, restrained borders, 12px panels,
 44px controls, and L1 CSS entrances. Detail shows the selected short URL and
 destination as text plus an ordinary safe external link; viewing analytics
-must never request the short URL and inflate its clicks. No animated metrics,
-decorative charts, or map are needed.
+must never request the short URL and inflate its clicks. No animated metrics or
+decorative charts are needed. Detail includes the approved country map.
 
 Provide presets Last 7 days, Last 30 days, Last 90 days, and custom labeled date
 inputs with Apply. Store applied `from`/`to` in URL parameters and preserve them
@@ -262,6 +281,9 @@ when entering/leaving detail. Form edits do not change results until Apply.
 Backend validation stays authoritative; mirror date syntax for early feedback
 with React Hook Form/Zod. Default dates and applied labels come from the API's
 resolved UTC range; the browser does not substitute its local timezone.
+Display chart axis dates as `DD/MM` and range labels, tooltips, and daily table
+dates as `DD/MM/YYYY`, per the user's presentation preference (FR-ANA-03).
+API and URL dates remain ISO `YYYY-MM-DD`.
 
 Use one analytics response for every metric, daily chart, and breakdown on a
 page. Recharts is the only charting dependency. Disable chart animations and

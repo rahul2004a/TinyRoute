@@ -63,6 +63,7 @@ public class AnalyticsService {
                         .map(day -> new Day(day, counts.getOrDefault(day, 0L)))
                         .toList();
         Map<String, List<Bucket>> breakdowns = new LinkedHashMap<>();
+        Geography geography = null;
         for (String dimension :
                 List.of(
                         "referrers",
@@ -71,10 +72,34 @@ public class AnalyticsService {
                         "browsers",
                         "countries",
                         "cities")) {
+            var rows = events.breakdown(owner, id, range.start(), range.endExclusive(), dimension);
+            if (link != null && dimension.equals("countries")) {
+                var countries =
+                        rows.stream()
+                                .filter(row -> row.getKind().equals("VALUE"))
+                                .map(
+                                        row ->
+                                                new Country(
+                                                        row.getLabel(),
+                                                        countryLabel(
+                                                                dimension,
+                                                                row.getKind(),
+                                                                row.getLabel()),
+                                                        row.getCount()))
+                                .sorted(
+                                        Comparator.comparingLong(Country::count)
+                                                .reversed()
+                                                .thenComparing(Country::label))
+                                .toList();
+                long unknown =
+                        rows.stream()
+                                .filter(row -> !row.getKind().equals("VALUE"))
+                                .mapToLong(row -> row.getCount())
+                                .sum();
+                geography = new Geography(countries, unknown);
+            }
             var buckets =
-                    events
-                            .breakdown(owner, id, range.start(), range.endExclusive(), dimension)
-                            .stream()
+                    rows.stream()
                             .map(
                                     row ->
                                             new Bucket(
@@ -133,6 +158,7 @@ public class AnalyticsService {
                 events.lifetime(owner, id),
                 daily,
                 breakdowns,
+                geography,
                 details);
     }
 

@@ -30,6 +30,20 @@ export const analyticsSchema = z.object({
     countries: z.array(bucket).max(23),
     cities: z.array(bucket).max(23),
   }),
+  geography: z
+    .object({
+      countries: z
+        .array(
+          z.object({
+            countryCode: z.string().regex(/^[A-Z]{2}$/),
+            label: z.string(),
+            count: z.number().int().nonnegative(),
+          }),
+        )
+        .max(676),
+      unknownClicks: z.number().int().nonnegative(),
+    })
+    .optional(),
   link: z
     .object({
       id: z.uuid(),

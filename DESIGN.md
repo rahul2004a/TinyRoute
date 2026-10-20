@@ -188,6 +188,17 @@ days. Recharts requires direct labels, reachable tooltips, accessible summaries,
 Label data as delayed by up to one minute; never expose raw tracking inputs
 (FR-ANA-01 through FR-ANA-04, NFR-CON-03, NFR-PRV-02, NFR-PRV-03).
 
+Approved individual-link map extension (2026-10-20): place a
+full-width country map below all six traffic breakdowns, using the existing
+semantic palette and no animated movement. Provide a labeled intensity legend, country/count
+feedback, 44px zoom/reset controls, bounded drag and keyboard panning, and the
+complete Countries table as an accessible alternative. Show Unknown separately.
+Use the India boundary view, as explicitly requested by the user; preserve that
+choice when regenerating geometry.
+See [the concrete map design](docs/spec/short-link-analytics/world-map-design.md).
+Analytics report footers retain the geography privacy note and an underlined
+“IP Geolocation by DB-IP” attribution link for the selected DB-IP Lite source.
+
 Authentication uses a narrow centered panel. Keep email/password and Google
 methods clear. Account deletion is separated from routine settings and states
 its consequences (FR-ACC-01 through FR-ACC-05).

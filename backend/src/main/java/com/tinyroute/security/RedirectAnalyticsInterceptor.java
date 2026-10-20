@@ -49,7 +49,9 @@ public class RedirectAnalyticsInterceptor implements HandlerInterceptor {
                     code,
                     issuedAt,
                     normalizer.normalize(
-                            request.getHeader("Referer"), request.getHeader("User-Agent")),
+                            request.getHeader("Referer"),
+                            request.getHeader("User-Agent"),
+                            request.getHeader("Sec-CH-UA")),
                     address);
         } catch (RuntimeException ignored) {
             /* the redirect is independent of analytics */

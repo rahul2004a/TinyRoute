@@ -3,11 +3,23 @@ package com.tinyroute.service;
 import com.tinyroute.model.ClickMetadata;
 import java.net.*;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ClickMetadataNormalizer {
+    private static final Pattern BRAVE_AGENT =
+            Pattern.compile("(?:^|\\s)brave(?:/[0-9.]+)?(?=\\s|$)");
+    private static final Pattern CLIENT_HINT_BRAND =
+            Pattern.compile(
+                    "[ \\t]*\"((?:[\\x20-\\x21\\x23-\\x5b\\x5d-\\x7e]|\\\\[\"\\\\])*+)\""
+                            + "[ \\t]*;[ \\t]*v=\"[0-9]{1,4}\"[ \\t]*");
+
     public ClickMetadata normalize(String referer, String userAgent) {
+        return normalize(referer, userAgent, null);
+    }
+
+    public ClickMetadata normalize(String referer, String userAgent, String browserBrands) {
         String ua =
                 userAgent == null || userAgent.length() > 1024
                         ? ""
@@ -27,19 +39,22 @@ public class ClickMetadataNormalizer {
                                                                 ? "Linux"
                                                                 : "Unknown";
         String browser =
-                ua.contains("edg/") || ua.contains("edga/") || ua.contains("edgios/")
-                        ? "Edge"
-                        : ua.contains("opr/") || ua.contains("opera")
-                                ? "Opera"
-                                : ua.contains("samsungbrowser/")
-                                        ? "Samsung Internet"
-                                        : ua.contains("chrome/") || ua.contains("crios/")
-                                                ? "Chrome"
-                                                : ua.contains("firefox/") || ua.contains("fxios/")
-                                                        ? "Firefox"
-                                                        : ua.contains("safari/")
-                                                                ? "Safari"
-                                                                : "Unknown";
+                BRAVE_AGENT.matcher(ua).find() || hasBraveBrand(browserBrands)
+                        ? "Brave"
+                        : ua.contains("edg/") || ua.contains("edga/") || ua.contains("edgios/")
+                                ? "Edge"
+                                : ua.contains("opr/") || ua.contains("opera")
+                                        ? "Opera"
+                                        : ua.contains("samsungbrowser/")
+                                                ? "Samsung Internet"
+                                                : ua.contains("chrome/") || ua.contains("crios/")
+                                                        ? "Chrome"
+                                                        : ua.contains("firefox/")
+                                                                        || ua.contains("fxios/")
+                                                                ? "Firefox"
+                                                                : ua.contains("safari/")
+                                                                        ? "Safari"
+                                                                        : "Unknown";
         String device =
                 ua.contains("bot") || ua.contains("crawler") || ua.contains("spider")
                         ? "Bot"
@@ -53,6 +68,23 @@ public class ClickMetadataNormalizer {
                                         ? "Mobile"
                                         : !os.equals("Unknown") ? "Desktop" : "Unknown";
         return new ClickMetadata(referrer(referer), device, os, browser, null, null);
+    }
+
+    private boolean hasBraveBrand(String value) {
+        if (value == null || value.isBlank() || value.length() > 1024) return false;
+        var brands = CLIENT_HINT_BRAND.matcher(value);
+        int position = 0;
+        boolean brave = false;
+        // Consume complete brand/version entries, including quoted GREASE brands. Keep no raw
+        // hints.
+        while (position < value.length()) {
+            if (!brands.region(position, value.length()).lookingAt()) return false;
+            brave |= "Brave".equalsIgnoreCase(brands.group(1));
+            position = brands.end();
+            if (position == value.length()) return brave;
+            if (value.charAt(position++) != ',') return false;
+        }
+        return false;
     }
 
     private String referrer(String value) {

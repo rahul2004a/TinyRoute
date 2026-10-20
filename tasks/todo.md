@@ -24,8 +24,16 @@ Active plan: [plan.md](plan.md).
 - [x] Integrate actual navigation and saved-link analytics actions.
 - [x] Verify desktop/mobile, both themes, reduced motion, keyboard, and no overflow.
 - [x] Run backend/frontend checks, targeted browser tests, and affected regressions.
+- [x] Inspect existing geography and prepare the requested individual-link map design.
+- [x] Receive approval of `world-map-design.md` before implementing the map extension.
+- [x] Return complete ISO-coded detail geography and implement the accessible zoomable map.
+- [x] Verify map interactions, count consistency, range filtering, themes, and responsive layout.
+- [x] Apply the requested India boundary view and verify the generated outline and neighboring borders.
+- [x] Diagnose local Unknown geography without storing visitor addresses or weakening proxy trust.
+- [x] Recognize advertised Brave browser brands, verify capture/fallback behavior, and reload the local backend.
+- [x] Configure and verify the supplied DB-IP City Lite database, keep it outside Git, and include provider attribution on analytics reports.
 - [ ] Measure sustained redirect performance and capture freshness with analytics enabled.
-- [ ] Update documentation, dependency ADR, geography operation instructions, and evidence.
+- [x] Update documentation, dependency ADR, geography operation instructions, and evidence.
 - [ ] Verify specification AC1–AC12 and complete all task checkboxes.
 - [ ] Archive completed plan/checklist under `docs/spec/short-link-analytics/`.
 - [ ] Commit/push the completed feature and propose its PR without merging.

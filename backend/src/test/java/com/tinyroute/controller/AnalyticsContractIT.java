@@ -24,6 +24,7 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
         assertThat(node.get("totalClicks").asLong()).isZero();
         assertThat(node.get("dailyClicks").size()).isEqualTo(30);
         assertThat(node.get("range").get("timeZone").asString()).isEqualTo("UTC");
+        assertThat(node.has("geography")).isFalse();
     }
 
     @Test
@@ -78,6 +79,8 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
                         .andExpect(jsonPath("$.lifetimeClicks").value(9))
                         .andExpect(jsonPath("$.dailyClicks[0].count").value(2))
                         .andExpect(jsonPath("$.breakdowns.devices[0].label").value("Mobile"))
+                        .andExpect(jsonPath("$.geography.unknownClicks").value(2))
+                        .andExpect(jsonPath("$.geography.countries").isEmpty())
                         .andReturn();
         var node = json.readTree(response.getResponse().getContentAsString());
         for (String dimension :
@@ -104,6 +107,13 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
                         "ACTIVE",
                         null);
         UUID id = jdbc.queryForObject("select id from links where code=?", UUID.class, code);
+        jdbc.update("update links set click_count=9 where id=?", id);
+        for (int i = 0; i < 2; i++)
+            jdbc.update(
+                    "insert into click_events(id,link_id,clicked_at,device,operating_system,browser,country) values(?,?,?,'Unknown','Unknown','Unknown','DE')",
+                    UUID.randomUUID(),
+                    id,
+                    Timestamp.from(Instant.now()));
         UUID other = UUID.randomUUID();
         var now = Timestamp.from(Instant.now());
         jdbc.update(
@@ -113,6 +123,19 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
                 now,
                 now);
         try {
+            UUID otherLink = UUID.randomUUID();
+            jdbc.update(
+                    "insert into links(id,code,owner_id,destination_url,status,created_at,updated_at,click_count) values(?,?,?,'https://example.com/other','ACTIVE',?,?,3)",
+                    otherLink,
+                    "map" + UUID.randomUUID().toString().replace("-", "").substring(0, 12),
+                    other,
+                    now,
+                    now);
+            jdbc.update(
+                    "insert into click_events(id,link_id,clicked_at,device,operating_system,browser,country) values(?,?,?,'Unknown','Unknown','Unknown','US')",
+                    UUID.randomUUID(),
+                    otherLink,
+                    now);
             var cookie =
                     new jakarta.servlet.http.Cookie(
                             com.tinyroute.security.AuthCookieService.ACCESS_COOKIE_NAME,
@@ -121,8 +144,19 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
                     .andExpect(status().isNotFound());
             mvc.perform(get("/api/analytics").secure(true).cookie(cookie))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.lifetimeClicks").value(0));
+                    .andExpect(jsonPath("$.lifetimeClicks").value(3))
+                    .andExpect(jsonPath("$.totalClicks").value(1))
+                    .andExpect(jsonPath("$.breakdowns.countries[0].label").value("United States"));
+            mvc.perform(get("/api/links/" + otherLink + "/analytics").secure(true).cookie(cookie))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.geography.countries[0].countryCode").value("US"))
+                    .andExpect(jsonPath("$.geography.countries[0].count").value(1));
+            mvc.perform(get("/api/analytics").secure(true).cookie(access))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalClicks").value(2))
+                    .andExpect(jsonPath("$.lifetimeClicks").value(9));
         } finally {
+            jdbc.update("delete from links where owner_id=?", other);
             jdbc.update("delete from users where id=?", other);
         }
     }
@@ -185,5 +219,80 @@ class AnalyticsContractIT extends LinkHttpTestSupport {
                 .andExpect(jsonPath("$.breakdowns.countries[0].label").value("Finland"))
                 .andExpect(jsonPath("$.breakdowns.countries[1].label").value("Germany"))
                 .andExpect(jsonPath("$.breakdowns.countries[2].label").value("Spain"));
+    }
+
+    @Test
+    void detailGeographyRetainsEveryCountryBeyondTheTopTwentyWithStableCodes() throws Exception {
+        String code =
+                row(
+                        "map" + UUID.randomUUID().toString().replace("-", "").substring(0, 12),
+                        "ACTIVE",
+                        null);
+        UUID id = jdbc.queryForObject("select id from links where code=?", UUID.class, code);
+        var countries =
+                java.util.Arrays.stream(java.util.Locale.getISOCountries())
+                        .sorted()
+                        .limit(25)
+                        .toList();
+        for (String country : countries)
+            jdbc.update(
+                    "insert into click_events(id,link_id,clicked_at,device,operating_system,browser,country) values(?,?,?,'Unknown','Unknown','Unknown',?)",
+                    UUID.randomUUID(),
+                    id,
+                    Timestamp.from(Instant.parse("2024-02-29T12:00:00Z")),
+                    country);
+        for (String day : new String[] {"2024-02-29T12:00:00Z", "2024-03-01T00:00:00Z"})
+            jdbc.update(
+                    "insert into click_events(id,link_id,clicked_at,device,operating_system,browser) values(?,?,?,'Unknown','Unknown','Unknown')",
+                    UUID.randomUUID(),
+                    id,
+                    Timestamp.from(Instant.parse(day)));
+        String second =
+                row(
+                        "map" + UUID.randomUUID().toString().replace("-", "").substring(0, 12),
+                        "ACTIVE",
+                        null);
+        UUID secondId =
+                jdbc.queryForObject("select id from links where code=?", UUID.class, second);
+        jdbc.update(
+                "insert into click_events(id,link_id,clicked_at,device,operating_system,browser,country) values(?,?,?,'Unknown','Unknown','Unknown','US')",
+                UUID.randomUUID(),
+                secondId,
+                Timestamp.from(Instant.parse("2024-02-29T12:00:00Z")));
+        var node =
+                json.readTree(
+                        mvc.perform(
+                                        get("/api/links/"
+                                                        + id
+                                                        + "/analytics?from=2024-02-29&to=2024-02-29")
+                                                .secure(true)
+                                                .cookie(access))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.totalClicks").value(26))
+                                .andExpect(jsonPath("$.geography.unknownClicks").value(1))
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString());
+        var rows = node.get("geography").get("countries");
+        assertThat(rows.size()).isEqualTo(25);
+        var returnedCodes = new java.util.HashSet<String>();
+        var labels = new java.util.ArrayList<String>();
+        long sum = 0;
+        for (var country : rows) {
+            returnedCodes.add(country.get("countryCode").asString());
+            labels.add(country.get("label").asString());
+            sum += country.get("count").asLong();
+        }
+        assertThat(returnedCodes).containsExactlyInAnyOrderElementsOf(countries);
+        assertThat(labels).isSorted();
+        assertThat(sum).isEqualTo(25);
+        assertThat(node.get("breakdowns").get("countries").size()).isEqualTo(22);
+        mvc.perform(
+                        get("/api/links/" + id + "/analytics?from=2024-03-02&to=2024-03-02")
+                                .secure(true)
+                                .cookie(access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.geography.unknownClicks").value(0))
+                .andExpect(jsonPath("$.geography.countries").isEmpty());
     }
 }
