@@ -151,3 +151,11 @@ Keep the laptop awake/on AC with its lid open and avoid parallel builds or tests
 No production services, secrets, or account data are used. Private setup stays
 under ignored `.local-verification/`; review numeric results before committing
 sanitized evidence. Local performance is not proof of the production topology.
+
+The runner records the actual power source and fresh run hashes. It retains
+private JVM/backend/PostgreSQL logs before deleting only its own runtimes, plus
+timestamped database-free pool/queue observations and PostgreSQL wait aggregates.
+The diagnostic endpoint exists only in the token/loopback-guarded test runtime;
+it is absent from the application JAR. JVM GC/safepoint diagnostic arguments are
+recorded in the environment metadata. Do not copy credentials, raw runtime logs,
+or inherited results from another attempt into published evidence.

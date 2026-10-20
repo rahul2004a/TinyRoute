@@ -1,0 +1,59 @@
+{
+  "recordedAt": "2026-10-20T11:37:41.568Z",
+  "protocol": {
+    "rate": 100,
+    "duration": 600,
+    "warmup": 30,
+    "create-samples": 200,
+    "clients": 100
+  },
+  "acceptanceProtocol": true,
+  "passed": false,
+  "creation": {
+    "samples": 200,
+    "statuses": {
+      "201": 200
+    },
+    "p95": 32.896625,
+    "passed": true
+  },
+  "redirect": {
+    "offered": 60000,
+    "issued": 57825,
+    "completed": 57825,
+    "elapsedSeconds": 600.0374625,
+    "non302": 0,
+    "timeouts": 1311,
+    "dropped": 2175,
+    "late": 1395,
+    "maximumLatenessMs": 2231.048708999995,
+    "p95": 31.122709,
+    "p99": 674.024209,
+    "errorRate": 0.02185,
+    "statuses": {
+      "302": 56514
+    },
+    "passed": false,
+    "reasons": [
+      "Incomplete offered/issued/completed requests",
+      "Dropped or excessively late arrivals",
+      "Achieved throughput below 99.5 requests/second",
+      "Incomplete or overflowing server timing collection",
+      "Error rate is not below 0.5 percent",
+      "Server latency exceeds a strict threshold"
+    ]
+  },
+  "capture": {
+    "final": {
+      "events": 59397,
+      "lifetime": 59397,
+      "failed": 0,
+      "rejected": 203,
+      "stale": 0,
+      "maxRecordingDelayMillis": 422
+    },
+    "maxRecordingDelayMillis": 38752
+  },
+  "powerEventsDuringAttempt": [],
+  "reportSha256": "8c80068a410b13e285f6b18666e9c0ad3fab3d1e92d58838b1c47b1622c47dc5"
+}

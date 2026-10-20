@@ -1,7 +1,7 @@
-# Short-link analytics — active checklist
+# Short-link analytics — completed checklist
 
-Specification: [spec.md](../docs/spec/short-link-analytics/spec.md).
-Active plan: [plan.md](plan.md).
+Specification: [spec.md](spec.md).
+Archived plan: [plan.md](plan.md).
 
 - [x] Check branch/status and fetch current main; confirm a clean baseline.
 - [x] Create `feature/short-link-analytics` before changing files.
@@ -33,8 +33,11 @@ Active plan: [plan.md](plan.md).
 - [x] Recognize advertised Brave browser brands, verify capture/fallback behavior, and reload the local backend.
 - [x] Configure and verify the supplied DB-IP City Lite database, keep it outside Git, and include provider attribution on analytics reports.
 - [x] Resolve PR 21's Jackson 2 dependency vulnerabilities and verify backend tests, package inventory, and the unchanged local security scan.
-- [ ] Measure sustained redirect performance and capture freshness with analytics enabled.
+- [x] Measure sustained redirect performance and capture freshness with analytics enabled.
+- [x] Investigate and retain the failed backpressure attempt, add diagnostics, and validate a passing strict rerun; no initiating-stall fix is claimed.
 - [x] Update documentation, dependency ADR, geography operation instructions, and evidence.
-- [ ] Verify specification AC1–AC12 and complete all task checkboxes.
-- [ ] Archive completed plan/checklist under `docs/spec/short-link-analytics/`.
-- [ ] Commit/push the completed feature and propose its PR without merging.
+- [x] Verify specification AC1–AC12 and complete all task checkboxes.
+- [x] Archive completed plan/checklist under `docs/spec/short-link-analytics/`.
+- [x] Commit/push the completed feature and propose its PR without merging.
+
+Completed 2026-10-20. Reconciled against the acceptance evidence, passing strict load/capture artifacts, and independent final review. Earlier failed attempts remain recorded. The final archive/evidence commit updates PR #21; final CI and review-ready status are recorded on that PR. No merge or production deployment is included.

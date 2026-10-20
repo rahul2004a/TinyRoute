@@ -23,8 +23,12 @@ public class LinkVerificationConfiguration {
             PasswordHasher hasher,
             LinkProperties properties,
             VerificationTimingCollector timings,
-            io.micrometer.core.instrument.MeterRegistry metrics) {
-        return new LinkVerificationController(jdbc, hasher, properties, timings, metrics);
+            io.micrometer.core.instrument.MeterRegistry metrics,
+            @org.springframework.beans.factory.annotation.Qualifier("analyticsExecutor")
+                    org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+                            analyticsExecutor) {
+        return new LinkVerificationController(
+                jdbc, hasher, properties, timings, metrics, analyticsExecutor);
     }
 
     @Bean

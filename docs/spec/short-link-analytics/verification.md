@@ -186,9 +186,9 @@ Repository-pinned Trivy 0.75.0 scanned the packaged `backend/target` with the
 same `rootfs --scanners vuln --pkg-types library --severity HIGH,CRITICAL
 --exit-code 1` gate: zero findings. The CI inventory helper also passed. No
 ignore rule, scanner threshold, workflow gate, application API, or stored
-visitor data changed. GitHub's replacement run must independently pass the
-dependency scan and previously blocked CodeQL/image checks. Strict sustained
-performance acceptance below is a separate open item.
+visitor data changed. All eight checks on commit `72eaf52` passed, including the
+dependency scan, CodeQL, and Docker image scan. The final local sustained run
+below separately supplies performance acceptance evidence.
 
 ## Performance evidence
 
@@ -206,10 +206,82 @@ offered redirects over 600 seconds, with no HTTP errors/timeouts; server p95
 redirects were captured, with no failed/rejected/stale observations and maximum
 observed recording delay 557 ms. The strict original driver rejected 28 arrivals
 that were over 100 ms late at the generator. This remains a failed acceptance
-attempt, despite the latency and capture results. Performance acceptance and
-task archival remain open; the feature must not be marked ready for review yet.
+attempt, despite the latency and capture results. It does not contribute a
+passing acceptance claim; the later complete run below supplies that evidence.
+
+### Final passing strict run
+
+The diagnostic rerun completed the unchanged 200-create/30-second-warm-up/
+100-rps-for-600-seconds protocol. The driver, rate limits, four-connection pool,
+four-worker/512-task executor, database durability, and thresholds were unchanged.
+Test-only pool/queue/PostgreSQL observations and JVM GC/safepoint logging were
+enabled. No application code or capacity policy was changed to obtain the pass.
+
+| Measurement | Observed | Required |
+| --- | --- | --- |
+| Successful creates / samples | 200 / 200 | At least 200 |
+| Creation server p95 | 24.49 ms | <500 ms |
+| Redirect offered / issued / completed / server samples | 60,000 / 60,000 / 60,000 / 60,000 | Complete |
+| Measured elapsed / throughput | 600.002 seconds / 100.000 rps | 600 seconds / at least 99.5 rps |
+| Redirect server p95 / p99 | 3.27 / 9.25 ms | <150 / <300 ms |
+| Redirect client p95 / p99, including relay | 5.75 / 45.32 ms | Report separately |
+| Non-302 / timeouts / dropped / late / collector overflow | 0 / 0 / 0 / 0 / false | None |
+| Maximum issuance lateness | 39.81 ms | At most 100 ms |
+| Captured events / lifetime total, including warm-up | 63,000 / 63,000 | 63,000 / 63,000 |
+| Failed / rejected / stale capture | 0 / 0 / 0 | None |
+| Maximum observed recording delay | 387 ms across 65 snapshots | <60,000 ms |
+
+[Raw numeric samples](link-performance.json.gz),
+[capture observations](analytics-capture.json),
+[runtime metadata and hashes](performance-environment.json), and
+[observed resource summary](runtime-summary.json) are retained. Independent
+validation recomputed nearest-rank percentiles, complete sample/status counts,
+capture totals, and the compressed report SHA-256. Sixty-four runtime observations
+had no failed probes, at most three of four pool connections active, and no
+observed pending connection or analytics queue. Polling is not a continuous bound.
+
+Earlier failures remain retained. The initiating stall in the failed
+backpressure attempt was not reproduced or claimed fixed; its investigation
+added the diagnostics used by the passing run. Battery operation and actual JVM
+diagnostic arguments are recorded, with no inherited AC/sleep or negative-TLS
+claims. This proves the local baseline only, not production availability or
+Hostinger/Supabase network performance.
+
+## Acceptance evidence
+
+| Criteria | Evidence |
+| --- | --- |
+| AC1–AC2 | Positive two-owner/link isolation, range/lifetime sums, generic 404s and anonymous 401s in `AnalyticsContractIT`; aggregation and atomic writes in `ClickEventRepositoryIT`. |
+| AC3 | Fixed-clock/default/boundary/leap-day/validation cases in `AnalyticsRangeTest` and API contract tests. |
+| AC4 | Bounded private metadata/Brave normalization, synthetic City lookup, top-20/Other/Unknown conservation, and all six returned dimensions. |
+| AC5 | Completed database/cache GET capture and failed/HEAD/health/auth/throttle exclusion via redirect and security contracts. |
+| AC6 | Concurrent writes/rollback, worker failure/stale/rejection tests, and the full passing capture/load run above. |
+| AC7–AC8 | Frontend API/page/form/report tests and real-browser range, zero, validation, retry, session, cancellation and account-switch cases. |
+| AC9 | Keyboard/touch/map/table interactions, both themes at 320/768/1024/1440px, inspected screenshots, and no page overflow. |
+| AC10 | Schema/model/task/log/storage review, normalizer tests, local synthetic and DB-IP checks; no visitor address or identifier persisted. |
+| AC11 | Final Maven verification: 253 unit + 119 integration tests; frontend checks/build/130 unit tests; 12 final analytics browser checks plus 58 earlier affected regressions; strict local protocol above. |
+| AC12 | Updated requirements mapping, architecture, README, ADR, operating instructions, and completed archived plan/checklist. |
 
 ## Operational limits
+
+The next strict attempt is retained in
+[failed-backpressure.json](failed-backpressure.json). It issued 57,825 of 60,000
+offered redirects, with 1,311 client timeouts and 2,175 dropped arrivals;
+server p95/p99 were 31.12/674.02 ms. Captures/lifetime reached 59,397, with 203
+rejected tasks, no failed/stale tasks, and 38,752 ms maximum observed recording
+delay. Hikari reported all four connections active and request acquisition
+timeouts around 30 seconds. Host power history showed no sleep/wake event.
+The initiating stall was not established. This failed attempt remains recorded
+separately from the subsequent passing strict run above.
+
+The disposable test runtime now provides a token/source-guarded, database-free
+runtime diagnostic endpoint, verified to respond when all four connections are
+occupied and verified absent from the normal application. The benchmark retains
+timestamped pool/queue observations, PostgreSQL wait aggregates, GC/safepoint
+logs, and runtime logs before cleanup. These diagnostics contain no visitor data
+and do not alter rate limits, scheduling, durability, or acceptance thresholds.
+Inherited prior-run hashes, power history, and negative TLS results are removed
+from new runtime metadata.
 
 Geography requires an operator-provisioned licensed City database for useful
 real traffic; omission intentionally yields Unknown. The included database is

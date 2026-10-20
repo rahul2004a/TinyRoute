@@ -1,0 +1,9 @@
+{
+  "samples": 64,
+  "failedHttpProbes": 0,
+  "maximumObservedPoolActive": 3,
+  "maximumObservedPoolPending": 0,
+  "maximumObservedAnalyticsActive": 3,
+  "maximumObservedAnalyticsQueued": 0,
+  "diagnostics": "10-second nominal polling; observed peaks only, not a continuous bound. PostgreSQL, JVM, and container logs retained privately."
+}

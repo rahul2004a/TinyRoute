@@ -1,6 +1,6 @@
 # Short-link analytics
 
-Status: approved 2026-10-20; implementation in progress. User approval: “ok start”.
+Status: implemented and locally verified 2026-10-20. User approval: “ok start”.
 Branch: `feature/short-link-analytics`.
 Baseline: `f75203f` (`main` and `origin/main`, checked 2026-10-20).
 
@@ -323,34 +323,35 @@ Do not persist analytics queries in browser storage.
 
 ## Verification and acceptance
 
-These criteria remain unchecked until implementation and runtime verification:
+These criteria are verified by [the recorded acceptance evidence](verification.md#acceptance-evidence).
+Completed execution records are archived in [plan.md](plan.md) and [todo.md](todo.md).
 
-- [ ] AC1 — Two owners and several links prove overview isolation, selected-range
+- [x] AC1 — Two owners and several links prove overview isolation, selected-range
       totals, per-link lifetime totals, and consistent sums across all dimensions.
-- [ ] AC2 — Detail isolates one owned link; missing/non-owned/deleted/malformed
+- [x] AC2 — Detail isolates one owned link; missing/non-owned/deleted/malformed
       IDs have identical 404s, even with invalid ranges. Signed-out APIs return 401.
-- [ ] AC3 — Fixed-clock tests prove last-30-day defaults, inclusive UTC bounds,
+- [x] AC3 — Fixed-clock tests prove last-30-day defaults, inclusive UTC bounds,
       exact end-date exclusion, zero-filled days, leap day, and all invalid ranges.
-- [ ] AC4 — Normal, missing, malformed, overlong, and adversarial metadata produce
+- [x] AC4 — Normal, missing, malformed, overlong, and adversarial metadata produce
       the six allowed dimensions, deterministic top-20/Other buckets, and no raw input.
-- [ ] AC5 — GET redirects on database and warm-cache paths count once; HEAD,
+- [x] AC5 — GET redirects on database and warm-cache paths count once; HEAD,
       health checks, every failed outcome, throttling, and auth redirects do not.
-- [ ] AC6 — Concurrent capture keeps event/count writes atomic; failed writes,
+- [x] AC6 — Concurrent capture keeps event/count writes atomic; failed writes,
       saturated executor, stale queue entries, and geography failure preserve 302s.
       Accepted events appear within 60 seconds under the sustained baseline.
-- [ ] AC7 — Changing the range updates every ranged value in overview/detail;
+- [x] AC7 — Changing the range updates every ranged value in overview/detail;
       lifetime values retain their meaning. Invalid ranges retain inputs and errors.
-- [ ] AC8 — Loading, no links, no activity, 404, API failure, Retry, Refresh, session
+- [x] AC8 — Loading, no links, no activity, 404, API failure, Retry, Refresh, session
       expiry, account switching, and cancellation have distinct correct behavior.
-- [ ] AC9 — Keyboard/mobile/desktop and both themes pass; chart/table values match,
+- [x] AC9 — Keyboard/mobile/desktop and both themes pass; chart/table values match,
       filters are labeled, focus works, and no whole-page horizontal overflow occurs.
-- [ ] AC10 — Schema, requests, captured tasks/logs, responses, and browser storage
+- [x] AC10 — Schema, requests, captured tasks/logs, responses, and browser storage
       contain no persisted identifying visitor data. Synthetic geography succeeds
       and the no-database fallback is explicit.
-- [ ] AC11 — Maven verify and frontend lint/format/type/unit/build checks pass;
+- [x] AC11 — Maven verify and frontend lint/format/type/unit/build checks pass;
       analytics browser tests and affected auth/link regressions pass. Record actual
       results and limits, coverage, screenshots, and the redirect performance run.
-- [ ] AC12 — Requirements/architecture/README and analytics availability copy are
+- [x] AC12 — Requirements/architecture/README and analytics availability copy are
       current; operational geography instructions and dependency ADR are complete.
       Complete and archive active tasks before marking a PR ready.
 

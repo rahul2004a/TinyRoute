@@ -27,6 +27,8 @@ public class LinkVerificationController {
     private final Bootstrap bootstrap;
     private final VerificationTimingCollector timings;
     private final io.micrometer.core.instrument.MeterRegistry metrics;
+    private final org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+            analyticsExecutor;
     private final UUID analyticsOwner;
 
     public LinkVerificationController(
@@ -34,10 +36,12 @@ public class LinkVerificationController {
             PasswordHasher passwords,
             LinkProperties properties,
             VerificationTimingCollector timings,
-            io.micrometer.core.instrument.MeterRegistry metrics) {
+            io.micrometer.core.instrument.MeterRegistry metrics,
+            org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor analyticsExecutor) {
         this.jdbc = jdbc;
         this.timings = timings;
         this.metrics = metrics;
+        this.analyticsExecutor = analyticsExecutor;
         var accounts = new ArrayList<Account>();
         var owners = new ArrayList<UUID>();
         for (int i = 0; i < 3; i++) {
@@ -104,6 +108,27 @@ public class LinkVerificationController {
                 (long)
                         metrics.timer("tinyroute.analytics.recording.delay")
                                 .max(java.util.concurrent.TimeUnit.MILLISECONDS));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(state);
+    }
+
+    @GetMapping("/runtime-state")
+    public ResponseEntity<Map<String, Long>> runtimeState() {
+        var state = new LinkedHashMap<String, Long>();
+        state.put("sampledAtEpochMillis", System.currentTimeMillis());
+        for (String kind : List.of("active", "idle", "pending", "max")) {
+            var gauge = metrics.find("hikaricp.connections." + kind).gauge();
+            state.put(
+                    "pool"
+                            + (kind.equals("max")
+                                    ? "Maximum"
+                                    : kind.substring(0, 1).toUpperCase(java.util.Locale.ROOT)
+                                            + kind.substring(1)),
+                    gauge == null ? -1L : (long) gauge.value());
+        }
+        state.put("analyticsActive", (long) analyticsExecutor.getActiveCount());
+        state.put(
+                "analyticsQueued",
+                (long) analyticsExecutor.getThreadPoolExecutor().getQueue().size());
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(state);
     }
 
