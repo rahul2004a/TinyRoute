@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const errorCodeSchema = z.enum([
   "VALIDATION_ERROR",
+  "NOT_FOUND",
   "AUTHENTICATION_FAILED",
   "CSRF_INVALID",
   "OAUTH_FAILED",

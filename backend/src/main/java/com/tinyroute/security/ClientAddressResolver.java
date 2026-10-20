@@ -2,16 +2,15 @@ package com.tinyroute.security;
 
 import com.tinyroute.config.RateLimitProperties;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.List;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.stereotype.Component;
 
 @Component
 public final class ClientAddressResolver {
@@ -28,11 +27,14 @@ public final class ClientAddressResolver {
     }
 
     public String clientHash(HttpServletRequest request) {
+        return hmac(canonicalAddress(clientAddress(request)));
+    }
+
+    public InetAddress clientAddress(HttpServletRequest request) {
         InetAddress remoteAddress = parseAddress(request.getRemoteAddr());
-        InetAddress clientAddress = isTrusted(remoteAddress)
-                ? parseForwardedAddress(request)
-                : remoteAddress;
-        return hmac(canonicalAddress(clientAddress));
+        InetAddress clientAddress =
+                isTrusted(remoteAddress) ? parseForwardedAddress(request) : remoteAddress;
+        return clientAddress;
     }
 
     private boolean isTrusted(InetAddress address) {
@@ -57,7 +59,9 @@ public final class ClientAddressResolver {
     }
 
     private InetAddress parseAddress(String address) {
-        if (address == null || !address.matches("[0-9A-Fa-f:.]+") || (!address.contains(":") && !address.contains("."))) {
+        if (address == null
+                || !address.matches("[0-9A-Fa-f:.]+")
+                || (!address.contains(":") && !address.contains("."))) {
             throw new IllegalArgumentException("Client address is invalid");
         }
         try {
@@ -70,7 +74,13 @@ public final class ClientAddressResolver {
     private String canonicalAddress(InetAddress address) {
         byte[] bytes = address.getAddress();
         if (bytes.length == 16 && isIpv4MappedAddress(bytes)) {
-            return (bytes[12] & 0xff) + "." + (bytes[13] & 0xff) + "." + (bytes[14] & 0xff) + "." + (bytes[15] & 0xff);
+            return (bytes[12] & 0xff)
+                    + "."
+                    + (bytes[13] & 0xff)
+                    + "."
+                    + (bytes[14] & 0xff)
+                    + "."
+                    + (bytes[15] & 0xff);
         }
         return address.getHostAddress();
     }
@@ -88,7 +98,9 @@ public final class ClientAddressResolver {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(hmacSecret, "HmacSHA256"));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
+            return Base64.getUrlEncoder()
+                    .withoutPadding()
+                    .encodeToString(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Unable to hash client address", exception);
         }
@@ -129,7 +141,9 @@ public final class ClientAddressResolver {
         }
 
         private static InetAddress parseNetworkAddress(String address) {
-            if (address == null || !address.matches("[0-9A-Fa-f:.]+") || (!address.contains(":") && !address.contains("."))) {
+            if (address == null
+                    || !address.matches("[0-9A-Fa-f:.]+")
+                    || (!address.contains(":") && !address.contains("."))) {
                 throw new IllegalArgumentException("Trusted proxy CIDR is invalid");
             }
             try {

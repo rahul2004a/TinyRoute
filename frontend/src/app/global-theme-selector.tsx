@@ -8,7 +8,9 @@ export function GlobalThemeSelector() {
   const pathname = usePathname();
   return pathname === "/" ||
     pathname === "/links" ||
-    pathname === "/settings" ? null : (
+    pathname === "/settings" ||
+    pathname === "/analytics" ||
+    pathname.startsWith("/analytics/") ? null : (
     <ThemeSelector />
   );
 }

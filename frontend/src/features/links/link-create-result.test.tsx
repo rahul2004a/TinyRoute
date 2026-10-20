@@ -80,7 +80,7 @@ it("shows loading, a safe failure, and a retryable empty result", async () => {
   expect(screen.queryByText("private datastore details")).toBeNull();
   vi.mocked(getLinks).mockResolvedValue({ items: [], nextCursor: null });
   await user.click(screen.getByRole("button", { name: "Refresh links" }));
-  expect(await screen.findByText("No saved links on this page.")).toBeTruthy();
+  expect(await screen.findByText(/No links yet/)).toBeTruthy();
 });
 
 it("displays the returned expiry with its exact instant", () => {

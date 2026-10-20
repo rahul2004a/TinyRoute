@@ -16,6 +16,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(LinkNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleLinkNotFound() {
+        return ResponseEntity.status(404)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(
+                        new ApiErrorResponse(
+                                new ApiErrorResponse.Error(
+                                        "NOT_FOUND",
+                                        "Link not found.",
+                                        UUID.randomUUID().toString())));
+    }
+
     @ExceptionHandler(
             org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleMalformedParameter() {
@@ -87,6 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<ApiErrorResponse> handleServiceUnavailable() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .body(ApiErrorResponse.serviceUnavailable(UUID.randomUUID().toString()));
     }
 

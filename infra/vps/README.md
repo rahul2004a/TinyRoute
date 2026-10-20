@@ -43,3 +43,11 @@ Supabase plan/backups and disable its unused Data API before production use.
 Do not commit populated environment files, registry tokens, SSH keys, private
 certificates, backups, or runtime state. No provider account API token is
 required for the selected SSH delivery model.
+
+## Analytics geography reference file
+
+Future production runtime should mount an operator-maintained City MMDB read-only
+and supply its container path through `ANALYTICS_GEO_DATABASE_PATH`. Keep download
+credentials outside backend runtime secrets/images. No root development Compose
+changes are needed. See [analytics operations](../../docs/spec/short-link-analytics/operations.md)
+for lookup fallback, restart/update, privacy, and licensing responsibilities.

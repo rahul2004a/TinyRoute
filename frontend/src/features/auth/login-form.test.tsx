@@ -24,14 +24,14 @@ const fetchCsrfTokenMock = vi.mocked(fetchCsrfToken);
 const getCurrentSessionMock = vi.mocked(getCurrentSession);
 const loginMock = vi.mocked(login);
 
-function renderLoginForm() {
+function renderLoginForm(returnTo?: string) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <LoginForm />
+      <LoginForm returnTo={returnTo} />
     </QueryClientProvider>,
   );
 }
@@ -91,6 +91,19 @@ describe("LoginForm", () => {
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/links"));
     expect(screen.queryByLabelText("Email address")).toBeNull();
     expect(screen.queryByText("You’re signed in")).toBeNull();
+  });
+
+  it("returns an authenticated owner to the requested analytics range", async () => {
+    getCurrentSessionMock.mockResolvedValue({
+      authenticated: true,
+      user: { email: "person@example.com" },
+    });
+    renderLoginForm("/analytics?from=2026-10-01&to=2026-10-20");
+    await waitFor(() =>
+      expect(replaceMock).toHaveBeenCalledWith(
+        "/analytics?from=2026-10-01&to=2026-10-20",
+      ),
+    );
   });
 
   it("hides login inputs until the session check completes", () => {

@@ -21,6 +21,8 @@ public interface LinkRepository {
             Instant expiresAt,
             Long generationValue);
 
+    Optional<Link> findByIdAndOwnerId(UUID id, UUID ownerId);
+
     long findMaxGenerationValue();
 
     Optional<RedirectLinkState> findRedirectStateByCode(String code);

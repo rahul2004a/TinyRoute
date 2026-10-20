@@ -23,6 +23,17 @@ public class AsyncConfiguration {
         return boundedMailExecutor("password-reset-");
     }
 
+    @Bean
+    ThreadPoolTaskExecutor analyticsExecutor() {
+        var executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(512);
+        executor.setThreadNamePrefix("analytics-");
+        executor.setWaitForTasksToCompleteOnShutdown(false);
+        return executor;
+    }
+
     private TaskExecutor boundedMailExecutor(String threadNamePrefix) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);

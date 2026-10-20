@@ -60,6 +60,11 @@ public interface JpaLinkRepository extends JpaRepository<Link, UUID>, LinkReposi
 
     @Override
     @Query(
+            "select l from Link l where l.id=:id and l.owner.id=:ownerId and l.deletedAt is null and l.status<>com.tinyroute.model.LinkStatus.DELETED")
+    Optional<Link> findByIdAndOwnerId(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
+
+    @Override
+    @Query(
             value =
                     "select coalesce(max(generation_value),0) from links where generation_value is not null",
             nativeQuery = true)

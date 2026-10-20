@@ -82,7 +82,9 @@ test("an idle tab restores its session after two hours and a shared CSRF change"
     .poll(() => refreshHeaders)
     .toEqual(["initial-csrf", "initial-csrf", "changed-in-another-tab"]);
   await expect(
-    page.getByText("Signed in as idle-session@example.com."),
+    page
+      .getByRole("region", { name: "Your account", exact: true })
+      .getByText("idle-session@example.com"),
   ).toBeVisible();
   await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
 });

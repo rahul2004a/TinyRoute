@@ -5,6 +5,7 @@ import { LinkCreateForm } from "../../../features/links/link-create-form";
 
 const accountLinks = [
   { href: "/links", label: "Your links" },
+  { href: "/analytics", label: "Analytics" },
   { href: "/settings", label: "Account settings" },
 ] as const;
 

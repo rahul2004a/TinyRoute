@@ -172,6 +172,16 @@ parameters. Delete confirmation names the code and explains that it cannot be
 reused. Missing and non-owned resources look identical
 (FR-MGT-01 through FR-MGT-07, NFR-SEC-04).
 
+Analytics lives at `/analytics` and `/analytics/[id]`, using the existing settings
+sidebar/mobile drawer and one inline theme control. Keep the links page shell.
+Stack date controls at narrow widths, retain UTC range context across detail/back
+navigation, distinguish selected-range and lifetime totals, and make every saved
+link's analytics action reachable without visiting its short URL. Use two-column
+breakdown tables on desktop and one column on mobile; use readable labels and an
+explicit Show data table disclosure for the daily chart. Loading/new ranges hide
+old results, API failures expose Retry, and snapshots show an As of UTC timestamp.
+No polling or animated metrics.
+
 Analytics leads with total clicks, then the selectable daily trend, then
 referrer, device, operating system, browser, country, and city. Default to 30
 days. Recharts requires direct labels, reachable tooltips, accessible summaries, and table fallbacks.

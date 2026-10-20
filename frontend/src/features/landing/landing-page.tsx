@@ -117,14 +117,13 @@ export function LandingPage() {
               <div className="landing-feature-title">
                 <h3 id="analytics-title">Analytics</h3>
                 <span className="landing-status" id="analytics-status">
-                  Planned
+                  Available now
                 </span>
               </div>
               <p>
-                Planned analytics will show click totals, selectable daily
-                trends defaulting to 30 days, and aggregated referrer, device,
-                OS, browser, country and city breakdowns. Data will be delayed
-                by up to one minute.
+                View click totals, selectable daily trends defaulting to 30
+                days, and aggregated referrer, device, OS, browser, country and
+                city breakdowns. Data may be delayed by up to one minute.
               </p>
             </article>
           </div>

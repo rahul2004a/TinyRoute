@@ -36,12 +36,16 @@ class RedirectContractIT extends LinkHttpTestSupport {
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", exact))
                 .andExpect(content().string(""));
-        assertThat(
-                        jdbc.queryForObject(
-                                "select sum(click_count) from links where owner_id=?",
-                                Long.class,
-                                ownerId))
-                .isZero();
+        org.awaitility.Awaitility.await()
+                .atMost(java.time.Duration.ofSeconds(5))
+                .untilAsserted(
+                        () ->
+                                assertThat(
+                                                jdbc.queryForObject(
+                                                        "select sum(click_count) from links where owner_id=?",
+                                                        Long.class,
+                                                        ownerId))
+                                        .isEqualTo(2L));
     }
 
     @Test

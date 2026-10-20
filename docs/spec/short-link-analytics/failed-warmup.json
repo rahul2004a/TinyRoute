@@ -1,0 +1,77 @@
+{
+  "status": "FAILED: original performance driver rejected warm-up before the sustained phase",
+  "context": "Other verification tests were running concurrently; retry with the host quiet. No sustained-load acceptance claim.",
+  "driverOutput": [
+    "Creation phase complete: 200 server samples, p95 38.49 ms",
+    "Verification failed; no credentials or response bodies are printed."
+  ],
+  "capture": {
+    "samples": [
+      {
+        "events": 0,
+        "lifetime": 0,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 0
+      },
+      {
+        "events": 0,
+        "lifetime": 0,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 0
+      },
+      {
+        "events": 0,
+        "lifetime": 0,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 0
+      },
+      {
+        "events": 661,
+        "lifetime": 661,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 33
+      },
+      {
+        "events": 1672,
+        "lifetime": 1672,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 33
+      },
+      {
+        "events": 2696,
+        "lifetime": 2696,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 54
+      },
+      {
+        "events": 2997,
+        "lifetime": 2997,
+        "failed": 0,
+        "rejected": 0,
+        "stale": 0,
+        "maxRecordingDelayMillis": 174
+      }
+    ],
+    "final": {
+      "events": 2997,
+      "lifetime": 2997,
+      "failed": 0,
+      "rejected": 0,
+      "stale": 0,
+      "maxRecordingDelayMillis": 174
+    },
+    "maxRecordingDelayMillis": 174
+  }
+}

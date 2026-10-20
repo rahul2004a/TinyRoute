@@ -22,8 +22,9 @@ public class LinkVerificationConfiguration {
             JdbcTemplate jdbc,
             PasswordHasher hasher,
             LinkProperties properties,
-            VerificationTimingCollector timings) {
-        return new LinkVerificationController(jdbc, hasher, properties, timings);
+            VerificationTimingCollector timings,
+            io.micrometer.core.instrument.MeterRegistry metrics) {
+        return new LinkVerificationController(jdbc, hasher, properties, timings, metrics);
     }
 
     @Bean

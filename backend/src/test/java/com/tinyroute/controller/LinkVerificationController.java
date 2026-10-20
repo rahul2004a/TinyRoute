@@ -26,14 +26,18 @@ public class LinkVerificationController {
     private final JdbcTemplate jdbc;
     private final Bootstrap bootstrap;
     private final VerificationTimingCollector timings;
+    private final io.micrometer.core.instrument.MeterRegistry metrics;
+    private final UUID analyticsOwner;
 
     public LinkVerificationController(
             JdbcTemplate jdbc,
             PasswordHasher passwords,
             LinkProperties properties,
-            VerificationTimingCollector timings) {
+            VerificationTimingCollector timings,
+            io.micrometer.core.instrument.MeterRegistry metrics) {
         this.jdbc = jdbc;
         this.timings = timings;
+        this.metrics = metrics;
         var accounts = new ArrayList<Account>();
         var owners = new ArrayList<UUID>();
         for (int i = 0; i < 3; i++) {
@@ -64,6 +68,7 @@ public class LinkVerificationController {
                     "https://example.com/docs?q=java#setup");
             codes.add(code);
         }
+        analyticsOwner = owners.getFirst();
         bootstrap =
                 new Bootstrap(
                         properties.getShortBaseUrl(),
@@ -75,6 +80,31 @@ public class LinkVerificationController {
     @GetMapping("/bootstrap")
     public ResponseEntity<Bootstrap> bootstrap() {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(bootstrap);
+    }
+
+    @GetMapping("/analytics-state")
+    public ResponseEntity<Map<String, Long>> analyticsState() {
+        var state = new LinkedHashMap<String, Long>();
+        state.put(
+                "events",
+                jdbc.queryForObject(
+                        "select count(*) from click_events e join links l on l.id=e.link_id where l.owner_id=?",
+                        Long.class,
+                        analyticsOwner));
+        state.put(
+                "lifetime",
+                jdbc.queryForObject(
+                        "select sum(click_count) from links where owner_id=?",
+                        Long.class,
+                        analyticsOwner));
+        for (String kind : List.of("failed", "rejected", "stale"))
+            state.put(kind, (long) metrics.counter("tinyroute.analytics." + kind).count());
+        state.put(
+                "maxRecordingDelayMillis",
+                (long)
+                        metrics.timer("tinyroute.analytics.recording.delay")
+                                .max(java.util.concurrent.TimeUnit.MILLISECONDS));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(state);
     }
 
     @GetMapping("/timings")

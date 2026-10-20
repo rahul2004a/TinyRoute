@@ -1,6 +1,6 @@
 # Short-link analytics
 
-Status: proposed design; awaiting user review before implementation.
+Status: approved 2026-10-20; implementation in progress. User approval: “ok start”.
 Branch: `feature/short-link-analytics`.
 Baseline: `f75203f` (`main` and `origin/main`, checked 2026-10-20).
 
@@ -33,7 +33,7 @@ traffic normalization, tests, and operating documentation. Creation and manageme
 behavior, visitor identification, unique visitors, sessions, live tracking,
 exports, public analytics, bot exclusion, and V1/Future features are excluded.
 
-## Existing implementation
+## Implementation baseline before this feature
 
 `links.click_count` already exists and `GET /api/links` returns it, but redirects
 currently do not update it. There is no click-event table, analytics service/API,
@@ -277,7 +277,7 @@ Only a labeled table viewport may scroll horizontally; the page must not.
 | State                    | Required behavior                                                                                                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Session loading          | Do not request or reveal analytics until session resolution.                                                                                                                     |
-| Signed out               | Use the existing sign-in flow and preserve the safe analytics return path.                                                                                                       |
+| Signed out               | Use the existing sign-in flow; password sign-in preserves the safe analytics return path. Existing Google OAuth returns to Your links.                                           |
 | Loading / changing range | Label loading accessibly; clear or hide old metrics until the applied range resolves. Never present previous-range values under the new range label.                             |
 | Success                  | Show the response range, all metrics, data tables, and the reporting timestamp.                                                                                                  |
 | Zero activity            | Show a range total of 0, an empty trend message, and no invented breakdown values; retain the actual lifetime total. The daily table contains one row per day with a count of 0. |
@@ -293,7 +293,7 @@ Use `staleTime: 0`, normal refetch-on-mount/focus, and one bounded session refre
 following the existing GET client pattern. Do not layer automatic query retries
 over session recovery; offer explicit Retry instead.
 
-Query keys include authenticated user ID, scope/link ID, and applied range;
+Query keys include the existing session’s normalized account email, scope/link ID, and applied range;
 use AbortSignal for superseded requests. Hide data immediately when session
 access is lost, cancel/remove analytics queries on sign-out/account change,
 and verify that another account cannot see cached data or a late response.
@@ -334,7 +334,12 @@ These criteria remain unchecked until implementation and runtime verification:
 
 ## Review choices
 
-The proposed defaults are UTC calendar dates, a 366-day maximum per query,
+The approved defaults are UTC calendar dates, a 366-day maximum per query,
 excluding deleted links from reports, top-20 dimensions plus Other, and optional
-operator-provisioned local geography. These are explicit reviewable choices;
-none has been implemented or presented as an already approved behavior.
+operator-provisioned local geography. These defaults were approved on 2026-10-20.
+
+Implementation review clarified two details: the existing session exposes email
+rather than user ID, so the cache uses that established account key and checks
+renewal identity before replay; Google OAuth retains its configured Links return
+to avoid expanding this feature into OAuth transaction-routing work. No analytics
+responses or query caches are persisted in browser storage.
