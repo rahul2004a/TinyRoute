@@ -42,6 +42,25 @@ export function LandingHeader({
   const desktop = useRef<HTMLElement>(null);
   const desktopHadFocus = useRef(false);
   const triggerHadFocus = useRef(false);
+  const focusedAccountLink = useRef<{
+    element: HTMLAnchorElement;
+    mobile: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    const focused = focusedAccountLink.current;
+    if (
+      !focused ||
+      focused.element.isConnected ||
+      document.activeElement !== document.body
+    )
+      return;
+
+    focusedAccountLink.current = null;
+    const navigation = focused.mobile ? panel.current : desktop.current;
+    if (focused.mobile && navigation?.hidden) trigger.current?.focus();
+    else navigation?.querySelector<HTMLAnchorElement>("a")?.focus();
+  }, [accountLinks]);
 
   useEffect(() => {
     const media = window.matchMedia(DESKTOP_MEDIA);
@@ -119,6 +138,15 @@ export function LandingHeader({
                   }
                   href={href}
                   key={href}
+                  onFocus={(event) => {
+                    focusedAccountLink.current = {
+                      element: event.currentTarget,
+                      mobile: false,
+                    };
+                  }}
+                  onBlur={() => {
+                    focusedAccountLink.current = null;
+                  }}
                   prefetch={false}
                 >
                   {label}
@@ -166,6 +194,15 @@ export function LandingHeader({
               }
               href={href}
               key={href}
+              onFocus={(event) => {
+                focusedAccountLink.current = {
+                  element: event.currentTarget,
+                  mobile: true,
+                };
+              }}
+              onBlur={() => {
+                focusedAccountLink.current = null;
+              }}
               onClick={(event) => {
                 if (isPlainClick(event)) setOpen(false);
               }}

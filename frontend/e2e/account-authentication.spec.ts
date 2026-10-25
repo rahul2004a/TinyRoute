@@ -163,7 +163,7 @@ for (const path of ["/login", "/register"]) {
       await page.goto("/");
       await page.goto(path);
       await expect(page).toHaveURL(/\/links$/);
-      await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+      await expect(page.getByLabel("Destination URL")).toBeVisible();
       await expect(page.getByLabel("Email address")).toHaveCount(0);
       expect(refreshAttempts).toBe(restoreSession ? 1 : 0);
 

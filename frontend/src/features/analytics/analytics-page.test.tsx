@@ -23,7 +23,62 @@ vi.stubGlobal(
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
+test.each([
+  { rangeQuery: {}, href: "/analytics" },
+  {
+    rangeQuery: { from: "2026-10-01", to: "2026-10-20" },
+    href: "/analytics?from=2026-10-01&to=2026-10-20",
+  },
+])(
+  "404 recovery preserves the reporting range: $href",
+  async ({ rangeQuery, href }) => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.tinyroute.test");
+    vi.mocked(getCurrentSession).mockResolvedValue({
+      authenticated: true,
+      user: { email: "owner@example.com" },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              code: "NOT_FOUND",
+              message: "Private destination: https://private.example.com",
+              requestId: "internal-request-id",
+            },
+          },
+          { status: 404 },
+        ),
+      ),
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={client}>
+        <AnalyticsPage
+          id="86b9f592-c6ec-43e1-aa62-adf606f03c1e"
+          rangeQuery={rangeQuery}
+        />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("heading", { name: "Link not found", level: 1 });
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(
+      screen
+        .getByRole("link", { name: "Back to analytics" })
+        .getAttribute("href"),
+    ).toBe(href);
+    expect(screen.getByText("404").getAttribute("aria-hidden")).toBe("true");
+    expect(
+      screen.queryByText(/private\.example\.com|internal-request-id/),
+    ).toBeNull();
+  },
+);
 test("renewal to a different account removes the old report key before rendering the new scope", async () => {
   vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.tinyroute.test");
   vi.mocked(getCurrentSession).mockResolvedValue({

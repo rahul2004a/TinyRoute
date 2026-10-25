@@ -62,14 +62,14 @@ test("real signed-in creation, clipboard, anonymous state/expiry, and account de
     await page.getByRole("button", { name: "Verify email" }).click();
     await expect(page).toHaveURL(/\/settings$/);
     await page.goto("/links");
-    await page.getByLabel("HTTPS destination").fill(destination);
+    await page.getByLabel("Destination URL").fill(destination);
     await page.getByLabel("Custom alias (optional)").fill(alias);
     const creation = page.waitForResponse(
       (response) =>
         response.url().endsWith("/api/links") &&
         response.request().method() === "POST",
     );
-    await page.getByRole("button", { name: "Create short link" }).click();
+    await page.getByRole("button", { name: "Shorten link" }).click();
     const created = await creation;
     expect(created.status()).toBe(201);
     const link = (await created.json()) as {
@@ -101,9 +101,9 @@ test("real signed-in creation, clipboard, anonymous state/expiry, and account de
     await expect(
       savedHistory.getByRole("link", { name: link.shortUrl, exact: true }),
     ).toBeVisible();
-    await page.getByLabel("HTTPS destination").fill(destination);
+    await page.getByLabel("Destination URL").fill(destination);
     await page.getByLabel("Custom alias (optional)").fill(alias);
-    await page.getByRole("button", { name: "Create short link" }).click();
+    await page.getByRole("button", { name: "Shorten link" }).click();
     await expect(page.locator("main").getByRole("alert")).toContainText(
       "different custom alias",
     );
@@ -144,7 +144,7 @@ test("real signed-in creation, clipboard, anonymous state/expiry, and account de
       (response) =>
         response.url().endsWith("/api/links") && response.status() === 201,
     );
-    await page.getByRole("button", { name: "Create short link" }).click();
+    await page.getByRole("button", { name: "Shorten link" }).click();
     const deletionLink = (await (await deletionCreation).json()) as {
       shortUrl: string;
     };

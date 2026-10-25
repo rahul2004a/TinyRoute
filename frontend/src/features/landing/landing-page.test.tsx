@@ -5,6 +5,9 @@ import HomePage from "../../app/page";
 import { Providers } from "../../app/providers";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("../auth/use-session", () => ({
+  useSession: () => ({ data: { authenticated: false } }),
+}));
 beforeEach(() => {
   vi.stubGlobal(
     "IntersectionObserver",
@@ -37,9 +40,7 @@ function setup() {
 }
 
 describe("public landing page", () => {
-  it("explains the product with one H1, all sections and no session request", () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+  it("explains the product with one H1 and all sections", () => {
     setup();
     expect(
       screen.getByRole("heading", {
@@ -66,7 +67,6 @@ describe("public landing page", () => {
         screen.getByRole("list", { name: "Steps to your first short link" }),
       ).getAllByRole("listitem"),
     ).toHaveLength(3);
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("distinguishes planned capabilities next to their headings", () => {

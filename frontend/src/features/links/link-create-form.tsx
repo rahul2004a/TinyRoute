@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ApiClientError } from "../../lib/api-client";
 import { clearCsrfToken } from "../../lib/csrf";
+import { AccountAccessState } from "../auth/account-access-state";
 import { sessionQueryKey, useSession } from "../auth/use-session";
 import { createLink, linkHistoryQueryKey, type CreatedLink } from "./link-api";
 import {
@@ -117,40 +117,31 @@ export function LinkCreateForm() {
     );
   if (!session.data?.authenticated)
     return (
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Create a short link
-        </h1>
-        <p className="mt-3">
-          Sign in to turn an HTTPS destination into a short link.
-        </p>
-        <Link
-          href="/login"
-          className="link-action mt-6 inline-flex items-center justify-center"
-        >
-          Sign in
-        </Link>
-      </div>
+      <AccountAccessState
+        title="Create a short link"
+        description="Sign in to create and manage your short links."
+        signInHref="/login"
+      />
     );
   const fields = [
     {
       name: "destinationUrl",
-      label: "HTTPS destination",
-      helper: "Keep the full path, query, and fragment.",
+      label: "Destination URL",
+      helper: "Paste the full HTTPS link you want to shorten.",
       type: "url",
-      placeholder: "https://example.com/docs?q=java#setup",
+      placeholder: "https://example.com/your-page",
     },
     {
       name: "alias",
       label: "Custom alias (optional)",
-      helper: "3–64 letters, numbers, hyphens, or underscores. Case matters.",
+      helper: "3–64 letters, numbers, hyphens, or underscores. Case-sensitive.",
       type: "text",
-      placeholder: "e.g. Docs2026",
+      placeholder: "e.g. my-project",
     },
     {
       name: "expiryLocal",
-      label: "Expiry (optional)",
-      helper: "Your local date and time. Leave empty for no expiry.",
+      label: "Expires on (optional)",
+      helper: "Uses your local time. Leave blank for no expiration.",
       type: "datetime-local",
       placeholder: undefined,
     },
@@ -164,7 +155,7 @@ export function LinkCreateForm() {
         Create a short link
       </h1>
       <p className="mt-3 max-w-prose text-(--ink-muted)">
-        An HTTPS destination, ready to share in one click.
+        Turn a long URL into a link you can share.
       </p>
       <form
         noValidate
@@ -223,7 +214,7 @@ export function LinkCreateForm() {
             ? "Creating…"
             : recovering
               ? "Checking session…"
-              : "Create short link"}
+              : "Shorten link"}
         </button>
       </form>
       {lastResult ? (

@@ -188,6 +188,13 @@ days. Recharts requires direct labels, reachable tooltips, accessible summaries,
 Label data as delayed by up to one minute; never expose raw tracking inputs
 (FR-ANA-01 through FR-ANA-04, NFR-CON-03, NFR-PRV-02, NFR-PRV-03).
 
+An individual analytics report that returns 404 uses an intentional status/message
+composition centered within the existing workspace's main region. Pair a large
+decorative 404 with Link not found, generic guidance, and one primary Back to
+analytics action, preserving the selected reporting range. Stack the layout on
+mobile. Keep the sidebar, drawer, skip link, theme, and privacy boundaries; add
+no second wordmark, nested card, or guessed link details.
+
 Approved individual-link map extension (2026-10-20): place a
 full-width country map below all six traffic breakdowns, using the existing
 semantic palette and no animated movement. Provide a labeled intensity legend, country/count
@@ -208,6 +215,17 @@ and case-mismatched codes share a generic not-found treatment. Disabled links
 show "Link unavailable" without owner or destination details. Uncertain state
 shows a generic service error with no fallback destination
 (FR-RED-03 through FR-RED-07, NFR-REL-02).
+
+Public redirect error documents use the compact filled Link2 wordmark at the
+top and a large, decorative monospace HTTP status beside the heading, short
+guidance, and a Back to TinyRoute action. A thin vertical rule separates the
+status and message on desktop; below 768px they stack with a horizontal rule.
+Below 480px the action fills the available width. Both brand and action link
+to the first validated configured frontend origin, never the short-link host.
+These independent Spring-rendered documents use the system sans/mono fallback
+without remote font or asset requests. Follow the system theme preference,
+retain clear keyboard focus and reduced-motion support, and mark errors
+noindex,nofollow. See [the active polish spec](docs/spec/ui-polish/spec.md).
 
 ## 5. Layout principles
 
@@ -280,13 +298,20 @@ mobile/tablet and 80px on desktop. Use a compact filled icon beside the wordmark
 Its navigation contains account actions only; section links remain in the
 footer, as explicitly requested by the user.
 
+The landing header reflects the existing Spring-backed session result:
+confirmed guests see Sign in and Get started; signed-in users see Your links
+and Account settings on desktop and mobile. While a session is unconfirmed,
+use a neutral Your links entry to avoid flashing guest controls. Keep public
+marketing content visible during session failures. This scoped header
+amendment does not change the hero, closing CTA, or footer links.
+
 The `/links` page reuses this header and footer, with Your links and Account
 settings navigation and one inline theme toggle. Keep the create form's existing
 typography and width separate from the landing-page text styles.
 
 The `/settings` page follows the user's full-height settings reference: no site
 header, footer, or outer frame. A 224px desktop sidebar stays at the left edge
-and contains branding, Back to home, Dashboard (the existing `/links` workspace),
+and contains branding, Back to home, Your links (the existing `/links` workspace),
 active Account settings, an inline theme control, and the actual account email.
 Center the content in the remaining space
 at a 760px maximum width. Below 1024px a compact menu button opens the sidebar as
@@ -297,6 +322,16 @@ Derive subtle surfaces and secondary text from the semantic palette with
 color-mix; retain accessible contrast in both themes. Account initials come from
 the session email, never an invented profile. Keep deletion confirmation inline,
 including focus management and safe errors.
+
+Confirmed signed-out settings, analytics, and links views share a calm account
+access panel: one decorative icon, page-specific H1 and guidance, and a primary
+Sign in action. Center it in the available main area; on the links page, keep
+the marketing footer after the first viewport for this state. Use one border,
+a subtle semantic surface, and 12px corners. Keep natural scrolling and visible
+keyboard focus on narrow/short screens. Callers retain all session checks and
+existing sign-in targets; signed-in, pending, error, and deletion-success states
+remain separate. The `/links` navigation label is always Your links, including
+both workspace sidebars and mobile drawers.
 
 The landing footer follows the user's spacious reference: a top divider, brand
 and copyright at the left, Pages and Account columns at the right, and an
