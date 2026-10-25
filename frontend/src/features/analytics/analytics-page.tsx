@@ -103,13 +103,29 @@ export function AnalyticsPage({
     );
   if (error?.status === 404)
     return (
-      <div className="analytics-state">
-        <h1 className="settings-title">Link not found</h1>
-        <p>This link is unavailable.</p>
-        <Link className="settings-button" href={`/analytics${suffix}`}>
-          Back to analytics
-        </Link>
-      </div>
+      <section
+        className="analytics-not-found"
+        aria-labelledby="not-found-title"
+      >
+        <p className="analytics-not-found-status" aria-hidden="true">
+          404
+        </p>
+        <div className="analytics-not-found-message">
+          <h1 className="settings-title" id="not-found-title">
+            Link not found
+          </h1>
+          <p>
+            This link is unavailable. Return to analytics to view your links.
+          </p>
+          <Link
+            className="settings-button settings-button-primary"
+            href={`/analytics${suffix}`}
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+            Back to analytics
+          </Link>
+        </div>
+      </section>
     );
   return (
     <div className="analytics-content">

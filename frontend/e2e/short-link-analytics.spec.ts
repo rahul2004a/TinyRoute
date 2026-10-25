@@ -337,6 +337,94 @@ test("validation, no activity, failure/retry, generic 404, and expired session s
   await expect(page.locator(".analytics-total").first()).toHaveCount(0);
 });
 
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [320, 768, 1024, 1440]) {
+    test(`analytics missing-link ${theme} at ${width}px preserves recovery and keyboard access`, async ({
+      page,
+    }) => {
+      await fixture(page);
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.addInitScript(
+        (value) => localStorage.setItem("tinyroute-color-theme", value),
+        theme,
+      );
+      const suffix = "?from=2026-10-01&to=2026-10-20";
+      await page.goto(`/analytics/missing${suffix}`);
+      const main = page.getByRole("main");
+      const heading = main.getByRole("heading", {
+        name: "Link not found",
+        level: 1,
+      });
+      const back = main.getByRole("link", { name: "Back to analytics" });
+      await expect(heading).toBeVisible();
+      await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(main.getByText("404", { exact: true })).toHaveAttribute(
+        "aria-hidden",
+        "true",
+      );
+      await expect(back).toHaveAttribute("href", `/analytics${suffix}`);
+      await expect(main).not.toContainText(saved.shortUrl);
+      await expect(main).not.toContainText(saved.destinationUrl);
+      await expect(main).not.toContainText("analytics@example.com");
+      await expect(main.getByRole("table")).toHaveCount(0);
+      const size = await back.boundingBox();
+      expect(size!.width).toBeGreaterThanOrEqual(44);
+      expect(size!.height).toBeGreaterThanOrEqual(44);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+      ).toBe(false);
+      await page.getByRole("link", { name: "Skip to content" }).focus();
+      await page.keyboard.press("Enter");
+      await expect(main).toBeFocused();
+      await page.keyboard.press("Tab");
+      await expect(back).toBeFocused();
+      expect(
+        await back.evaluate(
+          (element) => getComputedStyle(element).outlineStyle,
+        ),
+      ).not.toBe("none");
+      const directory = resolve("../docs/spec/ui-polish/evidence");
+      await mkdir(directory, { recursive: true });
+      await heading.click();
+      await page.screenshot({
+        path: resolve(directory, `analytics-not-found-${width}-${theme}.png`),
+        fullPage: true,
+        animations: "disabled",
+        style: "nextjs-portal { display: none !important; }",
+      });
+      if (width < 1024) {
+        const trigger = page.getByRole("button", {
+          name: "Open analytics navigation",
+        });
+        await trigger.click();
+        await expect(page.getByRole("dialog")).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(trigger).toBeFocused();
+      }
+      if (width === 320) {
+        await page.setViewportSize({ width, height: 480 });
+        await back.scrollIntoViewIfNeeded();
+        const shortScreenAction = await back.boundingBox();
+        expect(shortScreenAction!.y).toBeGreaterThanOrEqual(0);
+        expect(
+          shortScreenAction!.y + shortScreenAction!.height,
+        ).toBeLessThanOrEqual(480);
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+          ),
+        ).toBe(false);
+      }
+      await back.click();
+      await expect(page).toHaveURL(`/analytics${suffix}`);
+      await expect(page.locator(".analytics-total").first()).toHaveText("26");
+    });
+  }
+}
+
 for (const theme of ["light", "dark"] as const)
   for (const width of [320, 768, 1024, 1440]) {
     test(`analytics ${theme} at ${width}px has accessible data and no page overflow`, async ({

@@ -91,3 +91,33 @@ local-time conversion, submission behavior, and result handling do not change.
 
 Update existing accessible-name selectors to match these labels and action.
 Use the existing form and browser regressions; no new behavior or tests needed.
+
+## Analytics link not found
+
+The user requested a redesign of the authenticated analytics 404 state on
+2026-10-25 and explicitly authorized parallel-agent implementation. The current
+heading, paragraph, and outlined action sit at the top of a mostly empty
+workspace. Replace that arrangement with an intentional error composition
+within the existing account sidebar/main shell.
+
+- Keep one H1, Link not found, with a prominent decorative 404 and short,
+  generic guidance. Use the same restrained status/message language as the
+  public error-page redesign without adding another wordmark or page shell.
+- Center the composition vertically in the available content region. Use a
+  balanced desktop arrangement and a readable stacked mobile layout. Preserve
+  scrolling on short screens; avoid fixed heights, clipping, and overflow.
+- Make Back to analytics the single primary action with an ArrowLeft icon.
+  Preserve its existing `/analytics` target and reporting-range query suffix.
+- Retain the account sidebar, current navigation, theme, skip link, and mobile
+  drawer. Scope styling to this 404 state; other analytics states and reports
+  remain unchanged.
+- Use semantic palette variables, existing fonts, Lucide React, visible focus,
+  44px targets, and existing reduced-motion behavior. Add no dependency, remote
+  asset, user-specific metadata, automatic navigation, or guessed recovery URL.
+- Missing and non-owned resources retain identical backend-driven treatment
+  (FR-MGT-02, NFR-SEC-04). Disclose no previous destination, owner, raw errors,
+  or internal IDs (NFR-SEC-08). Preserve session checks, API behavior, and
+  failure/retry handling.
+
+Verify the existing privacy and session regressions, the preserved range in
+the recovery action, and light/dark layouts at 320, 768, 1024, and 1440px.

@@ -188,6 +188,13 @@ days. Recharts requires direct labels, reachable tooltips, accessible summaries,
 Label data as delayed by up to one minute; never expose raw tracking inputs
 (FR-ANA-01 through FR-ANA-04, NFR-CON-03, NFR-PRV-02, NFR-PRV-03).
 
+An individual analytics report that returns 404 uses an intentional status/message
+composition centered within the existing workspace's main region. Pair a large
+decorative 404 with Link not found, generic guidance, and one primary Back to
+analytics action, preserving the selected reporting range. Stack the layout on
+mobile. Keep the sidebar, drawer, skip link, theme, and privacy boundaries; add
+no second wordmark, nested card, or guessed link details.
+
 Approved individual-link map extension (2026-10-20): place a
 full-width country map below all six traffic breakdowns, using the existing
 semantic palette and no animated movement. Provide a labeled intensity legend, country/count

@@ -15,7 +15,11 @@
 - [x] Apply the approved creation-form labels, helper text, placeholders, and action.
 - [x] Update existing test selectors and verify the copy-only follow-up.
 - [x] Record verification and commit the creation-form copy separately.
+- [x] Delegate the analytics 404 presentation update on the existing branch.
+- [x] Verify analytics 404 privacy, recovery range, and existing session states.
+- [x] Inspect responsive light/dark layouts and run frontend checks/build.
+- [x] Review the delegated change, record evidence, and commit separately.
 
 Keep this batch active for additional changes from the user. The active
-follow-up applies the approved creation-form copy. Archive these files when
-the batch is ready for a pull request.
+follow-up improves the authenticated analytics not-found state. Archive these
+files when the batch is ready for a pull request.

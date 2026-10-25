@@ -128,3 +128,51 @@ Browser command, using the existing local development server's API origin:
 ```sh
 TINYROUTE_E2E_API_BASE_URL=https://localhost:3000 pnpm exec playwright test e2e/link-creation.spec.ts --grep 'links page shares|keyboard creation|signed-out and unknown|creation .* retains' --reporter=line
 ```
+
+## Analytics link not found
+
+The user explicitly requested parallel-agent implementation. A delegated
+implementer updated only the analytics page's 404 markup, scoped styles, and
+focused component regressions while root handled docs and browser QA. The
+error now has a decorative monospace 404 beside a concise message and primary
+recovery action, centered within the existing account workspace. Below 768px
+the composition stacks; below 480px the action fills the available width.
+
+The original range-aware recovery href, backend-driven generic response,
+session handling, sidebar/drawer, and all other analytics states remain intact
+(FR-MGT-02, NFR-SEC-04, NFR-SEC-08). No data provider footer text was changed;
+the user's subsequent attribution question was answered separately.
+
+Checks on 2026-10-25:
+
+- Delegated focused tests: 3 files, 8 tests passed, including missing-report
+  recovery with/without a date range, no disclosure of sensitive API messages,
+  and account-renewal scope isolation.
+- `pnpm test --run`: 27 files, all 141 tests passed.
+- `pnpm lint`, `pnpm typecheck`, `pnpm format:check`: passed.
+- `pnpm build`: production webpack build passed.
+- Nine Playwright cases passed: light/dark 404 layouts at 320, 768, 1024,
+  and 1440px plus the existing validation, empty activity, retry, generic 404,
+  and expired-session regression. Checks cover one H1, hidden decorative
+  status, non-disclosure, no report tables, 44px recovery targets, no page
+  overflow, skip-link/keyboard focus, mobile drawer dismissal/focus return,
+  preserved reporting dates, and successful recovery. At 320×480 the action
+  stays reachable through natural scrolling.
+- Inspected representative desktop, tablet, and mobile captures across both
+  themes. The account shell stays in place, content has an intentional visual
+  center, and the message/action remain readable.
+- Independent task review: spec compliance passed and code quality passed,
+  with no findings.
+- `git diff --check`: passed.
+
+Browser command:
+
+```sh
+pnpm exec playwright test e2e/short-link-analytics.spec.ts --grep 'analytics missing-link|validation, no activity' --reporter=line
+```
+
+Tests use intercepted API fixtures and synthetic accounts, with no real account
+changes. Evidence: [desktop dark](evidence/analytics-not-found-1440-dark.png),
+[desktop light](evidence/analytics-not-found-1440-light.png),
+[mobile dark](evidence/analytics-not-found-320-dark.png), and
+[mobile light](evidence/analytics-not-found-320-light.png).

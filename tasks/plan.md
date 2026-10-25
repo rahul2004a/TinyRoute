@@ -24,3 +24,24 @@ Branch: `fix/ui-polish`; keep subsequent user-supplied fixes on this branch.
 7. Apply the user-approved plain-language creation-form copy and update
    affected accessible-name test selectors. Verify existing form/browser
    regressions and frontend checks, then commit this copy-only follow-up.
+
+### Task 8: Analytics not-found presentation
+
+Implement [the analytics 404 amendment](../docs/spec/ui-polish/spec.md#analytics-link-not-found)
+on the existing `fix/ui-polish` branch. The user explicitly requested parallel
+agent work. Root coordinates docs/browser validation; one delegated agent
+owns `frontend/src/features/analytics/analytics-page.tsx`, `analytics.css`,
+and the existing `analytics-page.test.tsx` if meaningful regression coverage
+needs extending. Do not edit shared settings CSS or other files without
+coordinating with root. Do not create branches, commit, push, or delegate again.
+
+- Read root/frontend AGENTS, DESIGN.md, the linked amendment, current
+  analytics layout/state/styles, and relevant FR-MGT-02/NFR-SEC-04/08 guidance.
+- Replace only the 404 presentation with a vertically composed desktop/mobile
+  status/message layout and one primary Back to analytics action. Keep Link
+  not found as the H1 and preserve the existing range-aware href. Use existing
+  semantic colors, fonts, and Lucide. Keep the account shell and other states.
+- Run focused meaningful existing tests and inspect the diff. Root runs browser
+  checks, responsive/theme QA, production build, independent review, and commit.
+- Report changed files, exact checks/results, and concerns. Implement inline
+  within the assigned files; leave the working tree ready for root review.
