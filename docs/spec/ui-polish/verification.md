@@ -50,3 +50,51 @@ Evidence: [browser results](evidence/browser-results.json),
 
 The batch stays on `fix/ui-polish` for the user's next changes. Active task
 files remain in `tasks/` until the combined batch is ready for a pull request.
+
+## Session-aware landing header
+
+The error-page redesign was committed as `cc297a4` before this follow-up,
+as requested by the user. The landing page now uses a client wrapper around
+the existing shared header and reads `useSession`. Confirmed signed-in users
+see Your links and Account settings in desktop and mobile navigation;
+confirmed guests see the existing guest links. Unknown sessions retain a
+neutral Your links entry, and background failures preserve known navigation.
+Hero, closing CTA, footer, authentication policy, and redirect policy remain
+unchanged. The archived landing specification explicitly points to this
+user-requested header amendment.
+
+Checks on 2026-10-25:
+
+- `pnpm test --run`: all 27 files and 139 tests passed. The new component
+  tests cover fresh/cached authentication, confirmed guests, pending checks,
+  unavailable sessions, background failures, and live sign-out cache updates.
+- 25 selected Playwright session, header, account-navigation, theme, and
+  keyboard regressions passed. The run covered refresh-restored sessions,
+  an unavailable backend, cached signed-in navigation, desktop/mobile layouts
+  at 1440/320px in both themes, and reloads. Existing account routes, menu
+  disclosure, modified clicks, skip-link focus, breakpoint focus transfers,
+  and theme persistence also passed.
+- Review found that replacing a focused neutral link could drop focus to the
+  document body. Added desktop/mobile deferred-session regressions that failed
+  before the fix and passed afterward. The header now hands focus to the
+  replacement entry only when the old focused anchor was removed and focus
+  fell to the body. A separate regression confirms it does not move focus
+  away from another control. Final independent review: no findings.
+- `pnpm lint`, `pnpm typecheck`, and `pnpm format:check`: passed.
+- `pnpm build`: production webpack build passed after the focus correction.
+- `git diff --check`: passed.
+
+Browser command:
+
+```sh
+pnpm exec playwright test e2e/landing-page.spec.ts --grep 'public landing content|session handling|cached authentication|signed-in header|refresh-restored session|opens|preserve keyboard focus|desktop resize|focused Menu|modified account|one header toggle' --reporter=line
+```
+
+Browser tests intercept session APIs with synthetic accounts; they do not
+modify real accounts. The existing cached-session test's stale empty-list
+wording was updated to match the current No links yet state.
+
+Reviewed header captures: [desktop dark](evidence/signed-in-header-1440-dark.png),
+[desktop light](evidence/signed-in-header-1440-light.png),
+[mobile dark](evidence/signed-in-header-320-dark.png), and
+[mobile light](evidence/signed-in-header-320-light.png).

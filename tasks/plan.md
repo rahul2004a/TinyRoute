@@ -14,3 +14,10 @@ Branch: `fix/ui-polish`; keep subsequent user-supplied fixes on this branch.
 4. Record verification and review the diff. Keep the batch active for the
    user's next changes; archive plan/checklist before making the combined PR
    ready, once all requested changes have been completed.
+5. Add a session-aware landing-header wrapper using the existing `useSession`
+   query. Replace guest navigation for signed-in users on desktop and mobile;
+   retain a neutral links entry while the session is unknown. Preserve the
+   presentational shared header and explicit account-page navigation.
+6. Verify header state transitions with component and browser tests, run
+   frontend checks/build, and record evidence. The error-page redesign was
+   committed separately as `cc297a4` before this follow-up began.

@@ -42,3 +42,30 @@ the visitor explicitly follows a link. Mark error documents noindex,nofollow.
 - Reduced motion disables entrance and interaction animation.
 - Existing redirect contracts, including confidentiality, HEAD, throttling,
   outages, and no automatic redirects, still pass.
+
+## Session-aware landing header
+
+Follow-up requested on 2026-10-25: an already signed-in user must not see
+Sign in in the landing header. Render existing shared session-query results
+using a small client wrapper around the presentational `LandingHeader`.
+This extends FR-ACC-02/03 and retains Spring-owned authentication and the
+existing refresh/cookie behavior (NFR-SEC-06).
+
+- Confirmed signed-in session: Your links (`/links`) and Account settings
+  (`/settings`) replace both guest header links.
+- Confirmed signed-out session: Sign in and Get started retain their routes.
+- Unconfirmed/loading session: show a neutral Your links entry, without
+  flashing guest links before a signed-in result arrives. Unknown session
+  errors use that same entry; public marketing content remains readable.
+- Keep previously confirmed navigation during a background check or outage.
+  React to successful sign-in/out cache changes through `useSession`.
+- Apply the same links to desktop and mobile navigation. Preserve existing
+  disclosure, focus, theme, and explicit account-page navigation behavior.
+- Limit this follow-up to header navigation. Hero, closing CTA, and footer
+  account links remain as they are. No authorization or redirect-policy change.
+
+This user-requested amendment supersedes the archived landing specification's
+no-session-request/fixed-header requirements for the header only. Reuse the
+existing bounded session query; add no cookie parsing, auth storage, polling,
+or new API. Verify fresh and cached signed-in sessions, sign-out changes,
+pending/error states, mobile and desktop, and the production frontend build.

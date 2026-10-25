@@ -10,8 +10,8 @@ import Link from "next/link";
 
 import TypewriterEffectSmoothDemo from "../../components/typewriter-effect-demo-1";
 import { LandingBrand } from "./landing-brand";
-import { LandingHeader } from "./landing-header";
 import { LandingHeroBackground } from "./landing-hero-background";
+import { LandingSessionHeader } from "./landing-session-header";
 import {
   LANDING_ACCOUNT_LINKS,
   LANDING_SECTION_LINKS,
@@ -33,7 +33,7 @@ function AccountActions() {
 export function LandingPage() {
   return (
     <div className="landing-page">
-      <LandingHeader />
+      <LandingSessionHeader />
       <main id="main-content" tabIndex={-1}>
         <section aria-labelledby="landing-title" className="landing-hero">
           <div className="landing-hero-content landing-container">

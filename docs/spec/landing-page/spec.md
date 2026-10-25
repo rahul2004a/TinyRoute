@@ -1,5 +1,10 @@
 # Landing page
 
+> Header amendment, 2026-10-25: [the UI polish specification](../ui-polish/spec.md#session-aware-landing-header)
+> supersedes this archived specification's no-session-request and fixed guest
+> navigation requirements for the landing header. Other marketing content
+> and account flows retain their existing behavior.
+
 - Feature: `landing-page`.
 - Classification: full specification workflow for the public marketing page,
   extending the existing home route and shared theme-control presentation.

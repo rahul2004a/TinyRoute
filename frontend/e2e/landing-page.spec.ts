@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
-test("public landing page survives an unavailable backend without a session request", async ({
+test("public landing content survives an unavailable session check", async ({
   page,
 }) => {
   const requests: string[] = [];
@@ -15,11 +15,18 @@ test("public landing page survives an unavailable backend without a session requ
     page.getByRole("heading", { level: 1, name: "Short links. Your control." }),
   ).toBeVisible();
   await page.getByRole("contentinfo").scrollIntoViewIfNeeded();
-  await expect(page.getByRole("link", { name: "Your links" })).toHaveAttribute(
-    "href",
-    "/links",
-  );
-  expect(requests).toEqual([]);
+  await expect(
+    page.getByRole("contentinfo").getByRole("link", { name: "Your links" }),
+  ).toHaveAttribute("href", "/links");
+  await expect.poll(() => requests.length).toBeGreaterThan(0);
+  expect(
+    requests.every((url) => new URL(url).pathname === "/api/auth/me"),
+  ).toBe(true);
+  await expect(
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
 });
 
 const viewports = [
@@ -31,10 +38,11 @@ const viewports = [
 
 async function sessionFixture(
   page: import("@playwright/test").Page,
-  state: "in" | "out" | "unavailable",
+  state: "in" | "out" | "unavailable" | "restored",
 ) {
   const requests: string[] = [];
-  await page.route("https://localhost:8443/api/**", async (route) => {
+  let restored = false;
+  await page.route("**/api/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     const headers = {
@@ -68,26 +76,31 @@ async function sessionFixture(
     }
     if (!path.endsWith("/me") && !path.endsWith("/refresh"))
       throw new Error(`Unexpected application request: ${path}`);
+    if (state === "restored" && path.endsWith("/refresh")) restored = true;
+    const authenticated = state === "in" || (state === "restored" && restored);
     await route.fulfill({
-      status: state === "in" ? 200 : state === "out" ? 401 : 503,
+      status: authenticated ? 200 : state === "unavailable" ? 503 : 401,
       headers,
-      json:
-        state === "in"
-          ? { authenticated: true, user: { email: "fixture@example.com" } }
-          : {
-              error: {
-                code:
-                  state === "out"
-                    ? "AUTHENTICATION_FAILED"
-                    : "SESSION_UNAVAILABLE",
-                message: "Safe fixture message",
-                requestId: "fixture",
-              },
+      json: authenticated
+        ? { authenticated: true, user: { email: "fixture@example.com" } }
+        : {
+            error: {
+              code:
+                state === "unavailable"
+                  ? "SESSION_UNAVAILABLE"
+                  : "AUTHENTICATION_FAILED",
+              message: "Safe fixture message",
+              requestId: "fixture",
             },
+          },
     });
   });
   return requests;
 }
+
+test.beforeEach(async ({ page }) => {
+  await sessionFixture(page, "out");
+});
 
 for (const state of ["in", "out", "unavailable"] as const) {
   test(`Your links keeps existing ${state} session handling`, async ({
@@ -95,8 +108,27 @@ for (const state of ["in", "out", "unavailable"] as const) {
   }) => {
     const requests = await sessionFixture(page, state);
     await page.goto("/");
-    expect(requests).toEqual([]);
-    await page.getByRole("link", { name: "Your links" }).click();
+    await expect.poll(() => requests).toContain("GET /api/auth/me");
+    const header = page.getByRole("banner");
+    if (state === "in") {
+      await expect(
+        header.getByRole("link", { name: "Account settings" }),
+      ).toBeVisible();
+      await expect(
+        header.getByRole("link", { name: "Sign in", exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        header.getByRole("link", { name: "Get started" }),
+      ).toHaveCount(0);
+    } else if (state === "out") {
+      await expect(
+        header.getByRole("link", { name: "Sign in", exact: true }),
+      ).toBeVisible();
+    }
+    await page
+      .getByRole("contentinfo")
+      .getByRole("link", { name: "Your links" })
+      .click();
     await expect(page).toHaveURL(/\/links$/);
     if (state === "in")
       await expect(page.getByLabel("HTTPS destination")).toBeVisible();
@@ -120,13 +152,13 @@ for (const state of ["in", "out", "unavailable"] as const) {
   });
 }
 
-test("cached authentication never changes the landing navigation when the backend goes down", async ({
+test("cached authentication keeps signed-in header navigation when the backend goes down", async ({
   page,
 }) => {
   const requests = await sessionFixture(page, "in");
   await page.goto("/links");
   await expect(page.getByLabel("HTTPS destination")).toBeVisible();
-  await expect(page.getByText("No saved links on this page.")).toBeVisible();
+  await expect(page.getByText("No links yet.", { exact: false })).toBeVisible();
   await page.unrouteAll();
   const unexpected: string[] = [];
   await page.route("**/api/**", async (route) => {
@@ -143,6 +175,14 @@ test("cached authentication never changes the landing navigation when the backen
   await expect(page.getByText("fixture@example.com")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /sign out/i })).toHaveCount(0);
   await expect(
+    page.getByRole("banner").getByRole("link", { name: "Account settings" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("banner")
+      .getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await expect(
     page
       .locator(".landing-hero")
       .getByRole("link", { name: "Sign in", exact: true }),
@@ -150,6 +190,75 @@ test("cached authentication never changes the landing navigation when the backen
   expect(requests).toContain("GET /api/auth/me");
   expect(unexpected).toEqual([]);
 });
+
+test("refresh-restored session replaces guest header links", async ({
+  page,
+}) => {
+  const requests = await sessionFixture(page, "restored");
+  await page.goto("/");
+  const header = page.getByRole("banner");
+  await expect(
+    header.getByRole("link", { name: "Account settings" }),
+  ).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await expect(header.getByRole("link", { name: "Get started" })).toHaveCount(
+    0,
+  );
+  expect(requests).toContain("POST /api/auth/refresh");
+});
+
+for (const width of [320, 1440]) {
+  for (const theme of ["dark", "light"]) {
+    test(`signed-in header replaces guest links at ${width}px in ${theme} mode and after reload`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript(
+        (value) => localStorage.setItem("tinyroute-color-theme", value),
+        theme,
+      );
+      await sessionFixture(page, "in");
+      for (const reload of [false, true]) {
+        if (reload) await page.reload();
+        else await page.goto("/");
+        if (width < 1024)
+          await page.getByRole("button", { name: "Menu", exact: true }).click();
+        const nav = page.getByRole("navigation", {
+          name: width < 1024 ? "Mobile navigation" : "Primary navigation",
+          exact: true,
+        });
+        await expect(
+          nav.getByRole("link", { name: "Account settings" }),
+        ).toHaveAttribute("href", "/settings");
+        await expect(
+          nav.getByRole("link", { name: "Your links" }),
+        ).toHaveAttribute("href", "/links");
+        await expect(
+          nav.getByRole("link", { name: "Sign in", exact: true }),
+        ).toHaveCount(0);
+        await expect(
+          nav.getByRole("link", { name: "Get started" }),
+        ).toHaveCount(0);
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+          ),
+        ).toBe(false);
+        if (!reload) {
+          const folder = resolve("../docs/spec/ui-polish/evidence");
+          await mkdir(folder, { recursive: true });
+          await page.getByRole("banner").screenshot({
+            path: resolve(folder, `signed-in-header-${width}-${theme}.png`),
+            animations: "disabled",
+            style: "nextjs-portal { display: none !important; }",
+          });
+        }
+      }
+    });
+  }
+}
 
 for (const region of [
   "Primary navigation",
