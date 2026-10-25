@@ -1,0 +1,95 @@
+.settings-page .settings-main:has(> .account-access-state),
+.links-main:has(> .account-access-state) {
+  display: grid;
+  place-items: center;
+}
+
+.links-main:has(> .account-access-state) {
+  min-height: calc(100dvh - 64px);
+}
+
+.account-access-state {
+  display: flex;
+  width: 100%;
+  max-width: 560px;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  border: 1px solid color-mix(in srgb, var(--border) 40%, var(--canvas));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 3%, var(--canvas));
+  text-align: center;
+}
+
+.account-access-icon {
+  flex-shrink: 0;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+
+.account-access-state h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.account-access-state p {
+  max-width: 40ch;
+  margin-top: 16px;
+  color: color-mix(in srgb, var(--ink) 72%, var(--canvas));
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.account-access-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.account-access-action:hover {
+  background: var(--primary-hover);
+}
+
+.account-access-action:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.account-access-action:active {
+  transform: translateY(1px);
+}
+
+@media (min-width: 1024px) {
+  .links-main:has(> .account-access-state) {
+    min-height: calc(100dvh - 80px);
+  }
+}
+
+@media (max-width: 479px) {
+  .account-access-state {
+    padding: 32px 24px;
+  }
+
+  .account-access-action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-access-action:active {
+    transform: none;
+  }
+}

@@ -176,3 +176,52 @@ changes. Evidence: [desktop dark](evidence/analytics-not-found-1440-dark.png),
 [desktop light](evidence/analytics-not-found-1440-light.png),
 [mobile dark](evidence/analytics-not-found-320-dark.png), and
 [mobile light](evidence/analytics-not-found-320-light.png).
+
+## Signed-out workspace screens and navigation naming
+
+Replaced three separate signed-out layouts with a shared presentational
+`AccountAccessState` panel in settings, analytics, and links. It provides one
+heading, a decorative lock icon, concise guidance, and one primary Sign in
+action. Its own classes scope the card styling and main centering to this state.
+The guest links main now fills the first viewport beneath the existing header,
+with the marketing footer following it. Signed-in layouts, pending/errors,
+account deletion success, and analytics 404 keep their prior behavior.
+
+Settings used a conditional label that called the same `/links` destination
+Dashboard on settings and Your links on analytics. The shared sidebar content
+now consistently uses Your links on desktop and in mobile drawers. Updated the
+design guidance to match the user's correction.
+
+Checks on 2026-10-25:
+
+- Delegated focused tests: 3 files, 23 tests passed.
+- `pnpm test --run`: all 27 files and 141 tests passed.
+- `pnpm lint`, `pnpm typecheck`, `pnpm format:check`: passed.
+- `pnpm build`: production webpack build passed.
+- `pnpm exec playwright test e2e/signed-out-workspaces.spec.ts --reporter=line`:
+  25 cases passed. All three routes were checked at 320, 768, 1024, and 1440px
+  in both themes, including one H1, no private controls or non-auth API calls,
+  correct sign-in targets, sidebar naming, drawer focus, skip-link keyboard
+  access, visible focus, 44px actions, no horizontal overflow, guest links
+  footer placement, and action reachability at 320×480. The individual-link
+  analytics login target retains its pathname and selected date range.
+- An additional 20 selected browser cases passed: eight recaptured links guest
+  cases, eight signed-in links shell regressions, password login/reload/logout,
+  account deletion, refresh restoration/expiry, and analytics state recovery.
+- Inspected desktop/mobile captures for all three screens across both themes.
+  Corrected screenshot capture scroll position so links previews include the
+  site header; this was a test-capture adjustment, with no product change.
+- Independent task review: spec compliance PASS, code quality PASS, no findings.
+- `git diff --check`: passed.
+
+Browser regression command:
+
+```sh
+TINYROUTE_E2E_API_BASE_URL=https://localhost:3000 pnpm exec playwright test e2e/signed-out-workspaces.spec.ts e2e/account-authentication.spec.ts e2e/link-creation.spec.ts e2e/short-link-analytics.spec.ts --grep 'signed-out links|password sign-in persists|account deletion requires|persisted refresh session|links page shares|validation, no activity' --reporter=line
+```
+
+All browser APIs use synthetic fixtures. No real account was modified.
+Evidence: [settings](evidence/signed-out-settings-1440-dark.png),
+[analytics](evidence/signed-out-analytics-1440-dark.png),
+[links](evidence/signed-out-links-1440-dark.png), and
+[mobile links](evidence/signed-out-links-320-light.png).

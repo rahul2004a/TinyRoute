@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ApiClientError } from "../../lib/api-client";
 import { clearCsrfToken } from "../../lib/csrf";
+import { AccountAccessState } from "../auth/account-access-state";
 import { sessionQueryKey, useSession } from "../auth/use-session";
 import { createLink, linkHistoryQueryKey, type CreatedLink } from "./link-api";
 import {
@@ -117,20 +117,11 @@ export function LinkCreateForm() {
     );
   if (!session.data?.authenticated)
     return (
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Create a short link
-        </h1>
-        <p className="mt-3">
-          Sign in to turn an HTTPS destination into a short link.
-        </p>
-        <Link
-          href="/login"
-          className="link-action mt-6 inline-flex items-center justify-center"
-        >
-          Sign in
-        </Link>
-      </div>
+      <AccountAccessState
+        title="Create a short link"
+        description="Sign in to create and manage your short links."
+        signInHref="/login"
+      />
     );
   const fields = [
     {

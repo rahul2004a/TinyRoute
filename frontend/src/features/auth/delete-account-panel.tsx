@@ -5,6 +5,7 @@ import { Check, LogOut, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { AccountAccessState } from "./account-access-state";
 import { deleteAccount } from "./auth-api";
 import { LogoutButton } from "./logout-button";
 import { sessionQueryKey, useSession } from "./use-session";
@@ -104,21 +105,11 @@ export function DeleteAccountPanel() {
   }
   if (!session.data?.authenticated) {
     return (
-      <section className="settings-state" aria-labelledby="signed-out-title">
-        <span aria-hidden="true" className="settings-state-icon">
-          <UserRound size={24} />
-        </span>
-        <h1 className="settings-title" id="signed-out-title">
-          Account settings
-        </h1>
-        <p className="mt-4">Sign in to manage your account.</p>
-        <Link
-          className="settings-button settings-button-primary mt-6"
-          href="/login"
-        >
-          Sign in
-        </Link>
-      </section>
+      <AccountAccessState
+        title="Account settings"
+        description="Sign in to manage your account."
+        signInHref="/login"
+      />
     );
   }
 

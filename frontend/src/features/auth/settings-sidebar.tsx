@@ -56,7 +56,7 @@ function SidebarContent({
             prefetch={false}
           >
             <LayoutDashboard aria-hidden="true" size={18} />
-            {active === "analytics" ? "Your links" : "Dashboard"}
+            Your links
           </Link>
           <Link
             aria-current={active === "analytics" ? "page" : undefined}

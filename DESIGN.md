@@ -311,7 +311,7 @@ typography and width separate from the landing-page text styles.
 
 The `/settings` page follows the user's full-height settings reference: no site
 header, footer, or outer frame. A 224px desktop sidebar stays at the left edge
-and contains branding, Back to home, Dashboard (the existing `/links` workspace),
+and contains branding, Back to home, Your links (the existing `/links` workspace),
 active Account settings, an inline theme control, and the actual account email.
 Center the content in the remaining space
 at a 760px maximum width. Below 1024px a compact menu button opens the sidebar as
@@ -322,6 +322,16 @@ Derive subtle surfaces and secondary text from the semantic palette with
 color-mix; retain accessible contrast in both themes. Account initials come from
 the session email, never an invented profile. Keep deletion confirmation inline,
 including focus management and safe errors.
+
+Confirmed signed-out settings, analytics, and links views share a calm account
+access panel: one decorative icon, page-specific H1 and guidance, and a primary
+Sign in action. Center it in the available main area; on the links page, keep
+the marketing footer after the first viewport for this state. Use one border,
+a subtle semantic surface, and 12px corners. Keep natural scrolling and visible
+keyboard focus on narrow/short screens. Callers retain all session checks and
+existing sign-in targets; signed-in, pending, error, and deletion-success states
+remain separate. The `/links` navigation label is always Your links, including
+both workspace sidebars and mobile drawers.
 
 The landing footer follows the user's spacious reference: a top divider, brand
 and copyright at the left, Pages and Account columns at the right, and an

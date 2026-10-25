@@ -16,7 +16,7 @@ export default function LinksPage() {
         <LandingHeader accountLinks={accountLinks} currentPath="/links" />
       </div>
       <main
-        className="auth-shell auth-page-enter mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+        className="links-main auth-shell auth-page-enter mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
         id="main-content"
         tabIndex={-1}
       >

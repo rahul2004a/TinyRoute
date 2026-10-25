@@ -121,3 +121,38 @@ within the existing account sidebar/main shell.
 
 Verify the existing privacy and session regressions, the preserved range in
 the recovery action, and light/dark layouts at 320, 768, 1024, and 1440px.
+
+## Signed-out workspace screens and navigation naming
+
+The user requested improvements to the signed-out `/settings`, `/analytics`,
+and `/links` views and corrected the settings sidebar's Dashboard label to
+Your links. Use one cohesive sign-in prompt across all three views, while
+retaining their existing shells and confirmed-session boundaries (FR-ACC-02/03,
+FR-CRE-02, NFR-SEC-04/06).
+
+- Introduce a small shared presentational account-access state with one H1,
+  a decorative Lucide lock/sign-in icon, short guidance, and one primary Sign
+  in action. Use a single restrained bordered panel, semantic palette, existing
+  typography, 12px panel/8px control corners, and no remote assets.
+- Center the panel within the available main region in settings and analytics.
+  In links, give the signed-out main enough height to fill the first viewport
+  beneath the site header so the large marketing footer follows the prompt.
+  Do not change signed-in form/report/settings layouts or other session states.
+- Keep settings' heading Account settings and description Sign in to manage
+  your account.; keep analytics' Sign in to view analytics and Your link
+  analytics are private. Keep links' Create a short link heading and use
+  Sign in to create and manage your short links. as its description.
+- Preserve the existing Sign in hrefs: `/login` for settings and links;
+  analytics retains its encoded pathname/range returnTo parameter. No new
+  redirects or authentication policy, cookie parsing, or private data rendering.
+- Pending/error sessions stay distinct from confirmed signed-out state.
+  Account deletion success, sign-out, session renewal, rate limits, input
+  preservation, and existing behavior remain intact.
+- Use Your links for the `/links` entry on both settings and analytics sidebars,
+  including mobile drawers. Preserve the existing href and active-page cues.
+- Keep keyboard focus visible, targets at least 44px, natural scrolling on short
+  viewports, mobile drawer focus, both themes, and reduced-motion behavior.
+
+Verify shared prompt actions and absence of private controls for guests, return
+navigation, consistent sidebar naming, signed-in regression behavior, and
+responsive layouts. This is presentation/navigation naming only.

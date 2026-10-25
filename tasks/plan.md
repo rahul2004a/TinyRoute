@@ -45,3 +45,28 @@ coordinating with root. Do not create branches, commit, push, or delegate again.
   checks, responsive/theme QA, production build, independent review, and commit.
 - Report changed files, exact checks/results, and concerns. Implement inline
   within the assigned files; leave the working tree ready for root review.
+
+### Task 9: Consistent signed-out workspace screens
+
+Implement [the signed-out workspace amendment](../docs/spec/ui-polish/spec.md#signed-out-workspace-screens-and-navigation-naming)
+on `fix/ui-polish`, preserving completed work and existing behavior.
+
+One delegated implementer owns a shared presentational component and CSS under
+`frontend/src/features/auth/account-access-state.*`, the signed-out branches in
+`delete-account-panel.tsx`, `analytics-page.tsx`, and `link-create-form.tsx`,
+and `frontend/src/app/(account)/links/page.tsx` only if a scoped main class is
+needed. Root independently owns sidebar naming, docs, and browser checks.
+Do not edit other files or tests without coordinating with root. Do not create
+branches, commit, push, or spawn more agents.
+
+- Read root/frontend AGENTS, DESIGN.md, linked spec, current three signed-out
+  states, relevant auth/session contracts, and local Next CSS/client docs.
+- Build the shared single-panel sign-in presentation, centered in settings and
+  analytics; keep the links footer after the initial viewport for guests.
+  Keep responsive scrolling and avoid layout changes for signed-in users.
+- Use the exact headings/descriptions/hrefs specified in the amendment. This
+  component renders props only; existing callers retain policy/session checks.
+- Run existing focused form/account/analytics tests and scoped format/lint.
+- Write report to `.superpowers/sdd/plan/task-9-report.md` with changed files,
+  exact checks, self-review, and concerns. Root handles independent review,
+  full checks/build, browser QA, documentation, and commit.

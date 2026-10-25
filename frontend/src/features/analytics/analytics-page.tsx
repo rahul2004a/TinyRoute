@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ApiClientError } from "../../lib/api-client";
+import { AccountAccessState } from "../auth/account-access-state";
 import type { Session } from "../auth/auth-api";
 import { sessionQueryKey, useSession } from "../auth/use-session";
 import { SavedLinkHistory } from "../links/link-create-result";
@@ -90,16 +91,11 @@ export function AnalyticsPage({
     );
   if (!account)
     return (
-      <div className="analytics-state">
-        <h1 className="settings-title">Sign in to view analytics</h1>
-        <p>Your link analytics are private.</p>
-        <Link
-          className="settings-button"
-          href={`/login?returnTo=${encodeURIComponent(pathname + suffix)}`}
-        >
-          Sign in
-        </Link>
-      </div>
+      <AccountAccessState
+        title="Sign in to view analytics"
+        description="Your link analytics are private."
+        signInHref={`/login?returnTo=${encodeURIComponent(pathname + suffix)}`}
+      />
     );
   if (error?.status === 404)
     return (
