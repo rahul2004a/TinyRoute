@@ -209,6 +209,17 @@ show "Link unavailable" without owner or destination details. Uncertain state
 shows a generic service error with no fallback destination
 (FR-RED-03 through FR-RED-07, NFR-REL-02).
 
+Public redirect error documents use the compact filled Link2 wordmark at the
+top and a large, decorative monospace HTTP status beside the heading, short
+guidance, and a Back to TinyRoute action. A thin vertical rule separates the
+status and message on desktop; below 768px they stack with a horizontal rule.
+Below 480px the action fills the available width. Both brand and action link
+to the first validated configured frontend origin, never the short-link host.
+These independent Spring-rendered documents use the system sans/mono fallback
+without remote font or asset requests. Follow the system theme preference,
+retain clear keyboard focus and reduced-motion support, and mark errors
+noindex,nofollow. See [the active polish spec](docs/spec/ui-polish/spec.md).
+
 ## 5. Layout principles
 
 - Base spacing is 4px; use 8, 12, 16, 24, 32, 48, 64, and 80px.
