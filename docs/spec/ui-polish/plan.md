@@ -1,7 +1,7 @@
 # UI polish implementation plan
 
-Scope: [the UI polish specification](../docs/spec/ui-polish/spec.md).
-Branch: `fix/ui-polish`; keep subsequent user-supplied fixes on this branch.
+Scope: [the UI polish specification](spec.md).
+Branch: `fix/ui-polish`. Completed and archived on 2026-10-25 for the combined PR.
 
 1. Update `RedirectPageRenderer` in place with responsive branded error
    markup, semantic palette, generic guidance, keyboard states, reduced
@@ -27,7 +27,7 @@ Branch: `fix/ui-polish`; keep subsequent user-supplied fixes on this branch.
 
 ### Task 8: Analytics not-found presentation
 
-Implement [the analytics 404 amendment](../docs/spec/ui-polish/spec.md#analytics-link-not-found)
+Implement [the analytics 404 amendment](spec.md#analytics-link-not-found)
 on the existing `fix/ui-polish` branch. The user explicitly requested parallel
 agent work. Root coordinates docs/browser validation; one delegated agent
 owns `frontend/src/features/analytics/analytics-page.tsx`, `analytics.css`,
@@ -48,7 +48,7 @@ coordinating with root. Do not create branches, commit, push, or delegate again.
 
 ### Task 9: Consistent signed-out workspace screens
 
-Implement [the signed-out workspace amendment](../docs/spec/ui-polish/spec.md#signed-out-workspace-screens-and-navigation-naming)
+Implement [the signed-out workspace amendment](spec.md#signed-out-workspace-screens-and-navigation-naming)
 on `fix/ui-polish`, preserving completed work and existing behavior.
 
 One delegated implementer owns a shared presentational component and CSS under

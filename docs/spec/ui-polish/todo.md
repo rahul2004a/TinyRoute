@@ -24,7 +24,9 @@
 - [x] Verify session boundaries, sign-in targets, and signed-in regressions.
 - [x] Inspect responsive/theme layouts, review, build, and commit this follow-up.
 - [x] Disable and verify the Next.js development indicator configuration.
+- [x] Rerun complete backend verification and frontend checks/build for PR readiness.
+- [x] Complete independent whole-branch review with no actionable findings.
+- [x] Archive the completed plan and checklist alongside the specification.
 
-Keep this batch active for additional changes from the user. The active
-follow-up improves signed-out workspace screens and navigation labels. Archive these
-files when the batch is ready for a pull request.
+Completed and archived on 2026-10-25 for the combined pull request. All requested
+fixes remain together on `fix/ui-polish`; final review and merge belong to the user.

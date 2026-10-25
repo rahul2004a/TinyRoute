@@ -1,8 +1,9 @@
 # UI polish
 
-The user requested a redesign of the public short-link error page and asked
-that subsequent fixes stay together on `fix/ui-polish`. Extend this document
-as those changes are supplied; do not merge or open a separate fix branch.
+The user requested a redesign of the public short-link error page and collected
+the follow-up fixes below on `fix/ui-polish`. The completed [plan](plan.md),
+[checklist](todo.md), and [verification](verification.md) accompany this combined
+pull request. Final review and merge remain with the user.
 
 ## Public short-link error pages
 
