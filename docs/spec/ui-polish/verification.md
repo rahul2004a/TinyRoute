@@ -98,3 +98,33 @@ Reviewed header captures: [desktop dark](evidence/signed-in-header-1440-dark.png
 [desktop light](evidence/signed-in-header-1440-light.png),
 [mobile dark](evidence/signed-in-header-320-dark.png), and
 [mobile light](evidence/signed-in-header-320-light.png).
+
+## Link creation copy
+
+Applied the user's approved subtitle, labels, helpers, placeholders, and
+Shorten link action to the signed-in creation form. The heading, field IDs,
+validation, request payloads, local-time conversion, and submission/result
+behavior are unchanged. Existing form, browser, and live-test selectors now
+use the new accessible names.
+
+Checks on 2026-10-25:
+
+- `pnpm test --run src/features/links/link-create-form.test.tsx`: all 16
+  existing form tests passed, including submission, expiry, reset, pending
+  locking, validation, and retained inputs after failures.
+- 15 existing Playwright checks passed: the shared links page in light/dark
+  at 320, 768, 1024, and 1440px; keyboard creation and copying; signed-out and
+  unknown sessions; validation, alias conflict, throttling, CSRF, and service
+  failures. The tests use intercepted API fixtures and created no real links.
+- `pnpm lint`, `pnpm typecheck`, and `pnpm format:check`: passed.
+- `pnpm build`: production webpack build passed.
+- Independent review caught old selectors in the live verification suite;
+  those were updated and re-reviewed with no remaining findings. That live
+  backend gate was not run for this text-only change.
+- `git diff --check`: passed.
+
+Browser command, using the existing local development server's API origin:
+
+```sh
+TINYROUTE_E2E_API_BASE_URL=https://localhost:3000 pnpm exec playwright test e2e/link-creation.spec.ts --grep 'links page shares|keyboard creation|signed-out and unknown|creation .* retains' --reporter=line
+```

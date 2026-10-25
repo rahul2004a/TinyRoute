@@ -12,7 +12,10 @@
 - [x] Verify signed-in, signed-out, pending/error, and sign-out cache changes.
 - [x] Verify desktop/mobile header behavior and run frontend checks/build.
 - [x] Review and record the header follow-up results.
+- [x] Apply the approved creation-form labels, helper text, placeholders, and action.
+- [x] Update existing test selectors and verify the copy-only follow-up.
+- [x] Record verification and commit the creation-form copy separately.
 
 Keep this batch active for additional changes from the user. The active
-follow-up hides guest header links for an authenticated user. Archive these
-files when the batch is ready for a pull request.
+follow-up applies the approved creation-form copy. Archive these files when
+the batch is ready for a pull request.

@@ -131,9 +131,9 @@ for (const state of ["in", "out", "unavailable"] as const) {
       .click();
     await expect(page).toHaveURL(/\/links$/);
     if (state === "in")
-      await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+      await expect(page.getByLabel("Destination URL")).toBeVisible();
     else {
-      await expect(page.getByLabel("HTTPS destination")).toHaveCount(0);
+      await expect(page.getByLabel("Destination URL")).toHaveCount(0);
       if (state === "out")
         await expect(
           page.getByRole("link", { name: "Sign in", exact: true }),
@@ -157,7 +157,7 @@ test("cached authentication keeps signed-in header navigation when the backend g
 }) => {
   const requests = await sessionFixture(page, "in");
   await page.goto("/links");
-  await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+  await expect(page.getByLabel("Destination URL")).toBeVisible();
   await expect(page.getByText("No links yet.", { exact: false })).toBeVisible();
   await page.unrouteAll();
   const unexpected: string[] = [];

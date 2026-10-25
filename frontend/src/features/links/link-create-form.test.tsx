@@ -58,7 +58,7 @@ afterEach(() => cleanup());
 async function fill() {
   const user = userEvent.setup();
   await user.type(
-    await screen.findByLabelText("HTTPS destination"),
+    await screen.findByLabelText("Destination URL"),
     link.destinationUrl,
   );
   await user.type(screen.getByLabelText("Custom alias (optional)"), "MyAlias");
@@ -85,7 +85,7 @@ it("checks the session and prompts signed-out visitors to sign in", async () => 
     (await screen.findByRole("link", { name: "Sign in" })).getAttribute("href"),
   ).toBe("/login");
   expect(createLink).not.toHaveBeenCalled();
-  expect(screen.queryByLabelText("HTTPS destination")).toBeNull();
+  expect(screen.queryByLabelText("Destination URL")).toBeNull();
 });
 it("keeps creation unavailable while session state is pending or unknown", async () => {
   vi.mocked(getCurrentSession).mockImplementation(() => new Promise(() => {}));
@@ -97,15 +97,15 @@ it("keeps creation unavailable while session state is pending or unknown", async
   expect((await screen.findByRole("alert")).textContent).toContain(
     "check your session",
   );
-  expect(screen.queryByLabelText("HTTPS destination")).toBeNull();
+  expect(screen.queryByLabelText("Destination URL")).toBeNull();
 });
 it("submits optional inputs once, resets the form, and renders the authoritative result", async () => {
   mount();
   const user = await fill();
-  fireEvent.change(screen.getByLabelText("Expiry (optional)"), {
+  fireEvent.change(screen.getByLabelText("Expires on (optional)"), {
     target: { value: "2030-10-08T12:30" },
   });
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   await waitFor(() =>
     expect(vi.mocked(createLink).mock.calls[0]?.[0]).toEqual({
       destinationUrl: link.destinationUrl,
@@ -117,23 +117,21 @@ it("submits optional inputs once, resets the form, and renders the authoritative
     ((await screen.findByLabelText("Short URL")) as HTMLInputElement).value,
   ).toBe(link.shortUrl);
   expect(
-    (screen.getByLabelText("HTTPS destination") as HTMLInputElement).value,
+    (screen.getByLabelText("Destination URL") as HTMLInputElement).value,
   ).toBe("");
   expect(
     (screen.getByLabelText("Custom alias (optional)") as HTMLInputElement)
       .value,
   ).toBe("");
   expect(
-    (screen.getByLabelText("Expiry (optional)") as HTMLInputElement).value,
+    (screen.getByLabelText("Expires on (optional)") as HTMLInputElement).value,
   ).toBe("");
 });
 it("prevents duplicate pending requests", async () => {
   vi.mocked(createLink).mockImplementation(() => new Promise(() => {}));
   mount();
   const user = await fill();
-  await user.dblClick(
-    screen.getByRole("button", { name: "Create short link" }),
-  );
+  await user.dblClick(screen.getByRole("button", { name: "Shorten link" }));
   expect(createLink).toHaveBeenCalledTimes(1);
   expect(
     screen.getByRole("button", { name: "Creating…" }).hasAttribute("disabled"),
@@ -155,11 +153,11 @@ it("returns history to page one and reloads saved links after successful creatio
   const user = await fill();
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(await screen.findByText("Page 2")).toBeTruthy();
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   expect(await screen.findByText("Page 1")).toBeTruthy();
   await screen.findAllByRole("link", { name: link.shortUrl });
   expect(
-    (screen.getByLabelText("HTTPS destination") as HTMLInputElement).value,
+    (screen.getByLabelText("Destination URL") as HTMLInputElement).value,
   ).toBe("");
 });
 it.each([
@@ -179,10 +177,10 @@ it.each([
     );
     mount();
     const user = await fill();
-    await user.click(screen.getByRole("button", { name: "Create short link" }));
+    await user.click(screen.getByRole("button", { name: "Shorten link" }));
     expect(await screen.findByRole("alert")).toBeTruthy();
     expect(
-      (screen.getByLabelText("HTTPS destination") as HTMLInputElement).value,
+      (screen.getByLabelText("Destination URL") as HTMLInputElement).value,
     ).toBe(link.destinationUrl);
     expect(
       (screen.getByLabelText("Custom alias (optional)") as HTMLInputElement)
@@ -194,7 +192,7 @@ it.each([
     if (status === 400)
       expect(
         screen
-          .getByLabelText("HTTPS destination")
+          .getByLabelText("Destination URL")
           .getAttribute("aria-describedby"),
       ).toContain("destinationUrl-error");
   },
@@ -203,7 +201,7 @@ it("rechecks a rejected session and requires deliberate resubmission", async () 
   vi.mocked(createLink).mockRejectedValue(error(401, "AUTHENTICATION_FAILED"));
   mount();
   const user = await fill();
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   expect((await screen.findByRole("alert")).textContent).toContain(
     "Submit again",
   );
@@ -214,7 +212,7 @@ it("clears rejected CSRF without retrying creation", async () => {
   vi.mocked(createLink).mockRejectedValue(error(403, "CSRF_INVALID"));
   mount();
   const user = await fill();
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   expect((await screen.findByRole("alert")).textContent).toContain(
     "Submit again",
   );
@@ -225,7 +223,7 @@ it("warns about ambiguous network failure without retrying", async () => {
   vi.mocked(createLink).mockRejectedValue(new TypeError("network"));
   mount();
   const user = await fill();
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   expect((await screen.findByRole("alert")).textContent).toContain(
     "Creation may have succeeded",
   );
@@ -242,14 +240,14 @@ it("converts local expiry to a UTC instant and rejects invalid local times", () 
 it("keeps the last successful URL available after a later ambiguous failure", async () => {
   mount();
   const user = await fill();
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   await screen.findByLabelText("Short URL");
   vi.mocked(createLink).mockRejectedValueOnce(new TypeError("network"));
   await user.type(
-    screen.getByLabelText("HTTPS destination"),
+    screen.getByLabelText("Destination URL"),
     link.destinationUrl,
   );
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   await screen.findByRole("alert");
   expect((screen.getByLabelText("Short URL") as HTMLInputElement).value).toBe(
     link.shortUrl,
@@ -260,10 +258,10 @@ it("keeps the last successful URL available after a later ambiguous failure", as
 it("submits a local expiry as the exact UTC instant", async () => {
   mount();
   const user = await fill();
-  fireEvent.change(screen.getByLabelText("Expiry (optional)"), {
+  fireEvent.change(screen.getByLabelText("Expires on (optional)"), {
     target: { value: "2030-10-08T12:30" },
   });
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   await waitFor(() =>
     expect(vi.mocked(createLink).mock.calls[0]?.[0]).toEqual({
       destinationUrl: link.destinationUrl,
@@ -277,15 +275,15 @@ it("provides associated client format feedback before submitting", async () => {
   mount();
   const user = userEvent.setup();
   await user.type(
-    await screen.findByLabelText("HTTPS destination"),
+    await screen.findByLabelText("Destination URL"),
     "http://example.com",
   );
-  await user.click(screen.getByRole("button", { name: "Create short link" }));
+  await user.click(screen.getByRole("button", { name: "Shorten link" }));
   expect(
     await screen.findByText("Enter a valid HTTPS destination."),
   ).toBeTruthy();
   expect(
-    screen.getByLabelText("HTTPS destination").getAttribute("aria-invalid"),
+    screen.getByLabelText("Destination URL").getAttribute("aria-invalid"),
   ).toBe("true");
   expect(createLink).not.toHaveBeenCalled();
 });

@@ -69,3 +69,25 @@ no-session-request/fixed-header requirements for the header only. Reuse the
 existing bounded session query; add no cookie parsing, auth storage, polling,
 or new API. Verify fresh and cached signed-in sessions, sign-out changes,
 pending/error states, mobile and desktop, and the production frontend build.
+
+## Link creation copy
+
+The user approved the following copy on 2026-10-25. Apply it to the signed-in
+creation form only; retain the heading Create a short link and Custom alias
+(optional). This is presentation for FR-CRE-01/03/07/08; validation, payloads,
+local-time conversion, submission behavior, and result handling do not change.
+
+| Element                 | Approved text                                                   |
+| ----------------------- | --------------------------------------------------------------- |
+| Subtitle                | Turn a long URL into a link you can share.                      |
+| Destination label       | Destination URL                                                 |
+| Destination helper      | Paste the full HTTPS link you want to shorten.                  |
+| Destination placeholder | `https://example.com/your-page`                                 |
+| Alias helper            | 3–64 letters, numbers, hyphens, or underscores. Case-sensitive. |
+| Alias placeholder       | `e.g. my-project`                                               |
+| Expiry label            | Expires on (optional)                                           |
+| Expiry helper           | Uses your local time. Leave blank for no expiration.            |
+| Submit action           | Shorten link                                                    |
+
+Update existing accessible-name selectors to match these labels and action.
+Use the existing form and browser regressions; no new behavior or tests needed.

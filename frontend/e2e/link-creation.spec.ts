@@ -121,7 +121,7 @@ async function fixture(
 }
 async function fill(page: Page) {
   await page.goto("/links");
-  await page.getByLabel("HTTPS destination").fill(destination);
+  await page.getByLabel("Destination URL").fill(destination);
   await page.getByLabel("Custom alias (optional)").fill("Docs2026");
 }
 
@@ -194,11 +194,11 @@ for (const theme of ["light", "dark"] as const) {
       );
       await history.getByRole("button", { name: "Next", exact: true }).click();
       await expect(history.getByText("Page 2", { exact: true })).toBeVisible();
-      await page.getByLabel("HTTPS destination").fill(destination);
+      await page.getByLabel("Destination URL").fill(destination);
       await page
-        .getByRole("button", { name: "Create short link", exact: true })
+        .getByRole("button", { name: "Shorten link", exact: true })
         .click();
-      await expect(page.getByLabel("HTTPS destination")).toHaveValue("");
+      await expect(page.getByLabel("Destination URL")).toHaveValue("");
       await expect(history.getByText("Page 1", { exact: true })).toBeVisible();
       await expect(
         history.getByRole("link", { name: link.shortUrl, exact: true }),
@@ -250,7 +250,7 @@ for (const theme of ["light", "dark"] as const) {
       );
       await fixture(page);
       await page.goto("/links");
-      await expect(page.getByLabel("HTTPS destination")).toBeVisible();
+      await expect(page.getByLabel("Destination URL")).toBeVisible();
       await expect(page.getByRole("banner")).toHaveCount(1);
       await expect(page.getByRole("contentinfo")).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
@@ -316,7 +316,7 @@ test("signed-out and unknown sessions cannot submit", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "Sign in", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("HTTPS destination")).toHaveCount(0);
+  await expect(page.getByLabel("Destination URL")).toHaveCount(0);
   expect(state.attempts()).toBe(0);
   await page.unrouteAll();
   await fixture(page, { session: "unknown" });
@@ -336,15 +336,15 @@ test("keyboard creation and one-click copying use the exact response URL", async
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   const state = await fixture(page);
   await fill(page);
-  await page.getByLabel("HTTPS destination").focus();
+  await page.getByLabel("Destination URL").focus();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Custom alias (optional)")).toBeFocused();
-  await page.getByRole("button", { name: "Create short link" }).focus();
+  await page.getByRole("button", { name: "Shorten link" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Short URL")).toHaveValue(link.shortUrl);
-  await expect(page.getByLabel("HTTPS destination")).toHaveValue("");
+  await expect(page.getByLabel("Destination URL")).toHaveValue("");
   await expect(page.getByLabel("Custom alias (optional)")).toHaveValue("");
-  await expect(page.getByLabel("Expiry (optional)")).toHaveValue("");
+  await expect(page.getByLabel("Expires on (optional)")).toHaveValue("");
   await page.getByLabel("Short URL").focus();
   await page.keyboard.press("Tab");
   await expect(
@@ -368,7 +368,7 @@ test("clipboard denial keeps a selectable URL and manual guidance", async ({
   );
   await fixture(page);
   await fill(page);
-  await page.getByRole("button", { name: "Create short link" }).click();
+  await page.getByRole("button", { name: "Shorten link" }).click();
   await page.getByRole("button", { name: "Copy short link" }).click();
   await expect(page.getByRole("status")).toContainText("copy it manually");
   await expect(page.getByLabel("Short URL")).toHaveValue(link.shortUrl);
@@ -393,9 +393,9 @@ for (const [status, code] of [
       }),
     });
     await fill(page);
-    await page.getByRole("button", { name: "Create short link" }).click();
+    await page.getByRole("button", { name: "Shorten link" }).click();
     await expect(page.locator("main").getByRole("alert")).toBeVisible();
-    await expect(page.getByLabel("HTTPS destination")).toHaveValue(destination);
+    await expect(page.getByLabel("Destination URL")).toHaveValue(destination);
     await expect(page.getByLabel("Custom alias (optional)")).toHaveValue(
       "Docs2026",
     );
@@ -413,13 +413,13 @@ test("session renewal rechecks authentication but waits for manual creation", as
         : { status: 201, body: link },
   });
   await fill(page);
-  await page.getByRole("button", { name: "Create short link" }).click();
+  await page.getByRole("button", { name: "Shorten link" }).click();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Submit again",
   );
   expect(state.refreshes()).toBe(1);
   expect(state.attempts()).toBe(1);
-  await page.getByRole("button", { name: "Create short link" }).click();
+  await page.getByRole("button", { name: "Shorten link" }).click();
   await expect(page.getByLabel("Short URL")).toHaveValue(link.shortUrl);
   expect(state.attempts()).toBe(2);
 });
@@ -433,7 +433,7 @@ test("a malformed server error stays generic and double submission sends one POS
     },
   });
   await fill(page);
-  await page.getByRole("button", { name: "Create short link" }).dblclick();
+  await page.getByRole("button", { name: "Shorten link" }).dblclick();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Creation may have succeeded",
   );
@@ -530,17 +530,17 @@ for (const theme of ["light", "dark"] as const)
         });
       }
       await capture("create");
-      await page.getByRole("button", { name: "Create short link" }).click();
+      await page.getByRole("button", { name: "Shorten link" }).click();
       await expect(page.getByLabel("Short URL")).toHaveValue(link.shortUrl);
       await capture("result");
-      for (const name of ["Create short link", "Copy short link"]) {
+      for (const name of ["Shorten link", "Copy short link"]) {
         const size = await page.getByRole("button", { name }).boundingBox();
         expect(size?.height).toBeGreaterThanOrEqual(44);
         expect(size?.width).toBeGreaterThanOrEqual(44);
       }
-      await page.getByLabel("HTTPS destination").fill(destination);
+      await page.getByLabel("Destination URL").fill(destination);
       await page.getByLabel("Custom alias (optional)").fill("Docs2026");
-      await page.getByRole("button", { name: "Create short link" }).click();
+      await page.getByRole("button", { name: "Shorten link" }).click();
       await expect(page.locator("main").getByRole("alert")).toBeVisible();
       await capture("error");
       expect(errors).toEqual([]);

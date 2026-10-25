@@ -21,3 +21,6 @@ Branch: `fix/ui-polish`; keep subsequent user-supplied fixes on this branch.
 6. Verify header state transitions with component and browser tests, run
    frontend checks/build, and record evidence. The error-page redesign was
    committed separately as `cc297a4` before this follow-up began.
+7. Apply the user-approved plain-language creation-form copy and update
+   affected accessible-name test selectors. Verify existing form/browser
+   regressions and frontend checks, then commit this copy-only follow-up.
