@@ -70,3 +70,8 @@ branches, commit, push, or spawn more agents.
 - Write report to `.superpowers/sdd/plan/task-9-report.md` with changed files,
   exact checks, self-review, and concerns. Root handles independent review,
   full checks/build, browser QA, documentation, and commit.
+
+### Task 10: Development indicator configuration
+
+Disable the Next.js development indicator through its supported config option,
+validate configuration/types/formatting, and commit separately.

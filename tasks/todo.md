@@ -23,6 +23,7 @@
 - [x] Rename the settings sidebar Dashboard entry to Your links everywhere.
 - [x] Verify session boundaries, sign-in targets, and signed-in regressions.
 - [x] Inspect responsive/theme layouts, review, build, and commit this follow-up.
+- [x] Disable and verify the Next.js development indicator configuration.
 
 Keep this batch active for additional changes from the user. The active
 follow-up improves signed-out workspace screens and navigation labels. Archive these

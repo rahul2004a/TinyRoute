@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   async rewrites() {
     const backendOrigin = process.env.BACKEND_ORIGIN;
     if (!backendOrigin) return [];

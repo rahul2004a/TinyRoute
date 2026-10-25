@@ -225,3 +225,11 @@ Evidence: [settings](evidence/signed-out-settings-1440-dark.png),
 [analytics](evidence/signed-out-analytics-1440-dark.png),
 [links](evidence/signed-out-links-1440-dark.png), and
 [mobile links](evidence/signed-out-links-320-light.png).
+
+## Next.js development indicator
+
+Set `devIndicators: false` in `frontend/next.config.ts`, following the installed
+Next.js 16.3.5 documentation and configuration schema. The development-phase
+configuration loader confirmed `{"devIndicators":false}`. `pnpm typecheck`,
+scoped ESLint, Prettier, and `git diff --check` passed. No application behavior
+or CSS hiding rule changed; compile/runtime error reporting remains available.

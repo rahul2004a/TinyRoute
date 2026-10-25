@@ -156,3 +156,9 @@ FR-CRE-02, NFR-SEC-04/06).
 Verify shared prompt actions and absence of private controls for guests, return
 navigation, consistent sidebar naming, signed-in regression behavior, and
 responsive layouts. This is presentation/navigation naming only.
+
+## Development indicator
+
+Disable Next.js's on-screen development indicator with the installed
+`devIndicators: false` configuration option so it does not overlap sidebar
+account information. This changes developer UI only; retain error reporting.
